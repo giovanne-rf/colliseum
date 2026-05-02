@@ -77,6 +77,11 @@ class AthleteService:
             raise NotFoundError("Athlete not found.")
         return athlete
 
+    async def find_id_by_cpf(self, cpf: str) -> int | None:
+        result = await self.session.execute(select(Athlete.id).where(Athlete.cpf == cpf))
+        athlete_id = result.scalar_one_or_none()
+        return int(athlete_id) if athlete_id is not None else None
+
     async def update(self, athlete_id: int, payload: AthleteUpdate) -> Athlete:
         athlete = await self.get(athlete_id)
         data = payload.model_dump(exclude_unset=True)

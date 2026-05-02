@@ -19,6 +19,10 @@
       <nav class="tabs" aria-label="Cadastros">
         <a class="tab" href="/cadastros">Atletas</a>
         <a class="tab active" href="/equipes">Equipes</a>
+        <a class="tab" href="/competicoes">Competicoes</a>
+        <a class="tab" href="/inscricoes">Inscricoes</a>
+        <a class="tab" href="/chaves">Chaves</a>
+        <a class="tab" href="/checagem">Checagem</a>
       </nav>
 
       <section class="workspace">
@@ -41,7 +45,9 @@
 
             <label class="field">
               <span>Responsavel</span>
-              <input id="teamResponsible" name="responsible" type="text" maxlength="160" required />
+              <select id="teamResponsible" name="responsible" required disabled>
+                <option value="">Carregando faixas pretas...</option>
+              </select>
             </label>
 
             <label class="field">
@@ -64,18 +70,9 @@
 
           <p class="message" id="teamFormMessage" role="status" aria-live="polite"></p>
         </form>
-
-        <aside class="panel">
-          <div class="section-heading">
-            <h2>Equipes</h2>
-            <button class="icon-button" id="reloadTeams" type="button" title="Atualizar equipes">R</button>
-          </div>
-
-          <div class="athlete-list" id="teamList"></div>
-        </aside>
       </section>
     </main>
 
-    <script src="/static/teams.js?v=pages-20260502" defer></script>
+    <script src="/static/teams.js?v=black-belts-20260502" defer></script>
   </body>
 </html>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colliseum | Inscricoes</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Colliseum Federation</p>
+          <h1>Inscricoes</h1>
+        </div>
+        <div class="status" id="apiStatus">Conectando</div>
+      </header>
+
+      <nav class="tabs" aria-label="Cadastros">
+        <a class="tab" href="/cadastros">Atletas</a>
+        <a class="tab" href="/equipes">Equipes</a>
+        <a class="tab" href="/competicoes">Competicoes</a>
+        <a class="tab active" href="/inscricoes">Inscricoes</a>
+        <a class="tab" href="/chaves">Chaves</a>
+        <a class="tab" href="/checagem">Checagem</a>
+      </nav>
+
+      <section class="workspace">
+        <form class="registration" id="registrationForm" novalidate>
+          <div class="section-heading">
+            <h2>Inscricao em Categoria</h2>
+            <span id="registrationStatus">Carregando dados...</span>
+          </div>
+
+          <div class="grid">
+            <label class="field">
+              <span>Competicao</span>
+              <select id="registrationCompetition" required disabled>
+                <option value="">Carregando competicoes...</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>CPF</span>
+              <input
+                id="registrationCpf"
+                name="cpf"
+                type="text"
+                inputmode="numeric"
+                maxlength="14"
+                placeholder="000.000.000-00"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Data de nascimento</span>
+              <input id="registrationBirthDate" name="birth_date" type="date" required />
+            </label>
+
+            <label class="field wide">
+              <span>Atleta confirmado</span>
+              <input id="registrationAthleteName" type="text" disabled placeholder="Informe CPF e nascimento" />
+            </label>
+
+            <label class="field wide">
+              <span>Categoria</span>
+              <select id="registrationCategory" required disabled>
+                <option value="">Carregando categorias...</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary" type="submit" id="registrationSubmitButton">Inscrever atleta</button>
+          </div>
+
+          <p class="message" id="registrationMessage" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="/static/registrations.js?v=cpf-birth-category-20260502" defer></script>
+  </body>
+</html>

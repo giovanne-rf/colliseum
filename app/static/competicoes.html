@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colliseum | Nova Competicao</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Colliseum Federation</p>
+          <h1>Nova Competicao</h1>
+        </div>
+        <div class="status" id="apiStatus">Conectando</div>
+      </header>
+
+      <nav class="tabs" aria-label="Cadastros">
+        <a class="tab" href="/cadastros">Atletas</a>
+        <a class="tab" href="/equipes">Equipes</a>
+        <a class="tab active" href="/competicoes">Competicoes</a>
+        <a class="tab" href="/inscricoes">Inscricoes</a>
+        <a class="tab" href="/chaves">Chaves</a>
+        <a class="tab" href="/checagem">Checagem</a>
+      </nav>
+
+      <section class="workspace">
+        <form class="registration" id="competitionForm" novalidate>
+          <div class="section-heading">
+            <h2>Dados da Competicao</h2>
+            <span id="competitionStatus">Competicoes: carregando...</span>
+          </div>
+
+          <div class="grid">
+            <label class="field wide">
+              <span>Nome da competicao</span>
+              <input id="competitionName" name="name" type="text" maxlength="160" required />
+            </label>
+
+            <label class="field">
+              <span>Data do evento</span>
+              <input id="competitionDate" name="event_date" type="date" required />
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary" type="submit" id="competitionSubmitButton">Cadastrar competicao</button>
+          </div>
+
+          <p class="message" id="competitionMessage" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="/static/competitions.js?v=split-pages-20260502" defer></script>
+  </body>
+</html>

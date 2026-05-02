@@ -10,3 +10,7 @@ class Belt(StrEnum):
     brown = "brown"
     black = "black"
 
+
+class Sex(StrEnum):
+    male = "male"
+    female = "female"

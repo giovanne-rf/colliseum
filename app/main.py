@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.database.session import create_db_and_tables
-from app.routers import athletes, categories, health, teams
+from app.routers import athletes, categories, competitions, health, teams
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ app.include_router(health.router)
 app.include_router(categories.router)
 app.include_router(teams.router)
 app.include_router(athletes.router)
+app.include_router(competitions.router)
 
 static_dir = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -48,3 +49,23 @@ async def athlete_frontend() -> FileResponse:
 @app.get("/equipes", include_in_schema=False)
 async def team_frontend() -> FileResponse:
     return FileResponse(static_dir / "equipes.html")
+
+
+@app.get("/competicoes", include_in_schema=False)
+async def competition_frontend() -> FileResponse:
+    return FileResponse(static_dir / "competicoes.html")
+
+
+@app.get("/inscricoes", include_in_schema=False)
+async def registration_frontend() -> FileResponse:
+    return FileResponse(static_dir / "inscricoes.html")
+
+
+@app.get("/chaves", include_in_schema=False)
+async def bracket_frontend() -> FileResponse:
+    return FileResponse(static_dir / "chaves.html")
+
+
+@app.get("/checagem", include_in_schema=False)
+async def checkin_frontend() -> FileResponse:
+    return FileResponse(static_dir / "checagem.html")

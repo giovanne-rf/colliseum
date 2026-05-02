@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colliseum | Chaves</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Colliseum Federation</p>
+          <h1>Chaves</h1>
+        </div>
+        <div class="status" id="apiStatus">Conectando</div>
+      </header>
+
+      <nav class="tabs" aria-label="Cadastros">
+        <a class="tab" href="/cadastros">Atletas</a>
+        <a class="tab" href="/equipes">Equipes</a>
+        <a class="tab" href="/competicoes">Competicoes</a>
+        <a class="tab" href="/inscricoes">Inscricoes</a>
+        <a class="tab active" href="/chaves">Chaves</a>
+        <a class="tab" href="/checagem">Checagem</a>
+      </nav>
+
+      <section class="workspace stack">
+        <form class="registration" id="bracketForm" novalidate>
+          <div class="section-heading">
+            <h2>Gerar Chaves</h2>
+            <span id="bracketStatus">Formato IBJJF por categoria</span>
+          </div>
+
+          <div class="grid">
+            <label class="field wide">
+              <span>Competicao</span>
+              <select id="bracketCompetition" required disabled>
+                <option value="">Carregando competicoes...</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary" type="submit" id="bracketSubmitButton">Gerar todas as chaves</button>
+          </div>
+
+          <p class="message" id="bracketMessage" role="status" aria-live="polite"></p>
+        </form>
+
+        <section class="registration bracket-result" id="bracketResult" hidden>
+          <div class="section-heading">
+            <h2>Chaves Geradas</h2>
+            <span id="bracketSummary"></span>
+          </div>
+
+          <div class="ibjjf-sheets" id="bracketGroups"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/brackets.js?v=ibjjf-style-20260502" defer></script>
+  </body>
+</html>

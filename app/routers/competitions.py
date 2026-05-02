@@ -1,0 +1,153 @@
+from __future__ import annotations
+
+from datetime import date
+
+from fastapi import APIRouter, Query, status
+
+from app.routers.deps import DbSession, translate_service_error
+from app.schemas.bracket import (
+    BracketGenerateRequest,
+    BracketBatchGenerateRead,
+    BracketGenerateAllRequest,
+    BracketRead,
+    CompetitionCreate,
+    CompetitionRead,
+    CompetitionRegistrationCreate,
+    CompetitionRegistrationRead,
+    RegistrationOptionsRead,
+)
+from app.services.brackets import BracketService, CompetitionService, RegistrationService
+from app.services.exceptions import ServiceError
+
+router = APIRouter(prefix="/competitions", tags=["competitions"])
+
+
+@router.post(
+    "",
+    response_model=CompetitionRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create competition",
+)
+async def create_competition(payload: CompetitionCreate, session: DbSession) -> CompetitionRead:
+    try:
+        return await CompetitionService(session).create(payload)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.get("", response_model=list[CompetitionRead], summary="List competitions")
+async def list_competitions(session: DbSession) -> list[CompetitionRead]:
+    return await CompetitionService(session).list()
+
+
+@router.post(
+    "/{competition_id}/registrations",
+    response_model=CompetitionRegistrationRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register athlete in competition category",
+)
+async def create_registration(
+    competition_id: int,
+    payload: CompetitionRegistrationCreate,
+    session: DbSession,
+) -> CompetitionRegistrationRead:
+    try:
+        return await RegistrationService(session).create(competition_id, payload)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.get(
+    "/{competition_id}/registrations",
+    response_model=list[CompetitionRegistrationRead],
+    summary="List competition registrations",
+)
+async def list_registrations(
+    competition_id: int,
+    session: DbSession,
+    category_id: int | None = Query(default=None, gt=0),
+) -> list[CompetitionRegistrationRead]:
+    try:
+        page = await RegistrationService(session).list(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+    return page.items
+
+
+@router.get(
+    "/{competition_id}/registration-options",
+    response_model=RegistrationOptionsRead,
+    summary="Validate athlete and list eligible IBJJF categories",
+)
+async def get_registration_options(
+    competition_id: int,
+    session: DbSession,
+    cpf: str = Query(..., min_length=11, max_length=14),
+    birth_date: date = Query(...),
+) -> RegistrationOptionsRead:
+    try:
+        return await RegistrationService(session).get_options(
+            competition_id=competition_id,
+            cpf=cpf,
+            birth_date=birth_date,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/{competition_id}/brackets/generate-all",
+    response_model=BracketBatchGenerateRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate all IBJJF-style brackets for a competition",
+)
+async def generate_all_brackets(
+    competition_id: int,
+    payload: BracketGenerateAllRequest,
+    session: DbSession,
+) -> BracketBatchGenerateRead:
+    try:
+        brackets, skipped_count = await BracketService(session).generate_all(
+            competition_id=competition_id,
+            replace_existing=payload.replace_existing,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+    return BracketBatchGenerateRead(
+        competition_id=competition_id,
+        generated_count=len(brackets),
+        skipped_count=skipped_count,
+        brackets=brackets,
+    )
+
+
+@router.post(
+    "/{competition_id}/brackets",
+    response_model=BracketRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate IBJJF-style bracket",
+)
+async def generate_bracket(
+    competition_id: int,
+    payload: BracketGenerateRequest,
+    session: DbSession,
+) -> BracketRead:
+    try:
+        return await BracketService(session).generate(
+            competition_id=competition_id,
+            category_id=payload.category_id,
+            replace_existing=payload.replace_existing,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.get("/brackets/{bracket_id}", response_model=BracketRead, summary="Get bracket by ID")
+async def get_bracket(bracket_id: int, session: DbSession) -> BracketRead:
+    try:
+        return await BracketService(session).get(bracket_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc

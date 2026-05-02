@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colliseum | Checagem</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Colliseum Federation</p>
+          <h1>Checagem</h1>
+        </div>
+        <div class="status" id="apiStatus">Conectando</div>
+      </header>
+
+      <nav class="tabs" aria-label="Cadastros">
+        <a class="tab" href="/cadastros">Atletas</a>
+        <a class="tab" href="/equipes">Equipes</a>
+        <a class="tab" href="/competicoes">Competicoes</a>
+        <a class="tab" href="/inscricoes">Inscricoes</a>
+        <a class="tab" href="/chaves">Chaves</a>
+        <a class="tab active" href="/checagem">Checagem</a>
+      </nav>
+
+      <section class="workspace stack">
+        <section class="registration checkin-toolbar">
+          <div class="section-heading">
+            <h2>Atletas Inscritos</h2>
+            <span id="checkinSummary">Selecione uma competicao</span>
+          </div>
+
+          <div class="grid checkin-filters">
+            <label class="field wide">
+              <span>Competicao</span>
+              <select id="competitionSelect" disabled>
+                <option value="">Carregando competicoes...</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Sexo</span>
+              <select id="sexFilter" disabled>
+                <option value="">Todos</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Faixa</span>
+              <select id="beltFilter" disabled>
+                <option value="">Todas</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Categoria</span>
+              <select id="ageGroupFilter" disabled>
+                <option value="">Todas</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Peso</span>
+              <select id="weightFilter" disabled>
+                <option value="">Todos</option>
+              </select>
+            </label>
+          </div>
+
+          <p class="message" id="checkinMessage" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel checkin-panel">
+          <div id="checkinGroups" class="checkin-groups">
+            <div class="empty">Nenhuma competicao selecionada.</div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/checkin.js?v=checkin-20260502" defer></script>
+  </body>
+</html>

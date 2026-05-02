@@ -19,6 +19,10 @@
       <nav class="tabs" aria-label="Cadastros">
         <a class="tab active" href="/cadastros">Atletas</a>
         <a class="tab" href="/equipes">Equipes</a>
+        <a class="tab" href="/competicoes">Competicoes</a>
+        <a class="tab" href="/inscricoes">Inscricoes</a>
+        <a class="tab" href="/chaves">Chaves</a>
+        <a class="tab" href="/checagem">Checagem</a>
       </nav>
 
       <section class="workspace">
@@ -66,6 +70,15 @@
             </label>
 
             <label class="field">
+              <span>Sexo</span>
+              <select id="sex" name="sex" required>
+                <option value="">Selecione</option>
+                <option value="male">Masculino</option>
+                <option value="female">Feminino</option>
+              </select>
+            </label>
+
+            <label class="field">
               <span>Equipe</span>
               <select id="team" name="team" required disabled>
                 <option value="">Carregando equipes...</option>
@@ -101,36 +114,9 @@
 
           <p class="message" id="formMessage" role="status" aria-live="polite"></p>
         </form>
-
-        <aside class="panel">
-          <div class="section-heading">
-            <h2>Atletas</h2>
-            <button class="icon-button" id="reloadAthletes" type="button" title="Atualizar lista">R</button>
-          </div>
-
-          <div class="filters">
-            <label class="field">
-              <span>Filtrar equipe</span>
-              <input id="teamFilter" type="search" placeholder="Equipe" />
-            </label>
-            <label class="field">
-              <span>Filtrar faixa</span>
-              <select id="beltFilter">
-                <option value="">Todas</option>
-                <option value="white">Branca</option>
-                <option value="blue">Azul</option>
-                <option value="purple">Roxa</option>
-                <option value="brown">Marrom</option>
-                <option value="black">Preta</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="athlete-list" id="athleteList"></div>
-        </aside>
       </section>
     </main>
 
-    <script src="/static/athletes.js?v=pages-20260502" defer></script>
+    <script src="/static/athletes.js?v=cpf-availability-20260502" defer></script>
   </body>
 </html>

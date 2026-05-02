@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 
 from app.core.dates import calculate_age
 from app.core.validators import validate_and_normalize_cpf, validate_email, validate_phone
-from app.models.common import Belt
+from app.models.common import Belt, Sex
 from app.schemas.team import TeamRead
 
 
@@ -15,6 +15,7 @@ class AthleteBase(BaseModel):
     cpf: str = Field(..., min_length=11, max_length=14, examples=["529.982.247-25"])
     email: str = Field(..., min_length=6, max_length=254, examples=["maria.silva@example.com"])
     phone: str = Field(..., min_length=13, max_length=13, examples=["11-99999.1234"])
+    sex: Sex = Field(..., examples=[Sex.female])
     team_id: int = Field(..., gt=0, examples=[1])
     belt: Belt = Field(..., examples=[Belt.blue])
     graduation_date: date = Field(..., examples=["2024-12-10"])
@@ -68,6 +69,7 @@ class AthleteCreate(AthleteBase):
                     "cpf": "529.982.247-25",
                     "email": "maria.silva@example.com",
                     "phone": "11-99999.1234",
+                    "sex": "female",
                     "team_id": 1,
                     "belt": "blue",
                     "graduation_date": "2024-12-10",
@@ -83,6 +85,7 @@ class AthleteUpdate(BaseModel):
     cpf: str | None = Field(None, min_length=11, max_length=14, examples=["529.982.247-25"])
     email: str | None = Field(None, min_length=6, max_length=254, examples=["maria@example.com"])
     phone: str | None = Field(None, min_length=13, max_length=13, examples=["11-99999.1234"])
+    sex: Sex | None = Field(None, examples=[Sex.female])
     team_id: int | None = Field(None, gt=0, examples=[2])
     belt: Belt | None = Field(None, examples=[Belt.purple])
     graduation_date: date | None = Field(None, examples=["2024-12-10"])
@@ -132,6 +135,7 @@ class AthleteUpdate(BaseModel):
                 {
                     "email": "maria@example.com",
                     "phone": "11-98888.1234",
+                    "sex": "female",
                     "team_id": 2,
                     "belt": "purple",
                     "graduation_date": "2024-12-10",
@@ -159,3 +163,9 @@ class AthleteList(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class CpfAvailabilityRead(BaseModel):
+    cpf: str
+    exists: bool
+    athlete_id: int | None = None

@@ -8,8 +8,6 @@ const elements = {
   teamFormStatus: document.querySelector("#teamFormStatus"),
   teamFormMessage: document.querySelector("#teamFormMessage"),
   teamSubmitButton: document.querySelector("#teamSubmitButton"),
-  reloadTeams: document.querySelector("#reloadTeams"),
-  teamList: document.querySelector("#teamList"),
 };
 
 function setStatus(text, ok = false) {
@@ -48,44 +46,43 @@ async function fetchJson(url, options = {}) {
   return response.json();
 }
 
-function renderTeams(items) {
-  elements.teamList.innerHTML = "";
+function populateResponsibleBlackBelts(athletes) {
+  elements.teamResponsible.innerHTML = "";
 
-  if (!items.length) {
-    elements.teamList.innerHTML = '<div class="empty">Nenhuma equipe encontrada</div>';
-    elements.teamFormStatus.textContent = "Equipes: 0";
+  if (!athletes.length) {
+    elements.teamResponsible.add(new Option("Nenhum faixa preta cadastrado", ""));
+    elements.teamResponsible.disabled = true;
+    elements.teamSubmitButton.disabled = true;
+    elements.teamFormStatus.textContent = "Responsavel indisponivel";
+    setTeamMessage("Cadastre primeiro um atleta faixa preta para vincular como responsavel.", "error");
     return;
   }
 
-  const sortedTeams = [...items].sort((left, right) => left.name.localeCompare(right.name));
-  for (const team of sortedTeams) {
-    const card = document.createElement("article");
-    card.className = "team-card";
-    card.innerHTML = `
-      <strong>${team.name}</strong>
-      <dl>
-        <dt>ID</dt><dd>${team.id}</dd>
-        <dt>Criacao</dt><dd>${team.created_date}</dd>
-        <dt>Responsavel</dt><dd>${team.responsible}</dd>
-        <dt>Telefone</dt><dd>${team.phone}</dd>
-      </dl>
-    `;
-    elements.teamList.append(card);
+  elements.teamResponsible.add(new Option("Selecione o responsavel", ""));
+  const sortedAthletes = [...athletes].sort((left, right) => left.name.localeCompare(right.name));
+  for (const athlete of sortedAthletes) {
+    elements.teamResponsible.add(new Option(athlete.name, athlete.name));
   }
 
-  elements.teamFormStatus.textContent = `Equipes: ${items.length}`;
+  elements.teamResponsible.disabled = false;
+  elements.teamSubmitButton.disabled = false;
+  elements.teamFormStatus.textContent = `Faixas pretas: ${athletes.length}`;
+  setTeamMessage("");
 }
 
-async function loadTeams() {
-  const page = await fetchJson("/teams?limit=100&offset=0");
-  renderTeams(page.items);
+async function loadResponsibleBlackBelts() {
+  elements.teamResponsible.disabled = true;
+  elements.teamSubmitButton.disabled = true;
+  elements.teamResponsible.innerHTML = '<option value="">Carregando faixas pretas...</option>';
+  const page = await fetchJson("/athletes?belt=black&limit=100&offset=0");
+  populateResponsibleBlackBelts(page.items);
 }
 
 function buildTeamPayload() {
   return {
     name: elements.teamName.value.trim(),
     created_date: elements.teamCreatedDate.value,
-    responsible: elements.teamResponsible.value.trim(),
+    responsible: elements.teamResponsible.value,
     phone: elements.teamPhone.value.trim(),
   };
 }
@@ -106,7 +103,7 @@ async function submitTeam(event) {
     });
     setTeamMessage(`Equipe ${team.name} cadastrada com sucesso.`, "success");
     elements.teamForm.reset();
-    await loadTeams();
+    await loadResponsibleBlackBelts();
   } catch (error) {
     setTeamMessage(error.message, "error");
   } finally {
@@ -126,7 +123,7 @@ async function bootstrap() {
   try {
     await fetchJson("/health");
     setStatus("Online", true);
-    await loadTeams();
+    await loadResponsibleBlackBelts();
   } catch (error) {
     setStatus("Offline", false);
     setTeamMessage(error.message, "error");
@@ -134,7 +131,6 @@ async function bootstrap() {
 }
 
 elements.teamForm.addEventListener("submit", submitTeam);
-elements.reloadTeams.addEventListener("click", loadTeams);
 elements.teamPhone.addEventListener("input", () => {
   elements.teamPhone.value = maskTeamPhone(elements.teamPhone.value);
 });

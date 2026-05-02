@@ -2,11 +2,18 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, HTTPException, Query, Response, status
 
+from app.core.validators import validate_and_normalize_cpf
 from app.models.common import Belt
 from app.routers.deps import DbSession, translate_service_error
-from app.schemas.athlete import AthleteCreate, AthleteList, AthleteRead, AthleteUpdate
+from app.schemas.athlete import (
+    AthleteCreate,
+    AthleteList,
+    AthleteRead,
+    AthleteUpdate,
+    CpfAvailabilityRead,
+)
 from app.services.athletes import AthleteService
 from app.services.exceptions import ServiceError
 
@@ -29,6 +36,7 @@ router = APIRouter(prefix="/athletes", tags=["athletes"])
                         "cpf": "52998224725",
                         "email": "maria.silva@example.com",
                         "phone": "11-99999.1234",
+                        "sex": "female",
                         "team_id": 1,
                         "belt": "blue",
                         "graduation_date": "2024-12-10",
@@ -62,6 +70,23 @@ async def list_athletes(
         offset=offset,
     )
     return AthleteList(items=page.items, total=page.total, limit=page.limit, offset=page.offset)
+
+
+@router.get("/check-cpf", response_model=CpfAvailabilityRead, summary="Check CPF availability")
+async def check_cpf(
+    session: DbSession,
+    cpf: str = Query(..., min_length=11, max_length=14),
+) -> CpfAvailabilityRead:
+    try:
+        normalized_cpf = validate_and_normalize_cpf(cpf)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+    athlete_id = await AthleteService(session).find_id_by_cpf(normalized_cpf)
+    return CpfAvailabilityRead(
+        cpf=normalized_cpf,
+        exists=athlete_id is not None,
+        athlete_id=athlete_id,
+    )
 
 
 @router.get("/{athlete_id}", response_model=AthleteRead, summary="Get athlete by ID")
