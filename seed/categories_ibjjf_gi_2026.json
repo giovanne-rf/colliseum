@@ -1,0 +1,3742 @@
+﻿[
+    {
+        "weight_class":  "Male - Rooster (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Light (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-84.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-89.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+89.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-44.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-48.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-52.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Light (-56.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-60.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-65.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Light (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-84.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-89.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+89.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-44.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-48.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-52.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Light (-56.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-60.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-65.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Light (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-84.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-89.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+89.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-44.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-48.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-52.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Light (-56.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-60.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-65.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Light (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-84.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-89.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+89.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-44.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-48.3 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-52.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Light (-56.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-60.5 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-65.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Light (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-84.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-89.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+89.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-44.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-48.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-52.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Light (-56.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-60.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-65.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Light (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-84.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-89.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+89.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-44.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-48.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-52.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Light (-56.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-60.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-65.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Juvenile 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Adult"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 1"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 2"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 3"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 4"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "white",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 5"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 6"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "blue",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "purple",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "brown",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Rooster (-57.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light Feather (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Feather (-70.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Light (-76.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Middle (-82.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Medium Heavy (-88.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Heavy (-94.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Super Heavy (-100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Male - Ultra Heavy (+100.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Rooster (-48.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light Feather (-53.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Feather (-58.5 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Light (-64.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Middle (-69.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Medium Heavy (-74.0 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Heavy (-79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    },
+    {
+        "weight_class":  "Female - Super Heavy (+79.3 kg)",
+        "belt":  "black",
+        "age_group":  "Master 7"
+    }
+]

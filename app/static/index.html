@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colliseum | Cadastro de Atletas</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Colliseum Federation</p>
+          <h1>Cadastro de Atletas</h1>
+        </div>
+        <div class="status" id="apiStatus">Conectando</div>
+      </header>
+
+      <section class="workspace">
+        <form class="registration" id="athleteForm" novalidate>
+          <div class="section-heading">
+            <h2>Dados Federativos</h2>
+            <span id="teamsStatus">Equipes: carregando...</span>
+          </div>
+
+          <div class="grid">
+            <label class="field wide">
+              <span>Nome completo</span>
+              <input id="name" name="name" type="text" maxlength="160" required autocomplete="name" />
+            </label>
+
+            <label class="field">
+              <span>CPF</span>
+              <input
+                id="cpf"
+                name="cpf"
+                type="text"
+                inputmode="numeric"
+                maxlength="14"
+                placeholder="000.000.000-00"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Email</span>
+              <input id="email" name="email" type="email" maxlength="254" required autocomplete="email" />
+            </label>
+
+            <label class="field">
+              <span>Telefone</span>
+              <input
+                id="phone"
+                name="phone"
+                type="text"
+                inputmode="numeric"
+                maxlength="13"
+                placeholder="11-99999.1234"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Equipe</span>
+              <select id="team" name="team" required disabled>
+                <option value="">Carregando equipes...</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Faixa</span>
+              <select id="belt" name="belt" required>
+                <option value="">Selecione</option>
+                <option value="white">Branca</option>
+                <option value="blue">Azul</option>
+                <option value="purple">Roxa</option>
+                <option value="brown">Marrom</option>
+                <option value="black">Preta</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Data da graduacao</span>
+              <input id="graduationDate" name="graduation_date" type="date" required />
+            </label>
+
+            <label class="field">
+              <span>Data de nascimento</span>
+              <input id="birthDate" name="birth_date" type="date" required />
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary" type="submit" id="submitButton">Cadastrar atleta</button>
+          </div>
+
+          <p class="message" id="formMessage" role="status" aria-live="polite"></p>
+        </form>
+
+        <aside class="panel">
+          <div class="section-heading">
+            <h2>Atletas</h2>
+            <button class="icon-button" id="reloadAthletes" type="button" title="Atualizar lista">R</button>
+          </div>
+
+          <div class="filters">
+            <label class="field">
+              <span>Filtrar equipe</span>
+              <input id="teamFilter" type="search" placeholder="Equipe" />
+            </label>
+            <label class="field">
+              <span>Filtrar faixa</span>
+              <select id="beltFilter">
+                <option value="">Todas</option>
+                <option value="white">Branca</option>
+                <option value="blue">Azul</option>
+                <option value="purple">Roxa</option>
+                <option value="brown">Marrom</option>
+                <option value="black">Preta</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="athlete-list" id="athleteList"></div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/static/app.js?v=teams-combobox-20260502" defer></script>
+  </body>
+</html>
