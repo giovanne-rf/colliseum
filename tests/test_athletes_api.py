@@ -150,7 +150,8 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "Chaves Geradas" in brackets_response.text
     assert "Formato IBJJF" in brackets_response.text
     assert "Chaves em formato paisagem" in brackets_response.text
-    assert "split-brackets-20260502" in brackets_response.text
+    assert "clean-links-20260502" in brackets_response.text
+    assert "bracket-shell" in brackets_response.text
     assert "Carregando categorias" not in brackets_response.text
     assert "Nova Competicao" not in brackets_response.text
     assert "Inscricao em Categoria" not in brackets_response.text
