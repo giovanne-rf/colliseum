@@ -175,58 +175,202 @@ function buildBracketGroup(bracket) {
 
   sheet.innerHTML = `
     <div class="ibjjf-sheet-header">
-      <div>
-        <p class="ibjjf-kicker">Colliseum Federation</p>
-        <h2>${categoryLabel(bracket.category)}</h2>
-      </div>
+      <p class="ibjjf-kicker">Colliseum Federation</p>
+      <h2>${categoryLabel(bracket.category)}</h2>
       <span>${summary.join(" | ")}</span>
     </div>
-    <div class="ibjjf-rounds" data-role="rounds"></div>
+    <div class="ibjjf-board" data-role="bracketBody"></div>
   `;
 
-  const rounds = sheet.querySelector('[data-role="rounds"]');
-  const groupedMatches = new Map();
+  const body = sheet.querySelector('[data-role="bracketBody"]');
+  if (bracket.rounds >= 4) {
+    body.classList.add("split-brackets");
+    body.append(buildBracketHalf(bracket, 1, 1, bracket.bracket_size / 2));
+    body.append(buildBracketHalf(bracket, 2, bracket.bracket_size / 2 + 1, bracket.bracket_size));
+    body.append(buildFinalsBlock(bracket));
+    return sheet;
+  }
 
-  for (const match of bracket.matches) {
+  body.append(buildCompactBracket(bracket));
+  return sheet;
+}
+
+function buildCompactBracket(bracket) {
+  const compact = document.createElement("div");
+  compact.className = "ibjjf-compact-board";
+  const halfSize = bracket.bracket_size / 2;
+  const sideAMatches = bracket.matches.filter(
+    (match) => match.round_number < bracket.rounds && match.position_end <= halfSize,
+  );
+  const sideBMatches = bracket.matches.filter(
+    (match) => match.round_number < bracket.rounds && match.position_start > halfSize,
+  );
+  const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+
+  compact.append(buildBracketSide("Lado A", `Posicoes 1-${halfSize}`, sideAMatches, bracket.rounds, "left"));
+  compact.append(buildFinalSection(finalMatch, "Final"));
+  compact.append(
+    buildBracketSide(
+      "Lado B",
+      `Posicoes ${halfSize + 1}-${bracket.bracket_size}`,
+      sideBMatches,
+      bracket.rounds,
+      "right",
+    ),
+  );
+
+  return compact;
+}
+
+function buildBracketHalf(bracket, index, startPosition, endPosition) {
+  const block = document.createElement("section");
+  block.className = "ibjjf-bracket-block";
+  const middlePosition = startPosition + (endPosition - startPosition + 1) / 2 - 1;
+  const blockFinalRound = bracket.rounds - 1;
+  const leftMatches = bracket.matches.filter(
+    (match) =>
+      match.round_number < blockFinalRound &&
+      match.position_start >= startPosition &&
+      match.position_end <= middlePosition,
+  );
+  const rightMatches = bracket.matches.filter(
+    (match) =>
+      match.round_number < blockFinalRound &&
+      match.position_start > middlePosition &&
+      match.position_end <= endPosition,
+  );
+  const blockFinal = bracket.matches.find(
+    (match) =>
+      match.round_number === blockFinalRound &&
+      match.position_start >= startPosition &&
+      match.position_end <= endPosition,
+  );
+
+  block.innerHTML = `
+    <div class="ibjjf-bracket-block-title">BRACKET ${index}/2</div>
+    <div class="ibjjf-compact-board" data-role="blockBody"></div>
+  `;
+
+  const blockBody = block.querySelector('[data-role="blockBody"]');
+  blockBody.append(
+    buildBracketSide(
+      `Lado ${index}A`,
+      `Posicoes ${startPosition}-${middlePosition}`,
+      leftMatches,
+      bracket.rounds,
+      "left",
+    ),
+  );
+  blockBody.append(buildFinalSection(blockFinal, "Final do bracket"));
+  blockBody.append(
+    buildBracketSide(
+      `Lado ${index}B`,
+      `Posicoes ${middlePosition + 1}-${endPosition}`,
+      rightMatches,
+      bracket.rounds,
+      "right",
+    ),
+  );
+
+  return block;
+}
+
+function buildFinalsBlock(bracket) {
+  const finals = document.createElement("section");
+  finals.className = "ibjjf-finals-block";
+  const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+  finals.innerHTML = `
+    <div class="ibjjf-bracket-block-title">FINALS</div>
+    <div class="ibjjf-finals-center" data-role="finalsCenter"></div>
+  `;
+
+  const finalsCenter = finals.querySelector('[data-role="finalsCenter"]');
+  finalsCenter.append(buildFinalSection(finalMatch, "Final"));
+  return finals;
+}
+
+function buildBracketSide(title, subtitle, matches, totalRounds, direction) {
+  const side = document.createElement("section");
+  side.className = `ibjjf-side ${direction}`;
+  side.innerHTML = `
+    <div class="ibjjf-side-header">
+      <strong>${title}</strong>
+      <span>${subtitle}</span>
+    </div>
+    <div class="ibjjf-rounds"></div>
+  `;
+
+  const rounds = side.querySelector(".ibjjf-rounds");
+  const groupedMatches = new Map();
+  for (const match of matches) {
     if (!groupedMatches.has(match.round_number)) {
       groupedMatches.set(match.round_number, []);
     }
     groupedMatches.get(match.round_number).push(match);
   }
 
-  const orderedRounds = [...groupedMatches.entries()].sort(([left], [right]) => left - right);
-  for (const [roundNumber, matches] of orderedRounds) {
-    matches.sort((left, right) => left.match_number - right.match_number);
-    const round = document.createElement("section");
-    round.className = "ibjjf-round";
-    round.innerHTML = `
-      <div class="ibjjf-round-title">
-        <strong>${roundLabel(roundNumber, bracket.rounds)}</strong>
-        <span>${matches.length} luta(s)</span>
-      </div>
-      <div class="ibjjf-match-list"></div>
-    `;
-
-    const matchList = round.querySelector(".ibjjf-match-list");
-    for (const match of matches) {
-      matchList.append(buildMatchCard(match, roundNumber === 1));
-    }
-    rounds.append(round);
+  const orderedRounds = [...groupedMatches.entries()].sort(([left], [right]) =>
+    direction === "right" ? right - left : left - right,
+  );
+  for (const [roundNumber, roundMatches] of orderedRounds) {
+    roundMatches.sort((left, right) => left.match_number - right.match_number);
+    rounds.append(buildRoundColumn(roundNumber, totalRounds, roundMatches, direction));
   }
 
-  return sheet;
+  return side;
 }
 
-function buildMatchCard(match, isOpeningRound) {
+function buildRoundColumn(roundNumber, totalRounds, matches, direction) {
+  const round = document.createElement("section");
+  round.className = `ibjjf-round ${direction}`;
+  round.innerHTML = `
+    <div class="ibjjf-round-title">
+      <strong>${roundLabel(roundNumber, totalRounds)}</strong>
+      <span>${matches.length} luta(s)</span>
+    </div>
+    <div class="ibjjf-match-list"></div>
+  `;
+
+  const matchList = round.querySelector(".ibjjf-match-list");
+  for (const match of matches) {
+    matchList.append(buildMatchCard(match, roundNumber === 1, direction));
+  }
+
+  return round;
+}
+
+function buildFinalSection(match, title = "Final") {
+  const final = document.createElement("section");
+  final.className = "ibjjf-final-section";
+  final.innerHTML = `
+    <div class="ibjjf-side-header final-header">
+      <strong>${title}</strong>
+      <span>Vencedor do Lado A x Vencedor do Lado B</span>
+    </div>
+    <div class="ibjjf-final-match"></div>
+  `;
+
+  const finalMatch = final.querySelector(".ibjjf-final-match");
+  if (match) {
+    finalMatch.append(buildMatchCard(match, false, "final"));
+  }
+
+  return final;
+}
+
+function buildMatchCard(match, isOpeningRound, direction) {
   const card = document.createElement("article");
-  card.className = `ibjjf-match ${isOpeningRound ? "opening-round" : ""}`.trim();
+  card.className = `ibjjf-match ${direction} ${isOpeningRound ? "opening-round" : ""}`.trim();
   const left = athleteLabel(match.athlete_a);
   const right = athleteLabel(match.athlete_b);
   const statusText = match.status === "bye" ? "BYE" : `Luta ${match.match_number}`;
 
   card.innerHTML = `
-    <div class="ibjjf-match-meta">${statusText}</div>
-    <div class="ibjjf-slot">
+    <div class="ibjjf-match-meta">
+      <strong>${statusText}</strong>
+      <span>Mat 10</span>
+    </div>
+    <div class="ibjjf-slot winner">
       <span class="ibjjf-position">${match.position_start}</span>
       <div>
         <strong>${left.name}</strong>

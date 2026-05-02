@@ -149,6 +149,8 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "Gerar todas as chaves" in brackets_response.text
     assert "Chaves Geradas" in brackets_response.text
     assert "Formato IBJJF" in brackets_response.text
+    assert "Chaves em formato paisagem" in brackets_response.text
+    assert "split-brackets-20260502" in brackets_response.text
     assert "Carregando categorias" not in brackets_response.text
     assert "Nova Competicao" not in brackets_response.text
     assert "Inscricao em Categoria" not in brackets_response.text
@@ -211,7 +213,14 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "function submitBracket" in bracket_script_response.text
     assert "function renderBrackets" in bracket_script_response.text
     assert "function buildMatchCard" in bracket_script_response.text
+    assert "function buildBracketSide" in bracket_script_response.text
+    assert "function buildFinalSection" in bracket_script_response.text
+    assert "Lado A" in bracket_script_response.text
+    assert "Lado B" in bracket_script_response.text
     assert "ibjjf-match" in bracket_script_response.text
+    assert "ibjjf-board" in bracket_script_response.text
+    assert "BRACKET ${index}/2" in bracket_script_response.text
+    assert "FINALS" in bracket_script_response.text
     assert "generate-all" in bracket_script_response.text
     assert "/competitions" in competition_script_response.text
     assert "/categories" not in bracket_script_response.text
