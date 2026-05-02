@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colliseum | Cadastro de Equipes</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Colliseum Federation</p>
+          <h1>Cadastro de Equipes</h1>
+        </div>
+        <div class="status" id="apiStatus">Conectando</div>
+      </header>
+
+      <nav class="tabs" aria-label="Cadastros">
+        <a class="tab" href="/cadastros">Atletas</a>
+        <a class="tab active" href="/equipes">Equipes</a>
+      </nav>
+
+      <section class="workspace">
+        <form class="registration" id="teamForm" novalidate>
+          <div class="section-heading">
+            <h2>Dados da Equipe</h2>
+            <span id="teamFormStatus">Nova equipe</span>
+          </div>
+
+          <div class="grid">
+            <label class="field wide">
+              <span>Nome da equipe</span>
+              <input id="teamName" name="name" type="text" maxlength="160" required autocomplete="organization" />
+            </label>
+
+            <label class="field">
+              <span>Data de criacao</span>
+              <input id="teamCreatedDate" name="created_date" type="date" required />
+            </label>
+
+            <label class="field">
+              <span>Responsavel</span>
+              <input id="teamResponsible" name="responsible" type="text" maxlength="160" required />
+            </label>
+
+            <label class="field">
+              <span>Telefone</span>
+              <input
+                id="teamPhone"
+                name="phone"
+                type="text"
+                inputmode="numeric"
+                maxlength="13"
+                placeholder="11-99999-1234"
+                required
+              />
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary" type="submit" id="teamSubmitButton">Cadastrar equipe</button>
+          </div>
+
+          <p class="message" id="teamFormMessage" role="status" aria-live="polite"></p>
+        </form>
+
+        <aside class="panel">
+          <div class="section-heading">
+            <h2>Equipes</h2>
+            <button class="icon-button" id="reloadTeams" type="button" title="Atualizar equipes">R</button>
+          </div>
+
+          <div class="athlete-list" id="teamList"></div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/static/teams.js?v=pages-20260502" defer></script>
+  </body>
+</html>

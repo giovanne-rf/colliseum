@@ -96,17 +96,9 @@ async function loadTeams() {
   elements.team.disabled = true;
   elements.teamsStatus.textContent = "Equipes: carregando...";
   elements.team.innerHTML = '<option value="">Carregando equipes...</option>';
-  try {
-    const page = await fetchJson("/teams?limit=100&offset=0");
-    state.teams = page.items;
-    populateTeams();
-  } catch (error) {
-    state.teams = [];
-    elements.team.innerHTML = '<option value="">Erro ao carregar equipes</option>';
-    elements.teamsStatus.textContent = "Equipes: erro";
-    elements.submitButton.disabled = true;
-    throw error;
-  }
+  const page = await fetchJson("/teams?limit=100&offset=0");
+  state.teams = page.items;
+  populateTeams();
 }
 
 function renderAthletes(items) {
@@ -156,7 +148,7 @@ async function loadAthletes() {
 }
 
 function buildAthletePayload() {
-  const payload = {
+  return {
     name: elements.name.value.trim(),
     cpf: elements.cpf.value.trim(),
     email: elements.email.value.trim(),
@@ -166,8 +158,6 @@ function buildAthletePayload() {
     graduation_date: elements.graduationDate.value,
     birth_date: elements.birthDate.value,
   };
-
-  return payload;
 }
 
 async function submitAthlete(event) {
@@ -210,10 +200,7 @@ function normalizeCpf(value) {
 
 function isValidCpf(value) {
   const digits = normalizeCpf(value);
-  if (digits.length !== 11) {
-    return false;
-  }
-  if (digits === digits[0].repeat(11)) {
+  if (digits.length !== 11 || digits === digits[0].repeat(11)) {
     return false;
   }
 

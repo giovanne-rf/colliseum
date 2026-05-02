@@ -31,7 +31,8 @@ body {
 
 button,
 input,
-select {
+select,
+a {
   font: inherit;
 }
 
@@ -48,6 +49,32 @@ select {
   gap: 16px;
   padding: 18px 0 22px;
   border-bottom: 3px solid var(--red);
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-color: var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 800;
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.tab.active {
+  border-color: var(--red);
+  background: var(--red);
+  color: #fff;
 }
 
 .eyebrow {
@@ -94,6 +121,14 @@ h2 {
   grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
   gap: 18px;
   padding-top: 18px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: grid;
 }
 
 .registration,
@@ -238,6 +273,10 @@ button:disabled {
   margin-bottom: 12px;
 }
 
+.filters.single {
+  grid-template-columns: 1fr;
+}
+
 .athlete-list {
   display: grid;
   gap: 10px;
@@ -246,19 +285,22 @@ button:disabled {
   padding-right: 4px;
 }
 
-.athlete-card {
+.athlete-card,
+.team-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-2);
   padding: 12px;
 }
 
-.athlete-card strong {
+.athlete-card strong,
+.team-card strong {
   display: block;
   margin-bottom: 6px;
 }
 
-.athlete-card dl {
+.athlete-card dl,
+.team-card dl {
   display: grid;
   grid-template-columns: 82px 1fr;
   gap: 4px 8px;
@@ -267,7 +309,12 @@ button:disabled {
   font-size: 13px;
 }
 
-.athlete-card dd {
+.team-card dl {
+  grid-template-columns: 98px 1fr;
+}
+
+.athlete-card dd,
+.team-card dd {
   margin: 0;
   color: var(--text);
 }

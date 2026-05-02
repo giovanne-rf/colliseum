@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
@@ -36,5 +36,15 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
 @app.get("/", include_in_schema=False)
-async def frontend() -> FileResponse:
+async def frontend() -> RedirectResponse:
+    return RedirectResponse(url="/cadastros")
+
+
+@app.get("/cadastros", include_in_schema=False)
+async def athlete_frontend() -> FileResponse:
     return FileResponse(static_dir / "index.html")
+
+
+@app.get("/equipes", include_in_schema=False)
+async def team_frontend() -> FileResponse:
+    return FileResponse(static_dir / "equipes.html")

@@ -85,36 +85,55 @@ async def test_create_and_get_athlete(client: AsyncClient):
 
 
 async def test_frontend_is_served(client: AsyncClient):
-    response = await client.get("/")
+    root_response = await client.get("/")
+    response = await client.get("/cadastros")
+    teams_response = await client.get("/equipes")
 
+    assert root_response.status_code == 307
+    assert root_response.headers["location"] == "/cadastros"
     assert response.status_code == 200
     assert "Cadastro de Atletas" in response.text
-    assert "/static/app.js" in response.text
+    assert "Dados Federativos" in response.text
+    assert "Dados da Equipe" not in response.text
+    assert "Cadastrar equipe" not in response.text
+    assert "/static/athletes.js" in response.text
+    assert "/equipes" in response.text
     assert "Categoria" not in response.text
     assert "categoryId" not in response.text
     assert "Email" in response.text
     assert "Data da graduacao" in response.text
     assert "Carregando equipes" in response.text
+    assert teams_response.status_code == 200
+    assert "Cadastro de Equipes" in teams_response.text
+    assert "Dados da Equipe" in teams_response.text
+    assert "Cadastrar equipe" in teams_response.text
+    assert "/static/teams.js" in teams_response.text
+    assert "/cadastros" in teams_response.text
 
 
 async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combobox(
     client: AsyncClient,
 ):
     styles_response = await client.get("/static/styles.css")
-    script_response = await client.get("/static/app.js")
+    athlete_script_response = await client.get("/static/athletes.js")
+    team_script_response = await client.get("/static/teams.js")
 
     assert styles_response.status_code == 200
     assert "color-scheme: light" in styles_response.text
-    assert script_response.status_code == 200
-    assert "function isValidCpf" in script_response.text
-    assert "setCustomValidity" in script_response.text
-    assert "warnInvalidCpfOnBlur" in script_response.text
-    assert "reportValidity" in script_response.text
-    assert "category_id" not in script_response.text
-    assert "graduation_date" in script_response.text
-    assert "function loadTeams" in script_response.text
-    assert "/teams?limit=100&offset=0" in script_response.text
-    assert "team_id" in script_response.text
+    assert athlete_script_response.status_code == 200
+    assert "function isValidCpf" in athlete_script_response.text
+    assert "setCustomValidity" in athlete_script_response.text
+    assert "warnInvalidCpfOnBlur" in athlete_script_response.text
+    assert "reportValidity" in athlete_script_response.text
+    assert "category_id" not in athlete_script_response.text
+    assert "graduation_date" in athlete_script_response.text
+    assert "function loadTeams" in athlete_script_response.text
+    assert "/teams?limit=100&offset=0" in athlete_script_response.text
+    assert "team_id" in athlete_script_response.text
+    assert team_script_response.status_code == 200
+    assert "function buildTeamPayload" in team_script_response.text
+    assert "function submitTeam" in team_script_response.text
+    assert "maskTeamPhone" in team_script_response.text
 
 
 async def test_create_categories_bulk(client: AsyncClient):
