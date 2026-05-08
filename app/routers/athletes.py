@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Body, HTTPException, Query, Response, status
 
 from app.core.validators import validate_and_normalize_cpf
 from app.models.common import Belt
@@ -51,6 +51,22 @@ router = APIRouter(prefix="/athletes", tags=["athletes"])
 async def create_athlete(payload: AthleteCreate, session: DbSession) -> AthleteRead:
     try:
         return await AthleteService(session).create(payload)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/bulk",
+    response_model=list[AthleteRead],
+    status_code=status.HTTP_201_CREATED,
+    summary="Create athletes in bulk",
+)
+async def create_athletes_bulk(
+    payload: Annotated[list[AthleteCreate], Body(min_length=1, max_length=100)],
+    session: DbSession,
+) -> list[AthleteRead]:
+    try:
+        return await AthleteService(session).create_many(payload)
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
 

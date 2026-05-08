@@ -1,0 +1,27 @@
+INFO:     Will watch for changes in these directories: ['C:\\Users\\giova\\PycharmProjects\\Colliseum']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [78596] using WatchFiles
+INFO:     Started server process [7856]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app\models\ranking.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7856]
+WARNING:  WatchFiles detected changes in 'alembic\versions\20260507_2100_add_ranking_entries.py', 'app\database\session.py', 'app\schemas\ranking.py', 'app\models\__init__.py', 'app\services\ranking.py', 'app\routers\ranking.py', 'app\main.py'. Reloading...
+INFO:     Started server process [69896]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [69896]
+INFO:     Started server process [9148]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'tests\test_ranking_api.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [9148]

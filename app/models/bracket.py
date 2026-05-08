@@ -30,6 +30,7 @@ class Competition(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(160), nullable=False, unique=True, index=True)
     event_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    mat_count: Mapped[int] = mapped_column(Integer, nullable=False, default=4, server_default="4")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

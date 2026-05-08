@@ -21,6 +21,7 @@ from app.models.bracket import (
 )
 from app.models.category import Category
 from app.models.common import Sex
+from app.models.ranking import RankingEntry
 from app.schemas.bracket import CompetitionCreate, CompetitionRegistrationCreate
 from app.services.exceptions import ConflictError, NotFoundError, ValidationError
 from app.tournament.brackets import (
@@ -102,6 +103,66 @@ class RegistrationService:
             raise ConflictError("Athlete is already registered in this competition.") from exc
 
         return await self.get(registration.id)
+
+    async def create_many(
+        self,
+        competition_id: int,
+        payloads: list[CompetitionRegistrationCreate],
+    ) -> list[CompetitionRegistration]:
+        resolved: list[tuple[CompetitionRegistrationCreate, RegistrationOptions]] = []
+        seen_athlete_ids: set[int] = set()
+
+        for payload in payloads:
+            options = await self.get_options(
+                competition_id=competition_id,
+                cpf=payload.cpf,
+                birth_date=payload.birth_date,
+            )
+            if options.athlete.id in seen_athlete_ids:
+                raise ConflictError("Bulk payload contains duplicate athlete registration.")
+
+            category = await self._ensure_category_exists(payload.category_id)
+            if category.id not in {option.id for option in options.categories}:
+                raise ValidationError("Selected category is not eligible for this athlete.")
+
+            seen_athlete_ids.add(options.athlete.id)
+            resolved.append((payload, options))
+
+        await self._ensure_athletes_are_not_registered(
+            competition_id=competition_id,
+            athlete_ids=seen_athlete_ids,
+        )
+
+        registrations = [
+            CompetitionRegistration(
+                competition_id=competition_id,
+                athlete_id=options.athlete.id,
+                category_id=payload.category_id,
+            )
+            for payload, options in resolved
+        ]
+        self.session.add_all(registrations)
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            raise ConflictError(
+                "One or more athletes are already registered in this competition."
+            ) from exc
+
+        registration_ids = [registration.id for registration in registrations]
+        result = await self.session.execute(
+            select(CompetitionRegistration)
+            .where(CompetitionRegistration.id.in_(registration_ids))
+            .options(
+                selectinload(CompetitionRegistration.athlete).selectinload(Athlete.team),
+                selectinload(CompetitionRegistration.category),
+            )
+        )
+        registrations_by_id = {
+            registration.id: registration for registration in result.scalars().all()
+        }
+        return [registrations_by_id[registration_id] for registration_id in registration_ids]
 
     async def list(
         self,
@@ -191,6 +252,24 @@ class RegistrationService:
             raise NotFoundError("Category not found.")
         return category
 
+    async def _ensure_athletes_are_not_registered(
+        self,
+        *,
+        competition_id: int,
+        athlete_ids: set[int],
+    ) -> None:
+        if not athlete_ids:
+            return
+
+        result = await self.session.execute(
+            select(CompetitionRegistration.athlete_id).where(
+                CompetitionRegistration.competition_id == competition_id,
+                CompetitionRegistration.athlete_id.in_(athlete_ids),
+            )
+        )
+        if result.scalars().first() is not None:
+            raise ConflictError("One or more athletes are already registered in this competition.")
+
     async def _eligible_categories(self, *, athlete: Athlete, age_group: str) -> list[Category]:
         sex_prefix = "Male" if athlete.sex == Sex.male else "Female"
         result = await self.session.execute(
@@ -255,7 +334,13 @@ class BracketService:
         if len(athletes) < 2:
             raise ValidationError("At least two registered athletes are required to generate a bracket.")
 
-        placements = generate_ibjjf_style_placements(athletes)
+        ranked_athlete_ids = await self._get_ranked_athlete_ids(
+            athlete_ids={athlete.id for athlete in athletes}
+        )
+        placements = generate_ibjjf_style_placements(
+            athletes,
+            ranked_athlete_ids=ranked_athlete_ids,
+        )
         bracket_size = next_power_of_two(len(athletes))
         rounds = bracket_size.bit_length() - 1
         bracket = Bracket(
@@ -331,6 +416,7 @@ class BracketService:
         bracket = result.scalar_one_or_none()
         if bracket is None:
             raise NotFoundError("Bracket not found.")
+        await self._mark_ranked_athletes(bracket)
         return bracket
 
     async def _get_existing_bracket(self, competition_id: int, category_id: int) -> Bracket | None:
@@ -372,6 +458,32 @@ class BracketService:
             .order_by(Athlete.id)
         )
         return list(result.scalars().all())
+
+    async def _get_ranked_athlete_ids(self, athlete_ids: set[int]) -> set[int]:
+        if not athlete_ids:
+            return set()
+
+        result = await self.session.execute(
+            select(RankingEntry.athlete_id)
+            .where(RankingEntry.athlete_id.in_(athlete_ids))
+            .distinct()
+        )
+        return {int(athlete_id) for athlete_id in result.scalars().all()}
+
+    async def _mark_ranked_athletes(self, bracket: Bracket) -> None:
+        athletes = []
+        for entry in bracket.entries:
+            if entry.athlete is not None:
+                athletes.append(entry.athlete)
+        for match in bracket.matches:
+            for athlete in (match.athlete_a, match.athlete_b, match.winner):
+                if athlete is not None:
+                    athletes.append(athlete)
+
+        athletes_by_id = {athlete.id: athlete for athlete in athletes}
+        ranked_athlete_ids = await self._get_ranked_athlete_ids(set(athletes_by_id))
+        for athlete_id, athlete in athletes_by_id.items():
+            athlete.is_ranked = athlete_id in ranked_athlete_ids
 
     def _build_matches(
         self,

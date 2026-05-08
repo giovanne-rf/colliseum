@@ -7,6 +7,7 @@ from app.models.bracket import (
     Match,
 )
 from app.models.category import Category
+from app.models.ranking import RankingEntry
 from app.models.team import Team
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "Competition",
     "CompetitionRegistration",
     "Match",
+    "RankingEntry",
     "Team",
 ]

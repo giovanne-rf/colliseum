@@ -45,6 +45,39 @@ class AthleteService:
 
         return await self.get(athlete.id)
 
+    async def create_many(self, payloads: list[AthleteCreate]) -> list[Athlete]:
+        self._validate_bulk_payload(payloads)
+
+        for payload in payloads:
+            self._validate_minimum_age(payload.birth_date, date.today())
+            self._validate_graduation_date(
+                birth_date=payload.birth_date,
+                graduation_date=payload.graduation_date,
+            )
+            await self._ensure_team_exists(payload.team_id)
+            await self._ensure_no_duplicate(name=payload.name, team_id=payload.team_id)
+            await self._ensure_cpf_is_available(cpf=payload.cpf)
+            await self._ensure_email_is_available(email=payload.email)
+
+        athletes = [Athlete(**payload.model_dump()) for payload in payloads]
+        self.session.add_all(athletes)
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            raise ConflictError(
+                "One or more athletes have the same name/team, CPF, or email."
+            ) from exc
+
+        athlete_ids = [athlete.id for athlete in athletes]
+        result = await self.session.execute(
+            select(Athlete)
+            .where(Athlete.id.in_(athlete_ids))
+            .options(selectinload(Athlete.team))
+        )
+        athletes_by_id = {athlete.id: athlete for athlete in result.scalars().all()}
+        return [athletes_by_id[athlete_id] for athlete_id in athlete_ids]
+
     async def list(
         self,
         *,
@@ -145,6 +178,25 @@ class AthleteService:
         if team_id is not None:
             stmt = stmt.where(Athlete.team_id == team_id)
         return stmt
+
+    def _validate_bulk_payload(self, payloads: list[AthleteCreate]) -> None:
+        seen_name_team: set[tuple[str, int]] = set()
+        seen_cpfs: set[str] = set()
+        seen_emails: set[str] = set()
+
+        for payload in payloads:
+            name_team_key = (payload.name.lower(), payload.team_id)
+            email_key = payload.email.lower()
+            if name_team_key in seen_name_team:
+                raise ConflictError("Bulk payload contains duplicate athlete name/team.")
+            if payload.cpf in seen_cpfs:
+                raise ConflictError("Bulk payload contains duplicate CPF.")
+            if email_key in seen_emails:
+                raise ConflictError("Bulk payload contains duplicate email.")
+
+            seen_name_team.add(name_team_key)
+            seen_cpfs.add(payload.cpf)
+            seen_emails.add(email_key)
 
     async def _ensure_team_exists(self, team_id: int) -> Team:
         team = await self.session.get(Team, team_id)

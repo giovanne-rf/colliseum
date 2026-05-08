@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Body, Query, status
 
 from app.routers.deps import DbSession, translate_service_error
 from app.schemas.bracket import (
@@ -53,6 +54,23 @@ async def create_registration(
 ) -> CompetitionRegistrationRead:
     try:
         return await RegistrationService(session).create(competition_id, payload)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/{competition_id}/registrations/bulk",
+    response_model=list[CompetitionRegistrationRead],
+    status_code=status.HTTP_201_CREATED,
+    summary="Register athletes in competition categories in bulk",
+)
+async def create_registrations_bulk(
+    competition_id: int,
+    payload: Annotated[list[CompetitionRegistrationCreate], Body(min_length=1, max_length=100)],
+    session: DbSession,
+) -> list[CompetitionRegistrationRead]:
+    try:
+        return await RegistrationService(session).create_many(competition_id, payload)
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
 

@@ -149,6 +149,7 @@ class AthleteUpdate(BaseModel):
 class AthleteRead(AthleteBase):
     id: int
     team: TeamRead
+    is_ranked: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

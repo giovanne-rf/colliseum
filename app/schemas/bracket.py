@@ -12,6 +12,7 @@ from app.schemas.category import CategoryRead
 class CompetitionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=160, examples=["Rio Open 2026"])
     event_date: date = Field(..., examples=["2026-08-15"])
+    mat_count: int = Field(..., ge=4, le=12, examples=[4])
 
     @field_validator("name")
     @classmethod
@@ -20,6 +21,13 @@ class CompetitionCreate(BaseModel):
         if not normalized:
             raise ValueError("Field cannot be blank.")
         return normalized
+
+    @field_validator("mat_count")
+    @classmethod
+    def mat_count_must_be_even(cls, value: int) -> int:
+        if value % 2 != 0:
+            raise ValueError("Mat count must be an even number.")
+        return value
 
 
 class CompetitionRead(CompetitionCreate):
