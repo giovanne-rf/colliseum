@@ -63,7 +63,7 @@ async function fetchJson(url, options = {}) {
 }
 
 function pdfFileName(bracket, suffix = "") {
-  return `colliseum-${categoryLabel(bracket.category)}${suffix ? `-${suffix}` : ""}`
+  return `fjjpe-${categoryLabel(bracket.category)}${suffix ? `-${suffix}` : ""}`
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -168,9 +168,9 @@ function App() {
   return (
     <>
       <header className="ibjjf-mainbar">
-        <a className="brand" href="/cadastros" aria-label="Colliseum">
-          <span className="brand-mark">♞</span>
-          <strong>COLLISEUM</strong>
+        <a className="brand" href="/cadastros" aria-label="FJJPE">
+          <img className="brand-logo" src="/static/fjjpe-logo.png" alt="FJJPE" />
+          <strong>FJJPE</strong>
         </a>
         <nav className="site-nav" aria-label="Principal">
           {routes.map(([route, label]) => (
@@ -642,7 +642,7 @@ function BracketSheet({ bracket }) {
     <section className="ibjjf-sheet-wrap">
       <section className="ibjjf-sheet" ref={sheetRef}>
         <div className="ibjjf-sheet-header">
-          <p className="ibjjf-kicker">Colliseum Federation</p>
+          <p className="ibjjf-kicker">FJJPE</p>
           <h2>{categoryLabel(bracket.category)}</h2>
           <span>{summary}</span>
         </div>

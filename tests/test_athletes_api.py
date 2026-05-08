@@ -147,7 +147,7 @@ async def test_frontend_is_served(client: AsyncClient):
     assert root_response.status_code == 307
     assert root_response.headers["location"] == "/cadastros"
     assert response.status_code == 200
-    assert "Colliseum" in response.text
+    assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.jsx" in response.text
     assert "ibjjf-responsive-20260505" in response.text
@@ -189,7 +189,8 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "react.production.min.js" in react_shell_response.text
     assert "/static/react/app.jsx" in react_shell_response.text
     assert react_app_response.status_code == 200
-    assert "COLLISEUM" in react_app_response.text
+    assert "FJJPE" in react_app_response.text
+    assert "fjjpe-logo.png" in react_app_response.text
     assert "site-nav" in react_app_response.text
     assert "function AthletesPage" in react_app_response.text
     assert "function TeamsPage" in react_app_response.text

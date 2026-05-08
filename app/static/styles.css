@@ -74,10 +74,11 @@ a {
   white-space: nowrap;
 }
 
-.brand-mark {
-  color: var(--gold);
-  font-size: 28px;
-  line-height: 1;
+.brand-logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  display: block;
 }
 
 .brand strong {
@@ -601,7 +602,7 @@ button:disabled {
 }
 
 .ibjjf-sheet-header h2 {
-  font-size: 27px;
+  font-size: 24px;
   font-weight: 500;
   line-height: 1;
   text-align: center;
@@ -610,7 +611,7 @@ button:disabled {
 
 .ibjjf-sheet-header span {
   color: #222;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   text-align: right;
   text-transform: uppercase;
@@ -619,7 +620,7 @@ button:disabled {
 .ibjjf-kicker {
   margin: 0 0 4px;
   color: #444;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -662,13 +663,13 @@ button:disabled {
 }
 
 .ibjjf-side-header strong {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
 }
 
 .ibjjf-side-header span {
   color: #444;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 800;
   text-align: right;
 }
@@ -686,7 +687,7 @@ button:disabled {
 
 .ibjjf-bracket-block-title {
   color: #111;
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 500;
   text-align: center;
   text-transform: uppercase;
@@ -700,7 +701,7 @@ button:disabled {
 
 .final-header {
   color: #777;
-  font-size: 25px;
+  font-size: 22px;
   justify-content: center;
   min-height: 32px;
   padding: 0;
@@ -737,12 +738,12 @@ button:disabled {
 }
 
 .ibjjf-round-title strong {
-  font-size: 17px;
+  font-size: 14px;
 }
 
 .ibjjf-round-title span {
   color: #444;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -814,7 +815,7 @@ button:disabled {
   min-height: 20px;
   padding: 0 0 4px;
   color: #111;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -842,7 +843,7 @@ button:disabled {
   border-right: 0;
   background: transparent;
   color: #0088c8;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -859,7 +860,7 @@ button:disabled {
 
 .ibjjf-slot strong {
   color: #111;
-  font-size: clamp(13px, 0.62vw, 15px);
+  font-size: clamp(10px, 0.62vw, 12px);
   font-weight: 900;
   line-height: 1.2;
   text-transform: uppercase;
@@ -868,7 +869,7 @@ button:disabled {
 .ibjjf-slot small {
   margin-top: 2px;
   color: #111;
-  font-size: clamp(12px, 0.52vw, 13px);
+  font-size: clamp(9px, 0.52vw, 10px);
   line-height: 1.2;
 }
 
@@ -982,6 +983,11 @@ button:disabled {
     font-size: 23px;
   }
 
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+
   .site-nav {
     order: 3;
     width: 100%;
@@ -1022,7 +1028,7 @@ button:disabled {
   }
 
   .ibjjf-sheet-header h2 {
-    font-size: 23px;
+    font-size: 20px;
   }
 }
 
