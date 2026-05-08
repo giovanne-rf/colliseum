@@ -238,7 +238,7 @@ async def test_prevent_duplicate_athlete_same_name_and_team(client: AsyncClient)
     assert duplicate_response.status_code == 409
 
 
-async def test_reject_athlete_under_four_today(client: AsyncClient):
+async def test_allow_white_belt_at_any_valid_age(client: AsyncClient):
     team_id = await create_team(client)
     athlete_response = await client.post(
         "/athletes",
@@ -252,7 +252,48 @@ async def test_reject_athlete_under_four_today(client: AsyncClient):
             birth_date="2024-08-11",
         ),
     )
+    assert athlete_response.status_code == 201
+
+
+@pytest.mark.parametrize(
+    ("belt", "birth_date", "minimum_age"),
+    [
+        ("gray", "2023-01-01", 4),
+        ("yellow_black", "2020-01-01", 7),
+        ("orange_white", "2018-01-01", 10),
+        ("green_black", "2015-01-01", 13),
+        ("blue", "2011-01-01", 16),
+        ("purple", "2011-01-01", 16),
+        ("brown", "2009-01-01", 18),
+        ("black", "2008-01-01", 19),
+        ("red_black", "1980-01-01", 50),
+        ("red_white", "1975-01-01", 57),
+        ("red", "1965-01-01", 67),
+    ],
+)
+async def test_reject_athlete_below_minimum_age_for_belt(
+    client: AsyncClient,
+    belt: str,
+    birth_date: str,
+    minimum_age: int,
+):
+    team_id = await create_team(client)
+    athlete_response = await client.post(
+        "/athletes",
+        json=athlete_payload(
+            name=f"Atleta {belt}",
+            cpf="935.411.347-80",
+            email=f"{belt}@example.com",
+            phone="41-99999.1234",
+            team_id=team_id,
+            belt=belt,
+            birth_date=birth_date,
+            graduation_date="2025-01-01",
+        ),
+    )
+
     assert athlete_response.status_code == 422
+    assert str(minimum_age) in athlete_response.text
 
 
 async def test_reject_invalid_cpf(client: AsyncClient):

@@ -29,7 +29,11 @@ class AthleteService:
         self.session = session
 
     async def create(self, payload: AthleteCreate) -> Athlete:
-        self._validate_minimum_age(payload.birth_date, date.today())
+        self._validate_minimum_age_for_belt(
+            birth_date=payload.birth_date,
+            belt=payload.belt,
+            reference_date=date.today(),
+        )
         await self._ensure_team_exists(payload.team_id)
         await self._ensure_no_duplicate(name=payload.name, team_id=payload.team_id)
         await self._ensure_cpf_is_available(cpf=payload.cpf)
@@ -49,7 +53,11 @@ class AthleteService:
         self._validate_bulk_payload(payloads)
 
         for payload in payloads:
-            self._validate_minimum_age(payload.birth_date, date.today())
+            self._validate_minimum_age_for_belt(
+                birth_date=payload.birth_date,
+                belt=payload.belt,
+                reference_date=date.today(),
+            )
             self._validate_graduation_date(
                 birth_date=payload.birth_date,
                 graduation_date=payload.graduation_date,
@@ -121,11 +129,16 @@ class AthleteService:
 
         target_birth_date = data.get("birth_date", athlete.birth_date)
         target_graduation_date = data.get("graduation_date", athlete.graduation_date)
+        target_belt = data.get("belt", athlete.belt)
         target_name = data.get("name", athlete.name)
         target_team_id = data.get("team_id", athlete.team_id)
         target_cpf = data.get("cpf", athlete.cpf)
         target_email = data.get("email", athlete.email)
-        self._validate_minimum_age(target_birth_date, date.today())
+        self._validate_minimum_age_for_belt(
+            birth_date=target_birth_date,
+            belt=target_belt,
+            reference_date=date.today(),
+        )
         self._validate_graduation_date(
             birth_date=target_birth_date,
             graduation_date=target_graduation_date,
@@ -250,12 +263,46 @@ class AthleteService:
         if result.scalar_one_or_none() is not None:
             raise ConflictError("Athlete with the same email already exists.")
 
-    def _validate_minimum_age(self, birth_date: date, reference_date: date) -> int:
+    def _validate_minimum_age_for_belt(
+        self,
+        *,
+        birth_date: date,
+        belt: Belt,
+        reference_date: date,
+    ) -> int:
         age = calculate_age(birth_date, reference_date)
-        if age < 4:
-            raise ValidationError("Athlete must be at least 4 years old on the reference date.")
+        minimum_age = minimum_age_for_belt(belt)
+        if age < minimum_age:
+            raise ValidationError(
+                f"Athlete must be at least {minimum_age} years old for belt {belt}."
+            )
         return age
 
     def _validate_graduation_date(self, *, birth_date: date, graduation_date: date) -> None:
         if graduation_date < birth_date:
             raise ValidationError("Graduation date cannot be before birth date.")
+
+
+def minimum_age_for_belt(belt: Belt) -> int:
+    return {
+        Belt.white: 0,
+        Belt.gray: 4,
+        Belt.gray_white: 4,
+        Belt.gray_black: 4,
+        Belt.yellow: 7,
+        Belt.yellow_white: 7,
+        Belt.yellow_black: 7,
+        Belt.orange: 10,
+        Belt.orange_white: 10,
+        Belt.orange_black: 10,
+        Belt.green: 13,
+        Belt.green_white: 13,
+        Belt.green_black: 13,
+        Belt.blue: 16,
+        Belt.purple: 16,
+        Belt.brown: 18,
+        Belt.black: 19,
+        Belt.red_black: 50,
+        Belt.red_white: 57,
+        Belt.red: 67,
+    }[belt]

@@ -9,7 +9,29 @@ branch_labels = None
 depends_on = None
 
 
-belt_enum = sa.Enum("white", "blue", "purple", "brown", "black", name="belt_enum")
+belt_enum = sa.Enum(
+    "white",
+    "gray",
+    "gray_white",
+    "gray_black",
+    "yellow",
+    "yellow_white",
+    "yellow_black",
+    "orange",
+    "orange_white",
+    "orange_black",
+    "green",
+    "green_white",
+    "green_black",
+    "blue",
+    "purple",
+    "brown",
+    "black",
+    "red_black",
+    "red_white",
+    "red",
+    name="belt_enum",
+)
 
 
 def upgrade() -> None:

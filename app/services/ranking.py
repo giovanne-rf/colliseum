@@ -264,10 +264,25 @@ class RankingService:
 def _belt_order(belt: Belt) -> int:
     return {
         Belt.white: 1,
-        Belt.blue: 2,
-        Belt.purple: 3,
-        Belt.brown: 4,
-        Belt.black: 5,
+        Belt.gray: 2,
+        Belt.gray_white: 2,
+        Belt.gray_black: 2,
+        Belt.yellow: 3,
+        Belt.yellow_white: 3,
+        Belt.yellow_black: 3,
+        Belt.orange: 4,
+        Belt.orange_white: 4,
+        Belt.orange_black: 4,
+        Belt.green: 5,
+        Belt.green_white: 5,
+        Belt.green_black: 5,
+        Belt.blue: 6,
+        Belt.purple: 7,
+        Belt.brown: 8,
+        Belt.black: 9,
+        Belt.red_black: 10,
+        Belt.red_white: 11,
+        Belt.red: 12,
     }[belt]
 
 

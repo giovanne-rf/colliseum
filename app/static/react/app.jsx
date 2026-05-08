@@ -12,11 +12,28 @@ const routes = [
 
 const beltLabels = {
   white: "Branca",
+  gray: "Cinza",
+  gray_white: "Cinza-branca",
+  gray_black: "Cinza-preta",
+  yellow: "Amarela",
+  yellow_white: "Amarela-branca",
+  yellow_black: "Amarela-preta",
+  orange: "Laranja",
+  orange_white: "Laranja-branca",
+  orange_black: "Laranja-preta",
+  green: "Verde",
+  green_white: "Verde-branca",
+  green_black: "Verde-preta",
   blue: "Azul",
   purple: "Roxa",
   brown: "Marrom",
   black: "Preta",
+  red_black: "Vermelha e preta / coral",
+  red_white: "Vermelha e branca / coral",
+  red: "Vermelha",
 };
+
+const beltOptions = Object.entries(beltLabels);
 
 const sexLabels = {
   male: "Masculino",
@@ -130,7 +147,7 @@ function isValidCpf(value) {
 }
 
 function categoryLabel(category) {
-  return `${category.age_group} | ${category.belt} | ${category.weight_class}`;
+  return `${category.age_group} | ${beltLabels[category.belt] || category.belt} | ${category.weight_class}`;
 }
 
 function Message({ text, type }) {
@@ -282,11 +299,7 @@ function AthletesPage() {
           ]} />
           <Select label="Faixa" value={form.belt} onChange={(belt) => setForm({ ...form, belt })} required options={[
             ["", "Selecione"],
-            ["white", "Branca"],
-            ["blue", "Azul"],
-            ["purple", "Roxa"],
-            ["brown", "Marrom"],
-            ["black", "Preta"],
+            ...beltOptions,
           ]} />
           <Field label="Data da graduacao" type="date" value={form.graduation_date} onChange={(graduation_date) => setForm({ ...form, graduation_date })} required />
           <Field label="Data de nascimento" type="date" value={form.birth_date} onChange={(birth_date) => setForm({ ...form, birth_date })} required />
