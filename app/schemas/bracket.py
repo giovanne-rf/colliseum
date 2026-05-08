@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -55,6 +56,52 @@ class CompetitionRegistrationRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CompetitionCheckinCreate(BaseModel):
+    registration_id: int = Field(..., gt=0, examples=[1])
+    checked_weight: Decimal = Field(..., gt=0, decimal_places=2, examples=["76.50"])
+    gi: bool = Field(default=True, examples=[True])
+    overweight_confirmed: bool = Field(default=False)
+
+
+class CompetitionCheckinRead(BaseModel):
+    id: int
+    competition_id: int
+    registration_id: int
+    athlete_id: int
+    checked_weight: Decimal
+    gi: bool
+    overweight_confirmed: bool
+    status: str
+    is_overweight: bool
+    max_weight_kg: Decimal | None = None
+    athlete: AthleteRead
+    category: CategoryRead
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CompetitionCheckinLookupRead(BaseModel):
+    registration_id: int
+    competition_id: int
+    athlete: AthleteRead
+    category: CategoryRead
+    max_weight_kg: Decimal | None = None
+    status: str
+    checkin: CompetitionCheckinRead | None = None
+
+
+class CompetitionFinalCheckRead(BaseModel):
+    registration_id: int
+    competition_id: int
+    athlete: AthleteRead
+    category: CategoryRead
+    checked_weight: Decimal | None = None
+    status: str
+    is_overweight: bool = False
+
+
 class RegistrationOptionsRead(BaseModel):
     athlete: AthleteRead
     competition_id: int
@@ -80,6 +127,36 @@ class BracketEntryRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class MatchResultUpdate(BaseModel):
+    athlete_a_points: int = Field(default=0, ge=0)
+    athlete_a_advantages: int = Field(default=0, ge=0)
+    athlete_a_penalties: int = Field(default=0, ge=0)
+    athlete_b_points: int = Field(default=0, ge=0)
+    athlete_b_advantages: int = Field(default=0, ge=0)
+    athlete_b_penalties: int = Field(default=0, ge=0)
+    finish_method: str | None = Field(default=None, max_length=30)
+    winner_id: int | None = Field(default=None, gt=0)
+    finalized: bool = Field(default=False)
+
+
+class MatchResultRead(BaseModel):
+    id: int
+    match_id: int
+    athlete_a_points: int
+    athlete_a_advantages: int
+    athlete_a_penalties: int
+    athlete_b_points: int
+    athlete_b_advantages: int
+    athlete_b_penalties: int
+    winner_id: int | None = None
+    finish_method: str | None = None
+    finalized: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class MatchRead(BaseModel):
     id: int
     round_number: int
@@ -90,6 +167,7 @@ class MatchRead(BaseModel):
     athlete_b: AthleteRead | None = None
     winner: AthleteRead | None = None
     status: MatchStatus
+    result: MatchResultRead | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

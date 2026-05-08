@@ -72,6 +72,21 @@ async def checkin_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/checkin/pesagem", include_in_schema=False)
+async def weighin_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
+@app.get("/checkin", include_in_schema=False)
+async def ready_checkin_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
+@app.get("/checagem-final", include_in_schema=False)
+async def final_check_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/ranking", include_in_schema=False)
 async def ranking_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")

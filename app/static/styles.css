@@ -23,11 +23,19 @@
 
 body {
   margin: 0;
+  width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
   font-family:
     "Roboto Condensed", "Arial Narrow", Arial, ui-sans-serif, system-ui, sans-serif;
+}
+
+img,
+svg,
+canvas {
+  max-width: 100%;
 }
 
 button,
@@ -35,6 +43,12 @@ input,
 select,
 a {
   font: inherit;
+}
+
+button,
+input,
+select {
+  min-width: 0;
 }
 
 .shell {
@@ -161,6 +175,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
   min-height: 42px;
   border-color: var(--line);
   border-radius: var(--radius);
@@ -169,6 +184,7 @@ a {
   font-weight: 800;
   padding: 9px 14px;
   text-decoration: none;
+  text-align: center;
 }
 
 .tab.active {
@@ -278,6 +294,7 @@ h3 {
 .section-heading span {
   color: var(--muted);
   font-size: 13px;
+  min-width: 0;
 }
 
 .grid {
@@ -336,6 +353,7 @@ h3 {
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
+  min-width: 0;
 }
 
 input,
@@ -375,6 +393,7 @@ button {
   padding: 9px 14px;
   color: var(--text);
   cursor: pointer;
+  text-align: center;
 }
 
 button:disabled {
@@ -401,6 +420,16 @@ button:disabled {
 .secondary:hover,
 .icon-button:hover {
   border-color: var(--gold);
+}
+
+.danger-button {
+  background: var(--error);
+  color: #fff;
+  font-weight: 800;
+}
+
+.danger-button:hover {
+  background: #8f1b13;
 }
 
 .icon-button {
@@ -787,6 +816,11 @@ button:disabled {
   background: transparent;
   box-shadow: none;
   outline: none;
+  cursor: pointer;
+}
+
+.ibjjf-match:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 77, 133, 0.24);
 }
 
 .ibjjf-connectors {
@@ -852,6 +886,38 @@ button:disabled {
   padding: 4px 6px;
 }
 
+.ibjjf-athlete-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.bracket-check-status {
+  width: 0.86em;
+  height: 0.86em;
+  border: 1px solid rgba(17, 17, 17, 0.45);
+  border-radius: 50%;
+  background: #b42318;
+}
+
+.bracket-check-status.checked {
+  background: #146c43;
+}
+
+.bracket-check-status.no-checked {
+  background: #ffcc00;
+}
+
+.bracket-check-status.no-show {
+  background: #b42318;
+}
+
+.bracket-check-status.out-of-weight {
+  background: #000;
+}
+
 .ibjjf-slot strong,
 .ibjjf-slot small {
   display: block;
@@ -891,6 +957,237 @@ button:disabled {
     minmax(140px, auto);
 }
 
+.weighin-form {
+  max-width: none;
+}
+
+.weighin-row {
+  align-items: end;
+  grid-template-columns:
+    minmax(220px, 1fr)
+    minmax(150px, 0.7fr)
+    minmax(130px, 0.6fr)
+    minmax(150px, auto);
+}
+
+.ready-row {
+  align-items: end;
+  grid-template-columns:
+    minmax(240px, 1fr)
+    minmax(180px, 0.7fr)
+    minmax(320px, auto);
+}
+
+.ready-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.ready-actions button {
+  min-height: 40px;
+  white-space: normal;
+}
+
+.final-check-row {
+  align-items: end;
+  grid-template-columns: minmax(260px, 420px);
+}
+
+.weighin-data {
+  margin-top: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.checkbox-field input {
+  width: 40px;
+  min-height: 40px;
+  justify-self: start;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.weight-alert {
+  width: min(560px, 100%);
+  padding: 28px;
+  border: 6px solid #ffcc00;
+  background: #b42318;
+  color: #fff;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+}
+
+.weight-alert h2 {
+  font-size: 30px;
+  text-transform: uppercase;
+}
+
+.weight-alert p {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.fight-modal-backdrop {
+  padding: 18px;
+}
+
+.fight-panel {
+  position: relative;
+  width: min(1320px, 100%);
+  max-height: min(920px, calc(100vh - 36px));
+  overflow: auto;
+  border: 1px solid #0f4f80;
+  background: #fff;
+  color: #111;
+}
+
+.fight-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.fight-rows {
+  display: grid;
+}
+
+.fight-athlete-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) repeat(3, minmax(130px, 0.42fr));
+  align-items: stretch;
+  gap: 20px;
+  min-height: 210px;
+  padding: 24px;
+  background: #fff;
+}
+
+.fight-athlete-row.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.fight-athlete-info {
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  min-width: 0;
+}
+
+.fight-athlete-name {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.fight-athlete-name strong {
+  min-width: 0;
+  font-size: clamp(34px, 4.6vw, 72px);
+  font-weight: 400;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.fight-athlete-info span {
+  font-size: clamp(20px, 2.3vw, 34px);
+  line-height: 1.1;
+}
+
+.fight-flag {
+  display: inline-grid;
+  place-items: center;
+  font-size: clamp(30px, 3.2vw, 54px);
+  line-height: 1;
+}
+
+.fight-score {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  font-size: clamp(70px, 9vw, 142px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.fight-score.points {
+  background: #5fc35f;
+}
+
+.fight-score.advantages {
+  background: #fff46f;
+  color: #000;
+}
+
+.fight-score.penalties {
+  background: #f50906;
+}
+
+.fight-footer {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, auto);
+  align-items: center;
+  gap: 24px;
+  padding: 32px 24px;
+  background: #172432;
+  color: #fff;
+}
+
+.fight-info {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+.fight-info strong {
+  font-size: clamp(24px, 3vw, 46px);
+  font-weight: 400;
+}
+
+.fight-info span {
+  color: #ff0909;
+  font-size: clamp(24px, 3vw, 46px);
+  font-weight: 900;
+}
+
+.fight-clock {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: clamp(74px, 10vw, 144px);
+  font-weight: 300;
+  line-height: 1;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.fight-clock.running {
+  color: #f7f7f7;
+}
+
+.danger {
+  background: #ffcc00;
+  color: #111;
+}
+
 .checkin-filters {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -918,7 +1215,13 @@ button:disabled {
   color: #fff;
 }
 
+.checkin-group-heading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .checkin-group-heading span {
+  flex: 0 0 auto;
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -936,6 +1239,10 @@ button:disabled {
 
 .ranking-table {
   min-width: 680px;
+}
+
+.final-check-table {
+  min-width: 620px;
 }
 
 .checkin-table th,
@@ -964,6 +1271,39 @@ button:disabled {
 
 .checkin-table tr:last-child td {
   border-bottom: 0;
+}
+
+.check-status {
+  display: inline-flex;
+  min-width: 112px;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: #d8d8d8;
+  color: #111;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.check-status.checked {
+  background: #146c43;
+  color: #fff;
+}
+
+.check-status.no-checked {
+  background: #ffcc00;
+  color: #111;
+}
+
+.check-status.no-show {
+  background: #b42318;
+  color: #fff;
+}
+
+.check-status.out-of-weight {
+  background: #b42318;
+  color: #fff;
 }
 
 @media (max-width: 900px) {
@@ -1030,9 +1370,45 @@ button:disabled {
   .ibjjf-sheet-header h2 {
     font-size: 20px;
   }
+
+  .fight-athlete-row {
+    grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(100px, 0.42fr));
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .fight-footer {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 620px) {
+  .ibjjf-mainbar {
+    padding: 0 10px 10px;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .site-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .site-nav a {
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 8px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .top-status {
+    font-size: 11px;
+  }
+
   .shell {
     width: min(100% - 20px, 1180px);
     padding-top: 24px;
@@ -1050,7 +1426,151 @@ button:disabled {
   .filters,
   .checkin-filters,
   .ranking-row,
+  .ready-row,
+  .final-check-row,
+  .weighin-row,
+  .weighin-data,
   .bracket-grid {
     grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .actions,
+  .inline-submit button,
+  .ready-actions {
+    width: 100%;
+  }
+
+  .ready-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .checkin-group-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .checkin-table-wrap {
+    overflow-x: visible;
+  }
+
+  .checkin-table,
+  .ranking-table,
+  .final-check-table {
+    min-width: 0;
+  }
+
+  .checkin-table,
+  .checkin-table thead,
+  .checkin-table tbody,
+  .checkin-table tr,
+  .checkin-table th,
+  .checkin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .checkin-table thead {
+    display: none;
+  }
+
+  .checkin-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .checkin-table tr {
+    border: 1px solid var(--line);
+    background: #f4f4f4;
+  }
+
+  .checkin-table td {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.46fr) minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #fff;
+    background: #f4f4f4 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .checkin-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .check-status {
+    min-width: 0;
+    width: fit-content;
+  }
+
+  .fight-modal-backdrop {
+    padding: 10px;
+  }
+
+  .fight-panel {
+    max-height: calc(100vh - 20px);
+  }
+
+  .fight-athlete-row {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .fight-score {
+    min-height: 88px;
+  }
+
+  .fight-footer {
+    padding: 22px 16px;
+  }
+
+  .fight-clock {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell {
+    width: min(100% - 14px, 1180px);
+  }
+
+  .brand strong {
+    font-size: 19px;
+  }
+
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .top-status {
+    min-width: auto;
+    padding: 6px 8px;
+  }
+
+  .site-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .page-title-band h1 {
+    font-size: 18px;
+  }
+
+  .checkin-table td {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }

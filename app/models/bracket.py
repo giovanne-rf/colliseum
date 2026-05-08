@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     UniqueConstraint,
     func,
@@ -73,6 +74,49 @@ class CompetitionRegistration(Base):
     athlete = relationship("Athlete")
     category = relationship("Category")
     competition = relationship("Competition")
+
+
+class CompetitionCheckin(Base):
+    __tablename__ = "competition_checkins"
+    __table_args__ = (
+        UniqueConstraint("registration_id", name="uq_checkin_registration"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    competition_id: Mapped[int] = mapped_column(
+        ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    registration_id: Mapped[int] = mapped_column(
+        ForeignKey("competition_registrations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    athlete_id: Mapped[int] = mapped_column(
+        ForeignKey("athletes.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    checked_weight: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)
+    gi: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    overweight_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="No checked")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    athlete = relationship("Athlete")
+    competition = relationship("Competition")
+    registration = relationship("CompetitionRegistration")
 
 
 class Bracket(Base):
@@ -178,3 +222,44 @@ class Match(Base):
     athlete_a = relationship("Athlete", foreign_keys=[athlete_a_id])
     athlete_b = relationship("Athlete", foreign_keys=[athlete_b_id])
     winner = relationship("Athlete", foreign_keys=[winner_id])
+    result = relationship("MatchResult", back_populates="match", uselist=False)
+
+
+class MatchResult(Base):
+    __tablename__ = "match_results"
+    __table_args__ = (
+        UniqueConstraint("match_id", name="uq_match_result_match"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    match_id: Mapped[int] = mapped_column(
+        ForeignKey("matches.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    athlete_a_points: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    athlete_a_advantages: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    athlete_a_penalties: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    athlete_b_points: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    athlete_b_advantages: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    athlete_b_penalties: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    winner_id: Mapped[int | None] = mapped_column(
+        ForeignKey("athletes.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    finish_method: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    finalized: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    match = relationship("Match", back_populates="result")
+    winner = relationship("Athlete")

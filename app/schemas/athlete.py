@@ -150,6 +150,7 @@ class AthleteRead(AthleteBase):
     id: int
     team: TeamRead
     is_ranked: bool = False
+    checkin_status: str = "No Show"
 
     model_config = ConfigDict(from_attributes=True)
 

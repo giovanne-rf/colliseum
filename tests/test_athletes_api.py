@@ -143,6 +143,9 @@ async def test_frontend_is_served(client: AsyncClient):
     registrations_response = await client.get("/inscricoes")
     brackets_response = await client.get("/chaves")
     checkin_response = await client.get("/checagem")
+    weighin_response = await client.get("/checkin/pesagem")
+    ready_checkin_response = await client.get("/checkin")
+    final_check_response = await client.get("/checagem-final")
 
     assert root_response.status_code == 307
     assert root_response.headers["location"] == "/cadastros"
@@ -174,6 +177,12 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "/static/react/app.jsx" in brackets_response.text
     assert checkin_response.status_code == 200
     assert "/static/react/app.jsx" in checkin_response.text
+    assert weighin_response.status_code == 200
+    assert "/static/react/app.jsx" in weighin_response.text
+    assert ready_checkin_response.status_code == 200
+    assert "/static/react/app.jsx" in ready_checkin_response.text
+    assert final_check_response.status_code == 200
+    assert "/static/react/app.jsx" in final_check_response.text
 
 
 async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combobox(
@@ -188,6 +197,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
     assert "/static/react/app.jsx" in react_shell_response.text
+    assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
     assert react_app_response.status_code == 200
     assert "FJJPE" in react_app_response.text
     assert "fjjpe-logo.png" in react_app_response.text
@@ -197,7 +207,30 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "function CompetitionsPage" in react_app_response.text
     assert "function RegistrationsPage" in react_app_response.text
     assert "function BracketsPage" in react_app_response.text
+    assert "function FightPanel" in react_app_response.text
+    assert "function fightDurationSeconds" in react_app_response.text
     assert "function CheckinPage" in react_app_response.text
+    assert "function FinalCheckPage" in react_app_response.text
+    assert "function WeighinPage" in react_app_response.text
+    assert "function AthleteListPage" in react_app_response.text
+    assert "/checkin/pesagem" in react_app_response.text
+    assert "/checkin" in react_app_response.text
+    assert '["/checagem", "LISTAGEM DE ATLETAS"]' in react_app_response.text
+    assert '["/checkin/pesagem", "PESAGEM"]' in react_app_response.text
+    assert '["/checkin", "CHECKIN"]' in react_app_response.text
+    assert '["/checagem-final", "CHECAGEM FINAL"]' in react_app_response.text
+    assert "Listagem de Atletas" in react_app_response.text
+    assert "Status da checagem" in react_app_response.text
+    assert "Nova pesagem bloqueada" in react_app_response.text
+    assert "CHECKED" in react_app_response.text
+    assert "NO CHECKED" in react_app_response.text
+    assert "READY TO FIGHT" not in react_app_response.text
+    assert "NOT READY TO FIGHT" not in react_app_response.text
+    assert "Atleta ja foi checado. Status: Checked." in react_app_response.text
+    assert "Status: Out of weight." in react_app_response.text
+    assert "Status: No Show" in react_app_response.text
+    assert "Atleta nao bateu o peso" in react_app_response.text
+    assert "checkin-options" in react_app_response.text
     assert 'mat_count: "4"' in react_app_response.text
     assert "12 MATS" in react_app_response.text
     assert "registration-row" in react_app_response.text
@@ -212,6 +245,9 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "FINALS" in react_app_response.text
     assert "function buildConnectorPath" in react_app_response.text
     assert "ibjjf-connectors" in react_app_response.text
+    assert "bracket-check-status" in react_app_response.text
+    assert "fight-clock" in react_app_response.text
+    assert "CHECKED" in react_app_response.text
 
 
 async def test_create_categories_bulk(client: AsyncClient):

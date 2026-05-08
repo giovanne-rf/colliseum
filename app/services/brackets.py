@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
+import re
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
@@ -14,21 +16,37 @@ from app.models.athlete import Athlete
 from app.models.bracket import (
     Bracket,
     BracketEntry,
+    CompetitionCheckin,
     Competition,
     CompetitionRegistration,
     Match,
+    MatchResult,
     MatchStatus,
 )
 from app.models.category import Category
 from app.models.common import Sex
 from app.models.ranking import RankingEntry
-from app.schemas.bracket import CompetitionCreate, CompetitionRegistrationCreate
+from app.schemas.bracket import (
+    CompetitionCheckinCreate,
+    CompetitionFinalCheckRead,
+    CompetitionCheckinLookupRead,
+    CompetitionCheckinRead,
+    CompetitionCreate,
+    CompetitionRegistrationCreate,
+    MatchResultRead,
+    MatchResultUpdate,
+)
 from app.services.exceptions import ConflictError, NotFoundError, ValidationError
 from app.tournament.brackets import (
     count_same_team_first_round_conflicts,
     generate_ibjjf_style_placements,
     next_power_of_two,
 )
+
+CHECKIN_STATUS_CHECKED = "Checked"
+CHECKIN_STATUS_NO_CHECKED = "No checked"
+CHECKIN_STATUS_NO_SHOW = "No Show"
+CHECKIN_STATUS_OUT_OF_WEIGHT = "Out of weight"
 
 
 @dataclass(frozen=True)
@@ -284,6 +302,243 @@ class RegistrationService:
         return list(result.scalars().all())
 
 
+class CheckinService:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def lookup(self, *, competition_id: int, cpf: str) -> CompetitionCheckinLookupRead:
+        registration = await self._find_registration_by_cpf(
+            competition_id=competition_id,
+            cpf=cpf,
+        )
+        checkin = await self._get_checkin_by_registration(registration.id)
+        return CompetitionCheckinLookupRead(
+            registration_id=registration.id,
+            competition_id=registration.competition_id,
+            athlete=registration.athlete,
+            category=registration.category,
+            max_weight_kg=max_weight_kg(registration.category.weight_class),
+            status=checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW,
+            checkin=self._to_read(checkin, registration) if checkin is not None else None,
+        )
+
+    async def list_final_checks(self, competition_id: int) -> list[CompetitionFinalCheckRead]:
+        await self._ensure_competition_exists(competition_id)
+        registrations_result = await self.session.execute(
+            select(CompetitionRegistration)
+            .where(CompetitionRegistration.competition_id == competition_id)
+            .options(
+                selectinload(CompetitionRegistration.athlete).selectinload(Athlete.team),
+                selectinload(CompetitionRegistration.category),
+            )
+            .order_by(CompetitionRegistration.id)
+        )
+        registrations = list(registrations_result.scalars().all())
+        if not registrations:
+            return []
+
+        checkins_result = await self.session.execute(
+            select(CompetitionCheckin).where(
+                CompetitionCheckin.registration_id.in_([registration.id for registration in registrations])
+            )
+        )
+        checkins_by_registration = {
+            checkin.registration_id: checkin for checkin in checkins_result.scalars().all()
+        }
+
+        rows: list[CompetitionFinalCheckRead] = []
+        for registration in registrations:
+            checkin = checkins_by_registration.get(registration.id)
+            checked_weight = Decimal(str(checkin.checked_weight)) if checkin is not None else None
+            max_weight = max_weight_kg(registration.category.weight_class)
+            rows.append(
+                CompetitionFinalCheckRead(
+                    registration_id=registration.id,
+                    competition_id=registration.competition_id,
+                    athlete=registration.athlete,
+                    category=registration.category,
+                    checked_weight=checked_weight,
+                    status=checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW,
+                    is_overweight=(
+                        checked_weight is not None
+                        and max_weight is not None
+                        and checked_weight > max_weight
+                    ),
+                )
+            )
+        return rows
+
+    async def create_or_update(
+        self,
+        *,
+        competition_id: int,
+        payload: CompetitionCheckinCreate,
+    ) -> CompetitionCheckinRead:
+        registration = await self._get_registration(
+            competition_id=competition_id,
+            registration_id=payload.registration_id,
+        )
+        max_weight = max_weight_kg(registration.category.weight_class)
+        is_overweight = max_weight is not None and payload.checked_weight > max_weight
+        if is_overweight and not payload.overweight_confirmed:
+            raise ValidationError("Overweight check-in requires explicit confirmation.")
+
+        checkin = await self._get_checkin_by_registration(registration.id)
+        if checkin is not None:
+            raise ConflictError("Athlete has already been weighed in this competition.")
+
+        checkin = CompetitionCheckin(
+            competition_id=competition_id,
+            registration_id=registration.id,
+            athlete_id=registration.athlete_id,
+            checked_weight=payload.checked_weight,
+            gi=payload.gi,
+            overweight_confirmed=payload.overweight_confirmed,
+            status=CHECKIN_STATUS_OUT_OF_WEIGHT if is_overweight else CHECKIN_STATUS_NO_CHECKED,
+        )
+        self.session.add(checkin)
+
+        await self.session.commit()
+        await self.session.refresh(checkin)
+        return self._to_read(checkin, registration)
+
+    async def ready_to_fight(
+        self,
+        *,
+        competition_id: int,
+        registration_id: int,
+    ) -> CompetitionCheckinRead:
+        registration = await self._get_registration(
+            competition_id=competition_id,
+            registration_id=registration_id,
+        )
+        checkin = await self._get_checkin_by_registration(registration.id)
+        if checkin is None:
+            raise ValidationError("Athlete must be weighed before ready to fight.")
+
+        max_weight = max_weight_kg(registration.category.weight_class)
+        checked_weight = Decimal(str(checkin.checked_weight))
+        if max_weight is not None and checked_weight > max_weight:
+            checkin.status = CHECKIN_STATUS_OUT_OF_WEIGHT
+            await self.session.commit()
+            raise ValidationError("Athlete is not available for ready to fight because weight is over category limit.")
+
+        checkin.status = CHECKIN_STATUS_CHECKED
+        await self.session.commit()
+        await self.session.refresh(checkin)
+        return self._to_read(checkin, registration)
+
+    async def not_ready_to_fight(
+        self,
+        *,
+        competition_id: int,
+        registration_id: int,
+    ) -> CompetitionCheckinRead:
+        registration = await self._get_registration(
+            competition_id=competition_id,
+            registration_id=registration_id,
+        )
+        checkin = await self._get_checkin_by_registration(registration.id)
+        if checkin is None:
+            raise ValidationError("Athlete must be weighed before not ready to fight.")
+
+        max_weight = max_weight_kg(registration.category.weight_class)
+        checked_weight = Decimal(str(checkin.checked_weight))
+        checkin.status = (
+            CHECKIN_STATUS_OUT_OF_WEIGHT
+            if max_weight is not None and checked_weight > max_weight
+            else CHECKIN_STATUS_NO_CHECKED
+        )
+        await self.session.commit()
+        await self.session.refresh(checkin)
+        return self._to_read(checkin, registration)
+
+    async def _find_registration_by_cpf(
+        self,
+        *,
+        competition_id: int,
+        cpf: str,
+    ) -> CompetitionRegistration:
+        normalized_cpf = validate_and_normalize_cpf(cpf)
+        result = await self.session.execute(
+            select(CompetitionRegistration)
+            .join(Athlete, Athlete.id == CompetitionRegistration.athlete_id)
+            .where(
+                CompetitionRegistration.competition_id == competition_id,
+                Athlete.cpf == normalized_cpf,
+            )
+            .options(
+                selectinload(CompetitionRegistration.athlete).selectinload(Athlete.team),
+                selectinload(CompetitionRegistration.category),
+            )
+        )
+        registration = result.scalar_one_or_none()
+        if registration is None:
+            raise NotFoundError("Athlete registration not found in this competition.")
+        return registration
+
+    async def _ensure_competition_exists(self, competition_id: int) -> Competition:
+        competition = await self.session.get(Competition, competition_id)
+        if competition is None:
+            raise NotFoundError("Competition not found.")
+        return competition
+
+    async def _get_registration(
+        self,
+        *,
+        competition_id: int,
+        registration_id: int,
+    ) -> CompetitionRegistration:
+        result = await self.session.execute(
+            select(CompetitionRegistration)
+            .where(
+                CompetitionRegistration.id == registration_id,
+                CompetitionRegistration.competition_id == competition_id,
+            )
+            .options(
+                selectinload(CompetitionRegistration.athlete).selectinload(Athlete.team),
+                selectinload(CompetitionRegistration.category),
+            )
+        )
+        registration = result.scalar_one_or_none()
+        if registration is None:
+            raise NotFoundError("Athlete registration not found in this competition.")
+        return registration
+
+    async def _get_checkin_by_registration(
+        self,
+        registration_id: int,
+    ) -> CompetitionCheckin | None:
+        result = await self.session.execute(
+            select(CompetitionCheckin).where(CompetitionCheckin.registration_id == registration_id)
+        )
+        return result.scalar_one_or_none()
+
+    def _to_read(
+        self,
+        checkin: CompetitionCheckin,
+        registration: CompetitionRegistration,
+    ) -> CompetitionCheckinRead:
+        max_weight = max_weight_kg(registration.category.weight_class)
+        checked_weight = Decimal(str(checkin.checked_weight))
+        return CompetitionCheckinRead(
+            id=checkin.id,
+            competition_id=checkin.competition_id,
+            registration_id=checkin.registration_id,
+            athlete_id=checkin.athlete_id,
+            checked_weight=checked_weight,
+            gi=checkin.gi,
+            overweight_confirmed=checkin.overweight_confirmed,
+            status=checkin.status,
+            is_overweight=max_weight is not None and checked_weight > max_weight,
+            max_weight_kg=max_weight,
+            athlete=registration.athlete,
+            category=registration.category,
+            created_at=checkin.created_at,
+            updated_at=checkin.updated_at,
+        )
+
+
 def ibjjf_age_group(age: int) -> str:
     if age == 16:
         return "Juvenile 1"
@@ -306,6 +561,13 @@ def ibjjf_age_group(age: int) -> str:
     if age >= 61:
         return "Master 7"
     raise ValidationError("Athlete is too young for IBJJF competition categories.")
+
+
+def max_weight_kg(weight_class: str) -> Decimal | None:
+    match = re.search(r"\(-\s*(\d+(?:\.\d+)?)\s*kg\)", weight_class, flags=re.IGNORECASE)
+    if match is None:
+        return None
+    return Decimal(match.group(1))
 
 
 class BracketService:
@@ -411,13 +673,64 @@ class BracketService:
                 selectinload(Bracket.matches).selectinload(Match.athlete_a).selectinload(Athlete.team),
                 selectinload(Bracket.matches).selectinload(Match.athlete_b).selectinload(Athlete.team),
                 selectinload(Bracket.matches).selectinload(Match.winner).selectinload(Athlete.team),
+                selectinload(Bracket.matches).selectinload(Match.result),
             )
         )
         bracket = result.scalar_one_or_none()
         if bracket is None:
             raise NotFoundError("Bracket not found.")
         await self._mark_ranked_athletes(bracket)
+        await self._mark_checkin_statuses(bracket)
         return bracket
+
+    async def update_match_result(
+        self,
+        *,
+        competition_id: int,
+        match_id: int,
+        payload: MatchResultUpdate,
+    ) -> MatchResultRead:
+        await CompetitionService(self.session).get(competition_id)
+        match = await self._get_match_for_competition(competition_id=competition_id, match_id=match_id)
+        if match.athlete_a_id is None or match.athlete_b_id is None:
+            raise ValidationError("Both athletes are required to score a match.")
+
+        allowed_methods = {None, "time", "submission", "disqualification"}
+        if payload.finish_method not in allowed_methods:
+            raise ValidationError("Invalid finish method.")
+
+        winner_id = payload.winner_id
+        if payload.finalized:
+            if payload.finish_method == "time":
+                winner_id = self._time_winner_id(match, payload)
+            elif payload.finish_method in {"submission", "disqualification"}:
+                if winner_id not in {match.athlete_a_id, match.athlete_b_id}:
+                    raise ValidationError("Winner must be one of the match athletes.")
+            else:
+                raise ValidationError("Finish method is required to finalize a match.")
+
+        result = await self._get_match_result(match_id)
+        if result is None:
+            result = MatchResult(match_id=match_id)
+            self.session.add(result)
+
+        result.athlete_a_points = payload.athlete_a_points
+        result.athlete_a_advantages = payload.athlete_a_advantages
+        result.athlete_a_penalties = payload.athlete_a_penalties
+        result.athlete_b_points = payload.athlete_b_points
+        result.athlete_b_advantages = payload.athlete_b_advantages
+        result.athlete_b_penalties = payload.athlete_b_penalties
+        result.finalized = payload.finalized
+        result.finish_method = payload.finish_method if payload.finalized else None
+        result.winner_id = winner_id if payload.finalized else None
+
+        if payload.finalized:
+            match.winner_id = result.winner_id
+            match.status = MatchStatus.completed
+
+        await self.session.commit()
+        await self.session.refresh(result)
+        return MatchResultRead.model_validate(result)
 
     async def _get_existing_bracket(self, competition_id: int, category_id: int) -> Bracket | None:
         result = await self.session.execute(
@@ -484,6 +797,32 @@ class BracketService:
         ranked_athlete_ids = await self._get_ranked_athlete_ids(set(athletes_by_id))
         for athlete_id, athlete in athletes_by_id.items():
             athlete.is_ranked = athlete_id in ranked_athlete_ids
+
+    async def _mark_checkin_statuses(self, bracket: Bracket) -> None:
+        athletes = []
+        for entry in bracket.entries:
+            if entry.athlete is not None:
+                athletes.append(entry.athlete)
+        for match in bracket.matches:
+            for athlete in (match.athlete_a, match.athlete_b, match.winner):
+                if athlete is not None:
+                    athletes.append(athlete)
+
+        athletes_by_id = {athlete.id: athlete for athlete in athletes}
+        if not athletes_by_id:
+            return
+
+        result = await self.session.execute(
+            select(CompetitionCheckin.athlete_id, CompetitionCheckin.status).where(
+                CompetitionCheckin.competition_id == bracket.competition_id,
+                CompetitionCheckin.athlete_id.in_(athletes_by_id),
+            )
+        )
+        statuses_by_athlete = {
+            int(athlete_id): status for athlete_id, status in result.all()
+        }
+        for athlete_id, athlete in athletes_by_id.items():
+            athlete.checkin_status = statuses_by_athlete.get(athlete_id, CHECKIN_STATUS_NO_SHOW)
 
     def _build_matches(
         self,

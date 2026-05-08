@@ -11,13 +11,22 @@ from app.schemas.bracket import (
     BracketBatchGenerateRead,
     BracketGenerateAllRequest,
     BracketRead,
+    CompetitionCheckinCreate,
+    CompetitionFinalCheckRead,
+    CompetitionCheckinLookupRead,
+    CompetitionCheckinRead,
     CompetitionCreate,
     CompetitionRead,
     CompetitionRegistrationCreate,
     CompetitionRegistrationRead,
     RegistrationOptionsRead,
 )
-from app.services.brackets import BracketService, CompetitionService, RegistrationService
+from app.services.brackets import (
+    BracketService,
+    CheckinService,
+    CompetitionService,
+    RegistrationService,
+)
 from app.services.exceptions import ServiceError
 
 router = APIRouter(prefix="/competitions", tags=["competitions"])
@@ -111,6 +120,95 @@ async def get_registration_options(
             competition_id=competition_id,
             cpf=cpf,
             birth_date=birth_date,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.get(
+    "/{competition_id}/checkin-options",
+    response_model=CompetitionCheckinLookupRead,
+    summary="Find athlete registration for competition check-in",
+)
+async def get_checkin_options(
+    competition_id: int,
+    session: DbSession,
+    cpf: str = Query(..., min_length=11, max_length=14),
+) -> CompetitionCheckinLookupRead:
+    try:
+        return await CheckinService(session).lookup(competition_id=competition_id, cpf=cpf)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.get(
+    "/{competition_id}/final-checks",
+    response_model=list[CompetitionFinalCheckRead],
+    summary="List final athlete check statuses by competition",
+)
+async def list_final_checks(
+    competition_id: int,
+    session: DbSession,
+) -> list[CompetitionFinalCheckRead]:
+    try:
+        return await CheckinService(session).list_final_checks(competition_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/{competition_id}/checkins",
+    response_model=CompetitionCheckinRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create or update athlete competition check-in",
+)
+async def create_checkin(
+    competition_id: int,
+    payload: CompetitionCheckinCreate,
+    session: DbSession,
+) -> CompetitionCheckinRead:
+    try:
+        return await CheckinService(session).create_or_update(
+            competition_id=competition_id,
+            payload=payload,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/{competition_id}/checkins/{registration_id}/ready",
+    response_model=CompetitionCheckinRead,
+    summary="Mark weighed athlete as ready to fight",
+)
+async def ready_to_fight(
+    competition_id: int,
+    registration_id: int,
+    session: DbSession,
+) -> CompetitionCheckinRead:
+    try:
+        return await CheckinService(session).ready_to_fight(
+            competition_id=competition_id,
+            registration_id=registration_id,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/{competition_id}/checkins/{registration_id}/not-ready",
+    response_model=CompetitionCheckinRead,
+    summary="Mark weighed athlete as not ready to fight",
+)
+async def not_ready_to_fight(
+    competition_id: int,
+    registration_id: int,
+    session: DbSession,
+) -> CompetitionCheckinRead:
+    try:
+        return await CheckinService(session).not_ready_to_fight(
+            competition_id=competition_id,
+            registration_id=registration_id,
         )
     except ServiceError as exc:
         raise translate_service_error(exc) from exc

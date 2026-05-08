@@ -158,6 +158,7 @@ async def test_generate_bracket_uses_power_of_two_byes_and_separates_same_team(
     assert bracket["same_team_conflicts"] == 0
     assert len(bracket["entries"]) == 4
     assert len(bracket["matches"]) == 3
+    assert {entry["athlete"]["checkin_status"] for entry in bracket["entries"] if entry["athlete"]} == {"No Show"}
 
     positions_by_team = defaultdict(list)
     for entry in bracket["entries"]:
@@ -448,3 +449,133 @@ async def test_registration_options_validate_cpf_birth_date_and_filter_categorie
         params={"cpf": "529.982.247-25", "birth_date": "2001-05-14"},
     )
     assert invalid_response.status_code == 422
+
+
+async def test_checkin_lookup_and_confirm_overweight(client: AsyncClient):
+    team_id = await create_team(client, "Equipe Pesagem")
+    category_id = await create_category(client)
+    competition_id = await create_competition(client)
+    athlete_id = await create_athlete(client, 1, team_id)
+    registration_response = await client.post(
+        f"/competitions/{competition_id}/registrations",
+        json=athlete_registration_payload(1, category_id),
+    )
+    assert registration_response.status_code == 201
+    registration_id = registration_response.json()["id"]
+
+    lookup_response = await client.get(
+        f"/competitions/{competition_id}/checkin-options",
+        params={"cpf": "529.982.247-25"},
+    )
+
+    assert lookup_response.status_code == 200
+    lookup = lookup_response.json()
+    assert lookup["registration_id"] == registration_id
+    assert lookup["athlete"]["id"] == athlete_id
+    assert lookup["category"]["weight_class"] == "Male - Light (-76.0 kg)"
+    assert lookup["max_weight_kg"] == "76.0"
+    assert lookup["status"] == "No Show"
+    assert lookup["checkin"] is None
+
+    missing_weighin_ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{registration_id}/ready",
+    )
+    assert missing_weighin_ready_response.status_code == 422
+
+    overweight_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": registration_id,
+            "checked_weight": "80.00",
+            "gi": True,
+            "overweight_confirmed": False,
+        },
+    )
+    assert overweight_response.status_code == 422
+
+    confirmed_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": registration_id,
+            "checked_weight": "80.00",
+            "gi": True,
+            "overweight_confirmed": True,
+        },
+    )
+
+    assert confirmed_response.status_code == 201
+    checkin = confirmed_response.json()
+    assert checkin["athlete_id"] == athlete_id
+    assert checkin["is_overweight"] is True
+    assert checkin["overweight_confirmed"] is True
+    assert checkin["status"] == "Out of weight"
+
+    overweight_ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{registration_id}/ready",
+    )
+    assert overweight_ready_response.status_code == 422
+
+    duplicate_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": registration_id,
+            "checked_weight": "79.00",
+            "gi": True,
+            "overweight_confirmed": True,
+        },
+    )
+    assert duplicate_response.status_code == 409
+    assert duplicate_response.json()["detail"] == "Athlete has already been weighed in this competition."
+
+    lookup_after_response = await client.get(
+        f"/competitions/{competition_id}/checkin-options",
+        params={"cpf": "529.982.247-25"},
+    )
+    assert lookup_after_response.status_code == 200
+    assert lookup_after_response.json()["checkin"]["checked_weight"] == "80.00"
+    assert lookup_after_response.json()["status"] == "Out of weight"
+
+    second_athlete_id = await create_athlete(client, 2, team_id)
+    second_registration_response = await client.post(
+        f"/competitions/{competition_id}/registrations",
+        json=athlete_registration_payload(2, category_id),
+    )
+    assert second_registration_response.status_code == 201
+    second_registration_id = second_registration_response.json()["id"]
+    second_checkin_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": second_registration_id,
+            "checked_weight": "75.00",
+            "overweight_confirmed": False,
+        },
+    )
+    assert second_checkin_response.status_code == 201
+    assert second_checkin_response.json()["status"] == "No checked"
+
+    ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{second_registration_id}/ready",
+    )
+    assert ready_response.status_code == 200
+    ready_checkin = ready_response.json()
+    assert ready_checkin["athlete_id"] == second_athlete_id
+    assert ready_checkin["status"] == "Checked"
+    assert ready_checkin["is_overweight"] is False
+
+    not_ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{second_registration_id}/not-ready",
+    )
+    assert not_ready_response.status_code == 200
+    not_ready_checkin = not_ready_response.json()
+    assert not_ready_checkin["athlete_id"] == second_athlete_id
+    assert not_ready_checkin["status"] == "No checked"
+
+    final_checks_response = await client.get(f"/competitions/{competition_id}/final-checks")
+    assert final_checks_response.status_code == 200
+    final_checks = final_checks_response.json()
+    final_checks_by_athlete = {row["athlete"]["id"]: row for row in final_checks}
+    assert final_checks_by_athlete[athlete_id]["checked_weight"] == "80.00"
+    assert final_checks_by_athlete[athlete_id]["status"] == "Out of weight"
+    assert final_checks_by_athlete[athlete_id]["is_overweight"] is True
+    assert final_checks_by_athlete[second_athlete_id]["checked_weight"] == "75.00"
+    assert final_checks_by_athlete[second_athlete_id]["status"] == "No checked"

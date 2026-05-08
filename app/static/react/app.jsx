@@ -6,7 +6,10 @@ const routes = [
   ["/competicoes", "CHAMPIONSHIPS"],
   ["/inscricoes", "REGISTRATION"],
   ["/chaves", "BRACKETS"],
-  ["/checagem", "CHECK-IN"],
+  ["/checagem", "LISTAGEM DE ATLETAS"],
+  ["/checkin/pesagem", "PESAGEM"],
+  ["/checkin", "CHECKIN"],
+  ["/checagem-final", "CHECAGEM FINAL"],
   ["/ranking", "RANKING"],
 ];
 
@@ -189,9 +192,12 @@ function App() {
         {path === "/competicoes" && <CompetitionsPage />}
         {path === "/inscricoes" && <RegistrationsPage />}
         {path === "/chaves" && <BracketsPage />}
-        {path === "/checagem" && <CheckinPage />}
+        {path === "/checagem" && <AthleteListPage />}
+        {path === "/checkin/pesagem" && <WeighinPage />}
+        {path === "/checkin" && <CheckinPage />}
+        {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!["/equipes", "/competicoes", "/inscricoes", "/chaves", "/checagem", "/ranking"].includes(path) && (
+        {!["/equipes", "/competicoes", "/inscricoes", "/chaves", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
           <AthletesPage />
         )}
       </main>
@@ -512,6 +518,7 @@ function BracketsPage() {
   const [categoryId, setCategoryId] = useState("");
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [result, setResult] = useState(null);
+  const [fightPanel, setFightPanel] = useState(null);
   const [message, setMessage] = useState(["", ""]);
 
   useEffect(() => {
@@ -606,16 +613,17 @@ function BracketsPage() {
           </div>
           <div className="landscape-scroll" aria-label="Chaves em formato paisagem">
             <div className="ibjjf-sheets">
-              {result.brackets.map((bracket) => <BracketSheet bracket={bracket} key={bracket.id} />)}
+              {result.brackets.map((bracket) => <BracketSheet bracket={bracket} key={bracket.id} onOpenFight={(match, matchNumber) => setFightPanel({ bracket, match, matchNumber })} />)}
             </div>
           </div>
         </section>
       )}
+      {fightPanel && <FightPanel data={fightPanel} onClose={() => setFightPanel(null)} />}
     </section>
   );
 }
 
-function BracketSheet({ bracket }) {
+function BracketSheet({ bracket, onOpenFight }) {
   const sheetRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
@@ -647,7 +655,7 @@ function BracketSheet({ bracket }) {
           <span>{summary}</span>
         </div>
         <div className={`ibjjf-board ${bracket.rounds >= 4 ? "split-brackets" : ""}`.trim()}>
-          {bracket.rounds >= 4 ? <SplitBracket bracket={bracket} /> : <CompactBracket bracket={bracket} />}
+          {bracket.rounds >= 4 ? <SplitBracket bracket={bracket} onOpenFight={onOpenFight} /> : <CompactBracket bracket={bracket} onOpenFight={onOpenFight} />}
         </div>
       </section>
       <div className="ibjjf-sheet-actions">
@@ -660,7 +668,7 @@ function BracketSheet({ bracket }) {
   );
 }
 
-function CompactBracket({ bracket }) {
+function CompactBracket({ bracket, onOpenFight }) {
   const halfSize = bracket.bracket_size / 2;
   const sideA = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_end <= halfSize);
   const sideB = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_start > halfSize);
@@ -668,29 +676,29 @@ function CompactBracket({ bracket }) {
   const matchNumbers = bracketMatchNumbers(sideA, sideB, finalMatch);
   return (
     <div className="ibjjf-compact-board">
-      <BracketSide title="Lado A" subtitle={`Posicoes 1-${halfSize}`} matches={sideA} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} />
-      <FinalSection match={finalMatch} title="Final" matchNumbers={matchNumbers} />
-      <BracketSide title="Lado B" subtitle={`Posicoes ${halfSize + 1}-${bracket.bracket_size}`} matches={sideB} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} />
+      <BracketSide title="Lado A" subtitle={`Posicoes 1-${halfSize}`} matches={sideA} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
+      <FinalSection match={finalMatch} title="Final" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
+      <BracketSide title="Lado B" subtitle={`Posicoes ${halfSize + 1}-${bracket.bracket_size}`} matches={sideB} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
     </div>
   );
 }
 
-function SplitBracket({ bracket }) {
+function SplitBracket({ bracket, onOpenFight }) {
   return (
     <>
-      <BracketHalf bracket={bracket} index={1} start={1} end={bracket.bracket_size / 2} />
-      <BracketHalf bracket={bracket} index={2} start={bracket.bracket_size / 2 + 1} end={bracket.bracket_size} />
+      <BracketHalf bracket={bracket} index={1} start={1} end={bracket.bracket_size / 2} onOpenFight={onOpenFight} />
+      <BracketHalf bracket={bracket} index={2} start={bracket.bracket_size / 2 + 1} end={bracket.bracket_size} onOpenFight={onOpenFight} />
       <section className="ibjjf-finals-block">
         <div className="ibjjf-bracket-block-title">FINALS</div>
         <div className="ibjjf-finals-center">
-          <FinalSection match={bracket.matches.find((match) => match.round_number === bracket.rounds)} title="Final" />
+          <FinalSection match={bracket.matches.find((match) => match.round_number === bracket.rounds)} title="Final" onOpenFight={onOpenFight} />
         </div>
       </section>
     </>
   );
 }
 
-function BracketHalf({ bracket, index, start, end }) {
+function BracketHalf({ bracket, index, start, end, onOpenFight }) {
   const blockRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
@@ -719,9 +727,9 @@ function BracketHalf({ bracket, index, start, end }) {
       <section className="ibjjf-bracket-block" ref={blockRef}>
         <div className="ibjjf-bracket-block-title">BRACKET {index}/2</div>
         <div className="ibjjf-compact-board">
-          <BracketSide title={`Lado ${index}A`} subtitle={`Posicoes ${start}-${middle}`} matches={left} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} />
-          <FinalSection match={finalMatch} title="Final do bracket" matchNumbers={matchNumbers} />
-          <BracketSide title={`Lado ${index}B`} subtitle={`Posicoes ${middle + 1}-${end}`} matches={right} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} />
+          <BracketSide title={`Lado ${index}A`} subtitle={`Posicoes ${start}-${middle}`} matches={left} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
+          <FinalSection match={finalMatch} title="Final do bracket" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
+          <BracketSide title={`Lado ${index}B`} subtitle={`Posicoes ${middle + 1}-${end}`} matches={right} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
         </div>
       </section>
       <div className="ibjjf-sheet-actions bracket-block-actions">
@@ -755,7 +763,7 @@ function orderedBracketMatches(matches) {
   });
 }
 
-function BracketSide({ title, subtitle, matches, totalRounds, direction, matchNumbers }) {
+function BracketSide({ title, subtitle, matches, totalRounds, direction, matchNumbers, onOpenFight }) {
   const roundsRef = useRef(null);
   const [connectors, setConnectors] = useState([]);
   const grouped = useMemo(() => {
@@ -826,7 +834,7 @@ function BracketSide({ title, subtitle, matches, totalRounds, direction, matchNu
             </div>
             <div className="ibjjf-match-list">
               {roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => (
-                <MatchCard match={match} direction={direction} key={match.id} matchNumber={matchNumbers?.get(match.id)} />
+                <MatchCard match={match} direction={direction} key={match.id} matchNumber={matchNumbers?.get(match.id)} onOpenFight={onOpenFight} />
               ))}
             </div>
           </section>
@@ -843,11 +851,11 @@ function buildConnectorPath(source, target, direction) {
   return `M ${sourceX} ${source.y} H ${middleX} V ${target.y} H ${targetX}`;
 }
 
-function FinalSection({ match, title, matchNumbers }) {
+function FinalSection({ match, title, matchNumbers, onOpenFight }) {
   return (
     <section className="ibjjf-final-section">
       <div className="ibjjf-side-header final-header"><strong>{title}</strong><span>Vencedor do Lado A x Vencedor do Lado B</span></div>
-      <div className="ibjjf-final-match">{match && <MatchCard match={match} direction="final" matchNumber={matchNumbers?.get(match.id)} />}</div>
+      <div className="ibjjf-final-match">{match && <MatchCard match={match} direction="final" matchNumber={matchNumbers?.get(match.id)} onOpenFight={onOpenFight} />}</div>
     </section>
   );
 }
@@ -860,26 +868,152 @@ function roundLabel(roundNumber, totalRounds) {
   return `Rodada ${roundNumber}`;
 }
 
-function MatchCard({ match, direction, matchNumber }) {
+function MatchCard({ match, direction, matchNumber, onOpenFight }) {
   const left = match.athlete_a || { name: "A definir", team: { name: "" } };
   const right = match.athlete_b || { name: "A definir", team: { name: "" } };
   const athleteName = (athlete) => `${athlete.name}${athlete.is_ranked ? " *" : ""}`;
+  const checkinClass = (athlete) => (athlete.checkin_status || "No Show").toLowerCase().replace(/\s+/g, "-");
+  const athleteLine = (athlete) => (
+    <span className="ibjjf-athlete-line">
+      {athlete.id && <span className={`bracket-check-status ${checkinClass(athlete)}`} title={athlete.checkin_status || "No Show"} />}
+      <strong>{athleteName(athlete)}</strong>
+    </span>
+  );
   const displayedMatchNumber = matchNumber || match.match_number;
   const matchLabel = match.status === "bye"
     ? `Luta ${displayedMatchNumber} | BYE`
     : `Luta ${displayedMatchNumber}`;
   return (
-    <article className={`ibjjf-match ${direction}`}>
+    <article className={`ibjjf-match ${direction}`} role="button" tabIndex="0" onClick={() => onOpenFight?.(match, displayedMatchNumber)} onKeyDown={(event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onOpenFight?.(match, displayedMatchNumber);
+      }
+    }}>
       <div className="ibjjf-match-meta"><strong>{matchLabel}</strong><span>Mat 10</span></div>
       <div className="ibjjf-slot winner">
         <span className="ibjjf-position">{match.position_start}</span>
-        <div><strong>{athleteName(left)}</strong><small>{left.team?.name || ""}</small></div>
+        <div>{athleteLine(left)}<small>{left.team?.name || ""}</small></div>
       </div>
       <div className="ibjjf-slot">
         <span className="ibjjf-position">{match.position_end}</span>
-        <div><strong>{athleteName(right)}</strong><small>{right.team?.name || ""}</small></div>
+        <div>{athleteLine(right)}<small>{right.team?.name || ""}</small></div>
       </div>
     </article>
+  );
+}
+
+function fightDurationSeconds(category) {
+  const belt = category?.belt;
+  const ageGroup = category?.age_group || "";
+  if (ageGroup === "Adult") {
+    return {
+      white: 5,
+      blue: 6,
+      purple: 7,
+      brown: 8,
+      black: 10,
+    }[belt] * 60 || 5 * 60;
+  }
+  if (ageGroup === "Juvenile") return 5 * 60;
+  if (ageGroup === "Master 1") {
+    return ["purple", "brown", "black"].includes(belt) ? 6 * 60 : 5 * 60;
+  }
+  if (ageGroup.startsWith("Master")) return 5 * 60;
+  return 5 * 60;
+}
+
+function formatFightTime(seconds) {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainder = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
+function FightPanel({ data, onClose }) {
+  const { bracket, match, matchNumber } = data;
+  const duration = fightDurationSeconds(bracket.category);
+  const [timeLeft, setTimeLeft] = useState(duration);
+  const [running, setRunning] = useState(false);
+  const [scores, setScores] = useState({
+    a: { points: 0, advantages: 0, penalties: 0 },
+    b: { points: 0, advantages: 0, penalties: 0 },
+  });
+  const athleteA = match.athlete_a || { name: "A definir", team: { name: "" } };
+  const athleteB = match.athlete_b || { name: "A definir", team: { name: "" } };
+  const categoryText = [
+    bracket.category.age_group,
+    beltLabels[bracket.category.belt] || bracket.category.belt,
+    bracket.category.weight_class,
+  ].join(" | ");
+
+  useEffect(() => {
+    if (!running || timeLeft <= 0) return undefined;
+    const timer = window.setInterval(() => {
+      setTimeLeft((current) => {
+        if (current <= 1) {
+          setRunning(false);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [running, timeLeft]);
+
+  function addScore(side, field) {
+    setScores((current) => ({
+      ...current,
+      [side]: {
+        ...current[side],
+        [field]: current[side][field] + 1,
+      },
+    }));
+  }
+
+  return (
+    <div className="modal-backdrop fight-modal-backdrop" role="dialog" aria-modal="true">
+      <section className="fight-panel">
+        <button className="fight-close" type="button" onClick={onClose} aria-label="Fechar painel de luta">x</button>
+        <div className="fight-rows">
+          <FightAthleteRow athlete={athleteA} score={scores.a} active onScore={(field) => addScore("a", field)} />
+          <FightAthleteRow athlete={athleteB} score={scores.b} onScore={(field) => addScore("b", field)} />
+        </div>
+        <footer className="fight-footer">
+          <div className="fight-info">
+            <strong>{categoryText}</strong>
+            <span>Luta {matchNumber} {match.status === "bye" ? "| BYE" : ""}</span>
+            <button className="secondary" type="button" onClick={() => {
+              setRunning(false);
+              setTimeLeft(duration);
+            }}>Reset</button>
+          </div>
+          <button className={`fight-clock ${running ? "running" : ""}`} type="button" onClick={() => setRunning((current) => !current)}>
+            {formatFightTime(timeLeft)}
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function FightAthleteRow({ athlete, score, active = false, onScore }) {
+  return (
+    <section className={`fight-athlete-row ${active ? "active" : ""}`.trim()}>
+      <div className="fight-athlete-info">
+        <div className="fight-athlete-name"><span className="fight-flag" aria-label="Brasil">🇧🇷</span><strong>{athlete.name}</strong></div>
+        <span>{athlete.team?.name || ""}</span>
+      </div>
+      <button className="fight-score points" type="button" onClick={() => onScore("points")} aria-label={`Adicionar ponto para ${athlete.name}`}>
+        {score.points}
+      </button>
+      <button className="fight-score advantages" type="button" onClick={() => onScore("advantages")} aria-label={`Adicionar vantagem para ${athlete.name}`}>
+        {score.advantages}
+      </button>
+      <button className="fight-score penalties" type="button" onClick={() => onScore("penalties")} aria-label={`Adicionar punicao para ${athlete.name}`}>
+        {score.penalties}
+      </button>
+    </section>
   );
 }
 
@@ -997,11 +1131,11 @@ function RankingPage() {
                   <tbody>
                     {group.athletes.map((item) => (
                       <tr key={`${group.belt}-${group.age_group}-${item.athlete_id}`}>
-                        <td>#{item.position}</td>
-                        <td>{item.athlete.name}</td>
-                        <td>{item.athlete.team?.name}</td>
-                        <td>{item.total_points}</td>
-                        <td>{item.entry_count}</td>
+                        <td data-label="Posicao">#{item.position}</td>
+                        <td data-label="Atleta">{item.athlete.name}</td>
+                        <td data-label="Equipe">{item.athlete.team?.name}</td>
+                        <td data-label="Pontos">{item.total_points}</td>
+                        <td data-label="Lancamentos">{item.entry_count}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1016,7 +1150,335 @@ function RankingPage() {
   );
 }
 
+function WeighinPage() {
+  const emptyForm = { competition_id: "", cpf: "", checked_weight: "" };
+  const [competitions, setCompetitions] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [lookup, setLookup] = useState(null);
+  const [message, setMessage] = useState(["", ""]);
+  const [warningOpen, setWarningOpen] = useState(false);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  async function findAthlete(nextForm = form) {
+    setLookup(null);
+    if (!nextForm.competition_id || normalizeCpf(nextForm.cpf).length !== 11) return;
+    try {
+      const data = await fetchJson(
+        `/competitions/${nextForm.competition_id}/checkin-options?cpf=${encodeURIComponent(normalizeCpf(nextForm.cpf))}`,
+      );
+      setLookup(data);
+      setForm({
+        ...nextForm,
+        checked_weight: data.checkin?.checked_weight ? String(data.checkin.checked_weight) : "",
+      });
+      setMessage(data.checkin
+        ? ["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"]
+        : ["Atleta localizado para pesagem.", "success"]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  function isOverweight() {
+    if (!lookup?.max_weight_kg || !form.checked_weight) return false;
+    return Number(form.checked_weight) > Number(lookup.max_weight_kg);
+  }
+
+  function isAlreadyWeighed() {
+    return Boolean(lookup?.checkin);
+  }
+
+  async function persistCheckin(overweightConfirmed = false) {
+    const checkin = await fetchJson(`/competitions/${form.competition_id}/checkins`, {
+      method: "POST",
+      body: JSON.stringify({
+        registration_id: lookup.registration_id,
+        checked_weight: Number(form.checked_weight).toFixed(2),
+        overweight_confirmed: overweightConfirmed,
+      }),
+    });
+    setLookup({ ...lookup, checkin });
+    setWarningOpen(false);
+    setMessage([`${checkin.athlete.name} registrado na pesagem.`, checkin.is_overweight ? "error" : "success"]);
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    if (!lookup) {
+      setMessage(["Localize o atleta pelo CPF antes de salvar a pesagem.", "error"]);
+      return;
+    }
+    if (isAlreadyWeighed()) {
+      setMessage(["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"]);
+      return;
+    }
+    if (isOverweight()) {
+      setWarningOpen(true);
+      return;
+    }
+    try {
+      await persistCheckin(false);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  async function confirmOverweight() {
+    try {
+      if (isAlreadyWeighed()) {
+        setWarningOpen(false);
+        setMessage(["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"]);
+        return;
+      }
+      await persistCheckin(true);
+    } catch (error) {
+      setWarningOpen(false);
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  return (
+    <section className="workspace stack">
+      <form className="registration registration-inline weighin-form" onSubmit={submit}>
+        <div className="section-heading">
+          <h2>Pesagem</h2>
+          <span>{lookup?.checkin ? "Atleta ja pesado nesta competicao" : lookup ? categoryLabel(lookup.category) : "Localize o atleta pelo CPF"}</span>
+        </div>
+        <div className="grid weighin-row">
+          <Select label="Competicao" value={form.competition_id} onChange={(competition_id) => {
+            const next = { ...form, competition_id };
+            setForm(next);
+            findAthlete(next);
+          }} required options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
+          <Field label="CPF" value={form.cpf} onBlur={() => findAthlete()} onChange={(cpf) => setForm({ ...form, cpf: maskCpf(cpf) })} required />
+          <Field label="Peso checado" type="number" min="0" step="0.01" value={form.checked_weight} onChange={(checked_weight) => setForm({ ...form, checked_weight })} required disabled={!lookup || isAlreadyWeighed()} />
+          <div className="inline-submit">
+            <button className="primary" type="submit" disabled={!lookup || isAlreadyWeighed()}>Salvar pesagem</button>
+          </div>
+        </div>
+        <div className="grid weighin-data">
+          <Field label="Nome" value={lookup?.athlete.name || ""} readOnly placeholder="Atleta localizado" />
+          <Field label="CPF" value={lookup?.athlete.cpf || ""} readOnly />
+          <Field label="Faixa" value={lookup ? beltLabels[lookup.athlete.belt] || lookup.athlete.belt : ""} readOnly />
+          <Field label="Categoria de idade" value={lookup?.category.age_group || ""} readOnly />
+          <Field label="Categoria de peso" value={lookup?.category.weight_class || ""} readOnly />
+          <Field label="Limite da categoria" value={lookup?.max_weight_kg ? `${lookup.max_weight_kg} kg` : "Sem limite superior"} readOnly />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </form>
+      {warningOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <section className="weight-alert">
+            <h2>Atleta nao bateu o peso</h2>
+            <p>
+              O peso informado foi {Number(form.checked_weight).toFixed(2)} kg e o limite da categoria e {lookup.max_weight_kg} kg.
+            </p>
+            <p>Confirma o registro mesmo assim?</p>
+            <div className="actions">
+              <button className="secondary" type="button" onClick={() => setWarningOpen(false)}>Cancelar</button>
+              <button className="primary danger" type="button" onClick={confirmOverweight}>Confirmar pesagem</button>
+            </div>
+          </section>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function CheckinPage() {
+  const emptyForm = { competition_id: "", cpf: "" };
+  const [competitions, setCompetitions] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [lookup, setLookup] = useState(null);
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  async function findAthlete(nextForm = form) {
+    setLookup(null);
+    if (!nextForm.competition_id || normalizeCpf(nextForm.cpf).length !== 11) return;
+    try {
+      const data = await fetchJson(
+        `/competitions/${nextForm.competition_id}/checkin-options?cpf=${encodeURIComponent(normalizeCpf(nextForm.cpf))}`,
+      );
+      setLookup(data);
+      if (!data.checkin) {
+        setMessage(["Atleta sem pesagem registrada. Status: No Show.", "error"]);
+      } else if (data.checkin.is_overweight) {
+        setMessage(["Atleta nao bateu o peso. Status: Out of weight.", "error"]);
+      } else if (data.checkin.status === "Checked") {
+        setMessage(["Atleta ja foi checado. Status: Checked.", "success"]);
+      } else {
+        setMessage(["Atleta localizado e apto para CHECKED.", "success"]);
+      }
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  const canReady = lookup?.checkin && !lookup.checkin.is_overweight && lookup.checkin.status !== "Checked";
+  const canNotReady = Boolean(lookup?.checkin && lookup.checkin.status !== "Checked");
+
+  async function setFightStatus(event, targetStatus) {
+    event.preventDefault();
+    if (!lookup) {
+      setMessage(["Localize o atleta pelo CPF antes do checkin.", "error"]);
+      return;
+    }
+    if (!lookup.checkin) {
+      setMessage(["Atleta sem pesagem registrada. Status: No Show.", "error"]);
+      return;
+    }
+    if (lookup.checkin.status === "Checked") {
+      setMessage(["Atleta ja foi checado. Status: Checked.", "success"]);
+      return;
+    }
+    if (targetStatus === "not-ready") {
+      try {
+        const checkin = await fetchJson(`/competitions/${form.competition_id}/checkins/${lookup.registration_id}/not-ready`, {
+          method: "POST",
+        });
+        setLookup({ ...lookup, status: checkin.status, checkin });
+        setMessage([`${checkin.athlete.name} marcado como ${checkin.status}.`, checkin.is_overweight ? "error" : "success"]);
+      } catch (error) {
+        setMessage([error.message, "error"]);
+      }
+      return;
+    }
+    if (lookup.checkin.is_overweight) {
+      setMessage(["Atleta nao bateu o peso. Status: Out of weight.", "error"]);
+      return;
+    }
+    try {
+      const checkin = await fetchJson(`/competitions/${form.competition_id}/checkins/${lookup.registration_id}/ready`, {
+        method: "POST",
+      });
+      setLookup({ ...lookup, status: checkin.status, checkin });
+      setMessage([`${checkin.athlete.name} marcado como Checked.`, "success"]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  return (
+    <section className="workspace stack">
+      <form className="registration registration-inline weighin-form" onSubmit={(event) => setFightStatus(event, "ready")}>
+        <div className="section-heading">
+          <h2>Checkin</h2>
+          <span>{lookup ? `Status: ${lookup.checkin?.status || lookup.status}` : "Localize o atleta pelo CPF"}</span>
+        </div>
+        <div className="grid ready-row">
+          <Select label="Competicao" value={form.competition_id} onChange={(competition_id) => {
+            const next = { ...form, competition_id };
+            setForm(next);
+            findAthlete(next);
+          }} required options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
+          <Field label="CPF" value={form.cpf} onBlur={() => findAthlete()} onChange={(cpf) => setForm({ ...form, cpf: maskCpf(cpf) })} required />
+          <div className="ready-actions">
+            <button className="primary" type="submit" disabled={!canReady}>CHECKED</button>
+            <button className="danger-button" type="button" disabled={!canNotReady} onClick={(event) => setFightStatus(event, "not-ready")}>NO CHECKED</button>
+          </div>
+        </div>
+        <div className="grid weighin-data">
+          <Field label="Nome" value={lookup?.athlete.name || ""} readOnly placeholder="Atleta localizado" />
+          <Field label="CPF" value={lookup?.athlete.cpf || ""} readOnly />
+          <Field label="Faixa" value={lookup ? beltLabels[lookup.athlete.belt] || lookup.athlete.belt : ""} readOnly />
+          <Field label="Categoria de idade" value={lookup?.category.age_group || ""} readOnly />
+          <Field label="Categoria de peso" value={lookup?.category.weight_class || ""} readOnly />
+          <Field label="Status" value={lookup ? lookup.checkin?.status || lookup.status : ""} readOnly />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </form>
+    </section>
+  );
+}
+
+function FinalCheckPage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  async function load(id) {
+    setCompetitionId(id);
+    setRows([]);
+    if (!id) return;
+    try {
+      setRows(await fetchJson(`/competitions/${id}/final-checks`));
+      setMessage(["", ""]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  const groups = new Map();
+  rows.forEach((item) => {
+    const key = [item.category.belt, item.category.age_group, item.category.weight_class].join("|");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+
+  return (
+    <section className="workspace stack">
+      <section className="registration checkin-toolbar">
+        <div className="section-heading">
+          <h2>Checagem Final</h2>
+          <span>{rows.length} atleta(s) na checagem final</span>
+        </div>
+        <div className="grid final-check-row">
+          <Select label="Competicao" className="wide" value={competitionId} onChange={load} options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </section>
+      <section className="panel checkin-panel">
+        <div className="checkin-groups">
+          {!competitionId && <div className="empty">Selecione uma competicao para consultar a checagem final.</div>}
+          {competitionId && !rows.length && <div className="empty">Nenhum atleta inscrito nesta competicao.</div>}
+          {[...groups.entries()].map(([key, items]) => <FinalCheckGroup groupKey={key} items={items} key={key} />)}
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function FinalCheckGroup({ groupKey, items }) {
+  const [belt, ageGroup, weight] = groupKey.split("|");
+  return (
+    <section className="checkin-group">
+      <div className="checkin-group-heading">
+        <h2>{[beltLabels[belt] || belt, ageGroup, weight].join(" | ")}</h2>
+        <span>{items.length} atleta(s)</span>
+      </div>
+      <div className="checkin-table-wrap">
+        <table className="checkin-table final-check-table">
+          <thead><tr><th>Atleta</th><th>Peso checado</th><th>Status da checagem</th></tr></thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.registration_id}>
+                <td data-label="Atleta">{item.athlete.name}</td>
+                <td data-label="Peso checado">{item.checked_weight ? `${Number(item.checked_weight).toFixed(2)} kg` : "-"}</td>
+                <td data-label="Status da checagem">
+                  <span className={`check-status ${item.status.toLowerCase().replace(/\s+/g, "-")}`}>{item.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function AthleteListPage() {
   const [competitions, setCompetitions] = useState([]);
   const [competitionId, setCompetitionId] = useState("");
   const [registrations, setRegistrations] = useState([]);
@@ -1055,7 +1517,7 @@ function CheckinPage() {
   return (
     <section className="workspace stack">
       <section className="registration checkin-toolbar">
-        <div className="section-heading"><h2>Atletas Inscritos</h2><span>{filtered.length} atleta(s) exibido(s) de {registrations.length} inscrito(s)</span></div>
+        <div className="section-heading"><h2>Listagem de Atletas</h2><span>{filtered.length} atleta(s) exibido(s) de {registrations.length} inscrito(s)</span></div>
         <div className="grid checkin-filters">
           <Select label="Competicao" className="wide" value={competitionId} onChange={load} options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
           <Select label="Sexo" value={filters.sex} onChange={(sex) => setFilters({ ...filters, sex })} options={[["", "Todos"], ...values((item) => item.athlete.sex).map((value) => [value, sexLabels[value] || value])]} />
@@ -1089,11 +1551,11 @@ function CheckinGroup({ groupKey, items }) {
           <tbody>
             {items.map((item) => (
               <tr key={item.id}>
-                <td>{item.athlete.name}</td>
-                <td>{item.athlete.team?.name}</td>
-                <td>{item.athlete.cpf}</td>
-                <td>{item.athlete.birth_date}</td>
-                <td>#{item.id}</td>
+                <td data-label="Atleta">{item.athlete.name}</td>
+                <td data-label="Equipe">{item.athlete.team?.name}</td>
+                <td data-label="CPF">{item.athlete.cpf}</td>
+                <td data-label="Nascimento">{item.athlete.birth_date}</td>
+                <td data-label="Inscricao">#{item.id}</td>
               </tr>
             ))}
           </tbody>
