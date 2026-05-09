@@ -31,7 +31,14 @@ class Competition(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(160), nullable=False, unique=True, index=True)
     event_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    start_time: Mapped[str] = mapped_column(String(5), nullable=False, default="09:00", server_default="09:00")
     mat_count: Mapped[int] = mapped_column(Integer, nullable=False, default=4, server_default="4")
+    competition_type: Mapped[str] = mapped_column(String(20), nullable=False, default="Oficial", server_default="Oficial")
+    competition_days: Mapped[int] = mapped_column(Integer, nullable=False, default=2, server_default="2")
+    dia_1: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_2: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_3: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_4: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -223,6 +230,7 @@ class Match(Base):
     athlete_b = relationship("Athlete", foreign_keys=[athlete_b_id])
     winner = relationship("Athlete", foreign_keys=[winner_id])
     result = relationship("MatchResult", back_populates="match", uselist=False)
+    schedule = relationship("CompetitionSchedule", back_populates="match", uselist=False)
 
 
 class MatchResult(Base):
@@ -263,3 +271,46 @@ class MatchResult(Base):
 
     match = relationship("Match", back_populates="result")
     winner = relationship("Athlete")
+
+
+class CompetitionSchedule(Base):
+    __tablename__ = "competition_schedule"
+    __table_args__ = (
+        UniqueConstraint("match_id", name="uq_competition_schedule_match"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    competition_id: Mapped[int] = mapped_column(
+        ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    bracket_id: Mapped[int] = mapped_column(
+        ForeignKey("brackets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    match_id: Mapped[int] = mapped_column(
+        ForeignKey("matches.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    mat_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    day_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    scheduled_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    competition = relationship("Competition")
+    bracket = relationship("Bracket")
+    category = relationship("Category")
+    match = relationship("Match", back_populates="schedule")

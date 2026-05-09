@@ -19,6 +19,8 @@ from app.schemas.bracket import (
     CompetitionRead,
     CompetitionRegistrationCreate,
     CompetitionRegistrationRead,
+    MatchResultRead,
+    MatchResultUpdate,
     RegistrationOptionsRead,
 )
 from app.services.brackets import (
@@ -238,6 +240,39 @@ async def generate_all_brackets(
         skipped_count=skipped_count,
         brackets=brackets,
     )
+
+
+@router.get(
+    "/{competition_id}/brackets",
+    response_model=list[BracketRead],
+    summary="List saved brackets for a competition",
+)
+async def list_brackets(competition_id: int, session: DbSession) -> list[BracketRead]:
+    try:
+        return await BracketService(session).list_for_competition(competition_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.put(
+    "/{competition_id}/matches/{match_id}/result",
+    response_model=MatchResultRead,
+    summary="Persist match score and result",
+)
+async def update_match_result(
+    competition_id: int,
+    match_id: int,
+    payload: MatchResultUpdate,
+    session: DbSession,
+) -> MatchResultRead:
+    try:
+        return await BracketService(session).update_match_result(
+            competition_id=competition_id,
+            match_id=match_id,
+            payload=payload,
+        )
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
 
 
 @router.post(

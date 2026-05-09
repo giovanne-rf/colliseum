@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 import re
 
@@ -16,6 +16,7 @@ from app.models.athlete import Athlete
 from app.models.bracket import (
     Bracket,
     BracketEntry,
+    CompetitionSchedule,
     CompetitionCheckin,
     Competition,
     CompetitionRegistration,
@@ -32,9 +33,12 @@ from app.schemas.bracket import (
     CompetitionCheckinLookupRead,
     CompetitionCheckinRead,
     CompetitionCreate,
+    CompetitionScheduleRead,
     CompetitionRegistrationCreate,
+    MatchScheduleRead,
     MatchResultRead,
     MatchResultUpdate,
+    ScheduleCategoryRead,
 )
 from app.services.exceptions import ConflictError, NotFoundError, ValidationError
 from app.tournament.brackets import (
@@ -47,6 +51,9 @@ CHECKIN_STATUS_CHECKED = "Checked"
 CHECKIN_STATUS_NO_CHECKED = "No checked"
 CHECKIN_STATUS_NO_SHOW = "No Show"
 CHECKIN_STATUS_OUT_OF_WEIGHT = "Out of weight"
+MAX_MATCHES_PER_MAT_DAY = 80
+BETWEEN_MATCHES_MINUTES = 2
+SAME_ATHLETE_REST_MINUTES = 20
 
 
 @dataclass(frozen=True)
@@ -68,7 +75,14 @@ class CompetitionService:
         self.session = session
 
     async def create(self, payload: CompetitionCreate) -> Competition:
-        competition = Competition(**payload.model_dump())
+        data = payload.model_dump()
+        for index in range(1, 5):
+            data[f"dia_{index}"] = (
+                payload.event_date + timedelta(days=index - 1)
+                if index <= payload.competition_days
+                else None
+            )
+        competition = Competition(**data)
         self.session.add(competition)
         try:
             await self.session.commit()
@@ -88,6 +102,52 @@ class CompetitionService:
         if competition is None:
             raise NotFoundError("Competition not found.")
         return competition
+
+
+class ScheduleService:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def list_for_competition(self, competition_id: int) -> CompetitionScheduleRead:
+        competition = await CompetitionService(self.session).get(competition_id)
+        result = await self.session.execute(
+            select(CompetitionSchedule)
+            .where(CompetitionSchedule.competition_id == competition_id)
+            .options(
+                selectinload(CompetitionSchedule.category),
+            )
+            .order_by(
+                CompetitionSchedule.day_number,
+                CompetitionSchedule.scheduled_start,
+                CompetitionSchedule.mat_number,
+            )
+        )
+        rows = list(result.scalars().all())
+        grouped: dict[int, list[CompetitionSchedule]] = {}
+        for row in rows:
+            grouped.setdefault(row.bracket_id, []).append(row)
+
+        categories = []
+        for bracket_rows in grouped.values():
+            first = min(bracket_rows, key=lambda item: item.scheduled_start)
+            categories.append(
+                ScheduleCategoryRead(
+                    bracket_id=first.bracket_id,
+                    category_id=first.category_id,
+                    category=first.category,
+                    sex=_category_sex(first.category.weight_class),
+                    mat_number=first.mat_number,
+                    day_number=first.day_number,
+                    start_time=first.scheduled_start,
+                    fight_count=len(bracket_rows),
+                )
+            )
+        categories.sort(key=lambda item: (item.day_number, item.start_time, item.sex, item.category.age_group))
+        return CompetitionScheduleRead(
+            competition=competition,
+            categories=categories,
+            matches=[MatchScheduleRead.model_validate(row) for row in rows],
+        )
 
 
 class RegistrationService:
@@ -378,6 +438,7 @@ class CheckinService:
             competition_id=competition_id,
             registration_id=payload.registration_id,
         )
+        await self._ensure_bracket_generated_for_registration(registration)
         max_weight = max_weight_kg(registration.category.weight_class)
         is_overweight = max_weight is not None and payload.checked_weight > max_weight
         if is_overweight and not payload.overweight_confirmed:
@@ -397,6 +458,11 @@ class CheckinService:
             status=CHECKIN_STATUS_OUT_OF_WEIGHT if is_overweight else CHECKIN_STATUS_NO_CHECKED,
         )
         self.session.add(checkin)
+        if checkin.status == CHECKIN_STATUS_OUT_OF_WEIGHT:
+            await self.session.flush()
+            await BracketService(self.session).advance_status_walkovers_for_competition(
+                competition_id=competition_id,
+            )
 
         await self.session.commit()
         await self.session.refresh(checkin)
@@ -412,6 +478,7 @@ class CheckinService:
             competition_id=competition_id,
             registration_id=registration_id,
         )
+        await self._ensure_bracket_generated_for_registration(registration)
         checkin = await self._get_checkin_by_registration(registration.id)
         if checkin is None:
             raise ValidationError("Athlete must be weighed before ready to fight.")
@@ -424,6 +491,15 @@ class CheckinService:
             raise ValidationError("Athlete is not available for ready to fight because weight is over category limit.")
 
         checkin.status = CHECKIN_STATUS_CHECKED
+        await self.session.flush()
+        bracket_service = BracketService(self.session)
+        await bracket_service.advance_checked_byes_for_athlete(
+            competition_id=competition_id,
+            athlete_id=registration.athlete_id,
+        )
+        await bracket_service.advance_status_walkovers_for_competition(
+            competition_id=competition_id,
+        )
         await self.session.commit()
         await self.session.refresh(checkin)
         return self._to_read(checkin, registration)
@@ -438,6 +514,7 @@ class CheckinService:
             competition_id=competition_id,
             registration_id=registration_id,
         )
+        await self._ensure_bracket_generated_for_registration(registration)
         checkin = await self._get_checkin_by_registration(registration.id)
         if checkin is None:
             raise ValidationError("Athlete must be weighed before not ready to fight.")
@@ -449,6 +526,11 @@ class CheckinService:
             if max_weight is not None and checked_weight > max_weight
             else CHECKIN_STATUS_NO_CHECKED
         )
+        if checkin.status == CHECKIN_STATUS_OUT_OF_WEIGHT:
+            await self.session.flush()
+            await BracketService(self.session).advance_status_walkovers_for_competition(
+                competition_id=competition_id,
+            )
         await self.session.commit()
         await self.session.refresh(checkin)
         return self._to_read(checkin, registration)
@@ -513,6 +595,21 @@ class CheckinService:
             select(CompetitionCheckin).where(CompetitionCheckin.registration_id == registration_id)
         )
         return result.scalar_one_or_none()
+
+    async def _ensure_bracket_generated_for_registration(
+        self,
+        registration: CompetitionRegistration,
+    ) -> None:
+        result = await self.session.execute(
+            select(Bracket.id).where(
+                Bracket.competition_id == registration.competition_id,
+                Bracket.category_id == registration.category_id,
+            )
+        )
+        if result.scalar_one_or_none() is None:
+            raise ValidationError(
+                "Bracket must be generated before athlete weigh-in or check-in."
+            )
 
     def _to_read(
         self,
@@ -579,18 +676,17 @@ class BracketService:
         *,
         competition_id: int,
         category_id: int,
-        replace_existing: bool = True,
+        replace_existing: bool = False,
     ) -> Bracket:
-        await CompetitionService(self.session).get(competition_id)
+        _ = replace_existing
+        competition = await CompetitionService(self.session).get(competition_id)
         category = await self.session.get(Category, category_id)
         if category is None:
             raise NotFoundError("Category not found.")
 
         existing = await self._get_existing_bracket(competition_id, category_id)
         if existing is not None:
-            if not replace_existing:
-                raise ConflictError("Bracket already exists for this competition and category.")
-            await self._delete_bracket(existing.id)
+            raise ConflictError("Bracket already exists for this competition and category.")
 
         athletes = await self._get_registered_athletes(competition_id, category_id)
         if len(athletes) < 2:
@@ -616,6 +712,11 @@ class BracketService:
         self.session.add(bracket)
         await self.session.flush()
 
+        checked_athlete_ids = await self._get_checked_athlete_ids(
+            competition_id=competition_id,
+            athlete_ids={athlete.id for athlete in athletes},
+        )
+
         self.session.add_all(
             [
                 BracketEntry(
@@ -628,7 +729,17 @@ class BracketService:
                 for placement in placements
             ]
         )
-        self.session.add_all(self._build_matches(bracket.id, placements, bracket_size))
+        matches = self._build_matches(bracket.id, placements, bracket_size)
+        self._advance_bye_winners(matches, checked_athlete_ids=checked_athlete_ids)
+        self.session.add_all(matches)
+        await self.session.flush()
+        await self._schedule_matches(
+            competition=competition,
+            bracket=bracket,
+            category=category,
+            matches=matches,
+        )
+        await self.advance_status_walkovers_for_competition(competition_id=competition_id)
 
         await self.session.commit()
         return await self.get(bracket.id)
@@ -637,8 +748,9 @@ class BracketService:
         self,
         *,
         competition_id: int,
-        replace_existing: bool = True,
+        replace_existing: bool = False,
     ) -> tuple[list[Bracket], int]:
+        _ = replace_existing
         await CompetitionService(self.session).get(competition_id)
         category_ids = await self._get_registered_category_ids(competition_id)
         brackets: list[Bracket] = []
@@ -648,11 +760,14 @@ class BracketService:
             if athlete_count < 2:
                 skipped_count += 1
                 continue
+            if await self._get_existing_bracket(competition_id, category_id) is not None:
+                skipped_count += 1
+                continue
             brackets.append(
                 await self.generate(
                     competition_id=competition_id,
                     category_id=category_id,
-                    replace_existing=replace_existing,
+                    replace_existing=False,
                 )
             )
 
@@ -662,6 +777,28 @@ class BracketService:
             )
 
         return brackets, skipped_count
+
+    async def list_for_competition(self, competition_id: int) -> list[Bracket]:
+        await CompetitionService(self.session).get(competition_id)
+        result = await self.session.execute(
+            select(Bracket)
+            .where(Bracket.competition_id == competition_id)
+            .options(
+                selectinload(Bracket.category),
+                selectinload(Bracket.entries).selectinload(BracketEntry.athlete).selectinload(Athlete.team),
+                selectinload(Bracket.matches).selectinload(Match.athlete_a).selectinload(Athlete.team),
+                selectinload(Bracket.matches).selectinload(Match.athlete_b).selectinload(Athlete.team),
+                selectinload(Bracket.matches).selectinload(Match.winner).selectinload(Athlete.team),
+                selectinload(Bracket.matches).selectinload(Match.result),
+                selectinload(Bracket.matches).selectinload(Match.schedule),
+            )
+            .order_by(Bracket.id)
+        )
+        brackets = list(result.scalars().all())
+        for bracket in brackets:
+            await self._mark_ranked_athletes(bracket)
+            await self._mark_checkin_statuses(bracket)
+        return brackets
 
     async def get(self, bracket_id: int) -> Bracket:
         result = await self.session.execute(
@@ -674,6 +811,7 @@ class BracketService:
                 selectinload(Bracket.matches).selectinload(Match.athlete_b).selectinload(Athlete.team),
                 selectinload(Bracket.matches).selectinload(Match.winner).selectinload(Athlete.team),
                 selectinload(Bracket.matches).selectinload(Match.result),
+                selectinload(Bracket.matches).selectinload(Match.schedule),
             )
         )
         bracket = result.scalar_one_or_none()
@@ -695,21 +833,23 @@ class BracketService:
         if match.athlete_a_id is None or match.athlete_b_id is None:
             raise ValidationError("Both athletes are required to score a match.")
 
-        allowed_methods = {None, "time", "submission", "disqualification"}
+        allowed_methods = {None, "Pontos", "Finalização", "Desclassificação do oponente"}
         if payload.finish_method not in allowed_methods:
             raise ValidationError("Invalid finish method.")
 
         winner_id = payload.winner_id
         if payload.finalized:
-            if payload.finish_method == "time":
+            if payload.finish_method == "Pontos":
                 winner_id = self._time_winner_id(match, payload)
-            elif payload.finish_method in {"submission", "disqualification"}:
+            elif payload.finish_method in {"Finalização", "Desclassificação do oponente"}:
                 if winner_id not in {match.athlete_a_id, match.athlete_b_id}:
                     raise ValidationError("Winner must be one of the match athletes.")
             else:
                 raise ValidationError("Finish method is required to finalize a match.")
 
         result = await self._get_match_result(match_id)
+        if result is not None and result.finalized:
+            raise ConflictError("Match is already finalized.")
         if result is None:
             result = MatchResult(match_id=match_id)
             self.session.add(result)
@@ -725,8 +865,10 @@ class BracketService:
         result.winner_id = winner_id if payload.finalized else None
 
         if payload.finalized:
-            match.winner_id = result.winner_id
+            match.winner_id = winner_id
             match.status = MatchStatus.completed
+            await self.session.flush()
+            await self._advance_available_winners(match.bracket_id)
 
         await self.session.commit()
         await self.session.refresh(result)
@@ -740,6 +882,263 @@ class BracketService:
             )
         )
         return result.scalar_one_or_none()
+
+    async def _get_match_for_competition(self, *, competition_id: int, match_id: int) -> Match:
+        result = await self.session.execute(
+            select(Match)
+            .join(Bracket, Bracket.id == Match.bracket_id)
+            .where(Match.id == match_id, Bracket.competition_id == competition_id)
+        )
+        match = result.scalar_one_or_none()
+        if match is None:
+            raise NotFoundError("Match not found.")
+        return match
+
+    async def _get_match_result(self, match_id: int) -> MatchResult | None:
+        result = await self.session.execute(
+            select(MatchResult).where(MatchResult.match_id == match_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def _schedule_matches(
+        self,
+        *,
+        competition: Competition,
+        bracket: Bracket,
+        category: Category,
+        matches: list[Match],
+    ) -> None:
+        result = await self.session.execute(
+            select(CompetitionSchedule)
+            .where(CompetitionSchedule.competition_id == competition.id)
+            .order_by(CompetitionSchedule.day_number, CompetitionSchedule.mat_number)
+        )
+        existing_rows = list(result.scalars().all())
+        day_count = max(1, min(competition.competition_days, 4))
+        start_clock = _parse_start_time(competition.start_time)
+        mat_states: dict[tuple[int, int], dict[str, object]] = {}
+        for day_number in range(1, day_count + 1):
+            day_date = getattr(competition, f"dia_{day_number}") or (
+                competition.event_date + timedelta(days=day_number - 1)
+            )
+            start_at = datetime.combine(day_date, start_clock)
+            for mat_number in range(1, competition.mat_count + 1):
+                mat_states[(day_number, mat_number)] = {"count": 0, "next": start_at}
+
+        category_mat = None
+        athlete_available: dict[int, datetime] = {}
+        for row in existing_rows:
+            key = (row.day_number, row.mat_number)
+            state = mat_states.get(key)
+            if state is None:
+                continue
+            state["count"] = int(state["count"]) + 1
+            row_next = row.scheduled_start + timedelta(
+                minutes=row.estimated_minutes + BETWEEN_MATCHES_MINUTES
+            )
+            if row_next > state["next"]:
+                state["next"] = row_next
+            if row.category_id == category.id:
+                category_mat = row.mat_number
+
+        estimated_minutes = _fight_duration_minutes(category)
+        ordered_matches = sorted(matches, key=lambda item: (item.round_number, item.match_number))
+        for match in ordered_matches:
+            mat_options = list(mat_states)
+            if category_mat is not None:
+                preferred = [key for key in mat_options if key[1] == category_mat]
+                mat_options = preferred + [key for key in mat_options if key[1] != category_mat]
+
+            athlete_ids = [
+                athlete_id
+                for athlete_id in (match.athlete_a_id, match.athlete_b_id)
+                if athlete_id is not None
+            ]
+            rest_ready_at = max(
+                [athlete_available.get(athlete_id, datetime.min) for athlete_id in athlete_ids],
+                default=datetime.min,
+            )
+            candidates = []
+            for key in mat_options:
+                state = mat_states[key]
+                if int(state["count"]) >= MAX_MATCHES_PER_MAT_DAY:
+                    continue
+                candidates.append((max(state["next"], rest_ready_at), int(state["count"]), key))
+            if not candidates:
+                raise ValidationError("Competition schedule has no available MAT slots.")
+
+            scheduled_start, _, (day_number, mat_number) = min(
+                candidates,
+                key=lambda item: (item[0], item[1], item[2][0], item[2][1]),
+            )
+            if category_mat is None:
+                category_mat = mat_number
+
+            schedule = CompetitionSchedule(
+                competition_id=competition.id,
+                bracket_id=bracket.id,
+                category_id=category.id,
+                match_id=match.id,
+                mat_number=mat_number,
+                day_number=day_number,
+                scheduled_start=scheduled_start,
+                estimated_minutes=estimated_minutes,
+            )
+            self.session.add(schedule)
+            state = mat_states[(day_number, mat_number)]
+            state["count"] = int(state["count"]) + 1
+            state["next"] = scheduled_start + timedelta(
+                minutes=estimated_minutes + BETWEEN_MATCHES_MINUTES
+            )
+            for athlete_id in athlete_ids:
+                athlete_available[athlete_id] = scheduled_start + timedelta(
+                    minutes=max(estimated_minutes, SAME_ATHLETE_REST_MINUTES)
+                )
+
+    async def advance_checked_byes_for_athlete(self, *, competition_id: int, athlete_id: int) -> None:
+        result = await self.session.execute(
+            select(Match)
+            .join(Bracket, Bracket.id == Match.bracket_id)
+            .where(
+                Bracket.competition_id == competition_id,
+                Match.status == MatchStatus.bye,
+                Match.winner_id == athlete_id,
+            )
+        )
+        for match in result.scalars().all():
+            await self._advance_winner(match=match, winner_id=athlete_id)
+
+    async def advance_status_walkovers_for_competition(self, *, competition_id: int) -> None:
+        result = await self.session.execute(
+            select(Bracket.id).where(Bracket.competition_id == competition_id)
+        )
+        for bracket_id in result.scalars().all():
+            await self._advance_status_walkovers_for_bracket(bracket_id)
+
+    async def _advance_status_walkovers_for_bracket(self, bracket_id: int) -> None:
+        bracket = await self.session.get(Bracket, bracket_id)
+        if bracket is None:
+            return
+
+        result = await self.session.execute(
+            select(Match)
+            .where(
+                Match.bracket_id == bracket_id,
+                Match.winner_id.is_(None),
+                Match.athlete_a_id.is_not(None),
+                Match.athlete_b_id.is_not(None),
+            )
+            .order_by(Match.round_number, Match.match_number)
+        )
+        matches = list(result.scalars().all())
+        if not matches:
+            return
+
+        athlete_ids = {
+            athlete_id
+            for match in matches
+            for athlete_id in (match.athlete_a_id, match.athlete_b_id)
+            if athlete_id is not None
+        }
+        statuses = await self._get_checkin_statuses(
+            competition_id=bracket.competition_id,
+            athlete_ids=athlete_ids,
+        )
+
+        for match in matches:
+            winner_id = self._walkover_winner_id(match, statuses)
+            if winner_id is None:
+                continue
+            match.winner_id = winner_id
+            match.status = MatchStatus.completed
+            await self._advance_winner(match=match, winner_id=winner_id)
+
+    async def _advance_available_winners(self, bracket_id: int) -> None:
+        bracket = await self.session.get(Bracket, bracket_id)
+        if bracket is None:
+            return
+
+        result = await self.session.execute(
+            select(Match)
+            .where(Match.bracket_id == bracket_id)
+            .order_by(Match.round_number, Match.match_number)
+        )
+        matches = list(result.scalars().all())
+        await self._sync_finalized_match_results(matches)
+        checked_athlete_ids = await self._get_checked_athlete_ids(
+            competition_id=bracket.competition_id,
+            athlete_ids={match.winner_id for match in matches if match.winner_id is not None},
+        )
+        for match in matches:
+            if match.winner_id is None:
+                continue
+            if match.status == MatchStatus.completed or (
+                match.status == MatchStatus.bye and match.winner_id in checked_athlete_ids
+            ):
+                await self._advance_winner(match=match, winner_id=match.winner_id)
+
+    async def _sync_finalized_match_results(self, matches: list[Match]) -> None:
+        match_ids = [match.id for match in matches]
+        if not match_ids:
+            return
+
+        result = await self.session.execute(
+            select(MatchResult).where(
+                MatchResult.match_id.in_(match_ids),
+                MatchResult.finalized.is_(True),
+                MatchResult.winner_id.is_not(None),
+            )
+        )
+        results_by_match = {
+            match_result.match_id: match_result for match_result in result.scalars().all()
+        }
+        for match in matches:
+            match_result = results_by_match.get(match.id)
+            if match_result is None:
+                continue
+            match.winner_id = match_result.winner_id
+            match.status = MatchStatus.completed
+
+    async def _advance_winner(self, *, match: Match, winner_id: int | None) -> None:
+        if winner_id is None:
+            return
+
+        next_result = await self.session.execute(
+            select(Match)
+            .where(
+                Match.bracket_id == match.bracket_id,
+                Match.round_number == match.round_number + 1,
+                Match.position_start <= match.position_start,
+                Match.position_end >= match.position_end,
+            )
+            .order_by(Match.position_end - Match.position_start)
+        )
+        next_match = next_result.scalars().first()
+        if next_match is None:
+            return
+
+        middle = (next_match.position_start + next_match.position_end) // 2
+        if match.position_end <= middle:
+            if next_match.athlete_a_id is None:
+                next_match.athlete_a_id = winner_id
+        else:
+            if next_match.athlete_b_id is None:
+                next_match.athlete_b_id = winner_id
+
+    @staticmethod
+    def _time_winner_id(match: Match, payload: MatchResultUpdate) -> int:
+        comparisons = [
+            (payload.athlete_a_points, payload.athlete_b_points, True),
+            (payload.athlete_a_advantages, payload.athlete_b_advantages, True),
+            (payload.athlete_a_penalties, payload.athlete_b_penalties, False),
+        ]
+        for left, right, higher_wins in comparisons:
+            if left == right:
+                continue
+            if higher_wins:
+                return match.athlete_a_id if left > right else match.athlete_b_id
+            return match.athlete_a_id if left < right else match.athlete_b_id
+        raise ValidationError("Time result is tied after points, advantages, and penalties.")
 
     async def _get_registered_category_ids(self, competition_id: int) -> list[tuple[int, int]]:
         result = await self.session.execute(
@@ -782,6 +1181,41 @@ class BracketService:
             .distinct()
         )
         return {int(athlete_id) for athlete_id in result.scalars().all()}
+
+    async def _get_checked_athlete_ids(self, *, competition_id: int, athlete_ids: set[int]) -> set[int]:
+        if not athlete_ids:
+            return set()
+
+        result = await self.session.execute(
+            select(CompetitionCheckin.athlete_id).where(
+                CompetitionCheckin.competition_id == competition_id,
+                CompetitionCheckin.athlete_id.in_(athlete_ids),
+                CompetitionCheckin.status == CHECKIN_STATUS_CHECKED,
+            )
+        )
+        return {int(athlete_id) for athlete_id in result.scalars().all()}
+
+    async def _get_checkin_statuses(self, *, competition_id: int, athlete_ids: set[int]) -> dict[int, str]:
+        if not athlete_ids:
+            return {}
+
+        result = await self.session.execute(
+            select(CompetitionCheckin.athlete_id, CompetitionCheckin.status).where(
+                CompetitionCheckin.competition_id == competition_id,
+                CompetitionCheckin.athlete_id.in_(athlete_ids),
+            )
+        )
+        return {int(athlete_id): status for athlete_id, status in result.all()}
+
+    @staticmethod
+    def _walkover_winner_id(match: Match, statuses: dict[int, str]) -> int | None:
+        athlete_a_status = statuses.get(match.athlete_a_id)
+        athlete_b_status = statuses.get(match.athlete_b_id)
+        if athlete_a_status == CHECKIN_STATUS_CHECKED and athlete_b_status == CHECKIN_STATUS_OUT_OF_WEIGHT:
+            return match.athlete_a_id
+        if athlete_b_status == CHECKIN_STATUS_CHECKED and athlete_a_status == CHECKIN_STATUS_OUT_OF_WEIGHT:
+            return match.athlete_b_id
+        return None
 
     async def _mark_ranked_athletes(self, bracket: Bracket) -> None:
         athletes = []
@@ -878,3 +1312,35 @@ class BracketService:
             span *= 2
 
         return matches
+
+    def _advance_bye_winners(self, matches: list[Match], *, checked_athlete_ids: set[int]) -> None:
+        for match in sorted(matches, key=lambda item: (item.round_number, item.match_number)):
+            if (
+                match.winner_id is None
+                or match.status != MatchStatus.bye
+                or match.winner_id not in checked_athlete_ids
+            ):
+                continue
+
+            next_match = self._find_next_match(matches, match)
+            if next_match is None:
+                continue
+
+            middle = (next_match.position_start + next_match.position_end) // 2
+            if match.position_end <= middle and next_match.athlete_a_id is None:
+                next_match.athlete_a_id = match.winner_id
+            elif match.position_end > middle and next_match.athlete_b_id is None:
+                next_match.athlete_b_id = match.winner_id
+
+    @staticmethod
+    def _find_next_match(matches: list[Match], match: Match) -> Match | None:
+        candidates = [
+            candidate
+            for candidate in matches
+            if candidate.round_number == match.round_number + 1
+            and candidate.position_start <= match.position_start
+            and candidate.position_end >= match.position_end
+        ]
+        if not candidates:
+            return None
+        return min(candidates, key=lambda item: item.position_end - item.position_start)

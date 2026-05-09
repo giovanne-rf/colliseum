@@ -5,7 +5,8 @@ const routes = [
   ["/equipes", "ACADEMIES"],
   ["/competicoes", "CHAMPIONSHIPS"],
   ["/inscricoes", "REGISTRATION"],
-  ["/chaves", "BRACKETS"],
+  ["/chaves", "GERAR CHAVES"],
+  ["/chaves/salvas", "CHAVES SALVAS"],
   ["/checagem", "LISTAGEM DE ATLETAS"],
   ["/checkin/pesagem", "PESAGEM"],
   ["/checkin", "CHECKIN"],
@@ -159,14 +160,16 @@ function Message({ text, type }) {
 
 function App() {
   const path = window.location.pathname === "/" ? "/cadastros" : window.location.pathname;
+  const bracketRouteMatch = path.match(/^\/chaves\/(\d+)$/);
+  const bracketRouteId = bracketRouteMatch ? Number(bracketRouteMatch[1]) : null;
   const [apiOk, setApiOk] = useState(false);
 
   useEffect(() => {
     fetchJson("/health").then(() => setApiOk(true)).catch(() => setApiOk(false));
   }, []);
 
-  const title = routes.find(([route]) => route === path)?.[1] || "ATHLETES";
-  const isBracket = path === "/chaves";
+  const title = bracketRouteId ? `CHAVE #${bracketRouteId}` : routes.find(([route]) => route === path)?.[1] || "ATHLETES";
+  const isBracket = path === "/chaves" || path === "/chaves/salvas" || Boolean(bracketRouteId);
 
   return (
     <>
@@ -192,12 +195,14 @@ function App() {
         {path === "/competicoes" && <CompetitionsPage />}
         {path === "/inscricoes" && <RegistrationsPage />}
         {path === "/chaves" && <BracketsPage />}
+        {path === "/chaves/salvas" && <SavedBracketsPage />}
+        {bracketRouteId && <BracketByIdPage bracketId={bracketRouteId} />}
         {path === "/checagem" && <AthleteListPage />}
         {path === "/checkin/pesagem" && <WeighinPage />}
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!["/equipes", "/competicoes", "/inscricoes", "/chaves", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
+        {!bracketRouteId && !["/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
           <AthletesPage />
         )}
       </main>
@@ -375,9 +380,17 @@ function TeamsPage() {
 }
 
 function CompetitionsPage() {
-  const [form, setForm] = useState({ name: "", event_date: "", mat_count: "4" });
+  const [form, setForm] = useState({
+    name: "",
+    event_date: "",
+    start_time: "09:00",
+    mat_count: "4",
+    competition_type: "Oficial",
+    competition_days: "2",
+  });
   const [count, setCount] = useState(0);
   const [message, setMessage] = useState(["", ""]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function loadCount() {
     const competitions = await fetchJson("/competitions");
@@ -388,19 +401,46 @@ function CompetitionsPage() {
     loadCount().catch((error) => setMessage([error.message, "error"]));
   }, []);
 
-  async function submit(event) {
-    event.preventDefault();
+  function competitionDayDates() {
+    if (!form.event_date) return [];
+    const startDate = new Date(`${form.event_date}T00:00:00`);
+    return Array.from({ length: Number(form.competition_days) }, (_, index) => {
+      const nextDate = new Date(startDate);
+      nextDate.setDate(startDate.getDate() + index);
+      return nextDate.toISOString().slice(0, 10);
+    });
+  }
+
+  async function createCompetition() {
     try {
       const competition = await fetchJson("/competitions", {
         method: "POST",
-        body: JSON.stringify({ ...form, mat_count: Number(form.mat_count) }),
+        body: JSON.stringify({
+          ...form,
+          mat_count: Number(form.mat_count),
+          competition_days: Number(form.competition_days),
+        }),
       });
       setMessage([`Competicao ${competition.name} cadastrada.`, "success"]);
-      setForm({ name: "", event_date: "", mat_count: "4" });
+      setForm({
+        name: "",
+        event_date: "",
+        start_time: "09:00",
+        mat_count: "4",
+        competition_type: "Oficial",
+        competition_days: "2",
+      });
+      setConfirmOpen(false);
       await loadCount();
     } catch (error) {
+      setConfirmOpen(false);
       setMessage([error.message, "error"]);
     }
+  }
+
+  function submit(event) {
+    event.preventDefault();
+    setConfirmOpen(true);
   }
 
   return (
@@ -413,6 +453,16 @@ function CompetitionsPage() {
         <div className="grid">
           <Field label="Nome" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
           <Field label="Data" type="date" value={form.event_date} onChange={(event_date) => setForm({ ...form, event_date })} required />
+          <Field label="Hora de inicio" type="time" value={form.start_time} onChange={(start_time) => setForm({ ...form, start_time })} required />
+          <Select label="Tipo de campeonato" value={form.competition_type} onChange={(competition_type) => setForm({ ...form, competition_type })} required options={[
+            ["Oficial", "Oficial"],
+            ["Chancelado", "Chancelado"],
+          ]} />
+          <Select label="Dias de competicao" value={form.competition_days} onChange={(competition_days) => setForm({ ...form, competition_days })} required options={[
+            ["1", "1 dia"],
+            ["2", "2 dias"],
+            ["3", "3 dias"],
+          ]} />
           <Select label="MATS" value={form.mat_count} onChange={(mat_count) => setForm({ ...form, mat_count })} required options={[
             ["4", "4 MATS"],
             ["6", "6 MATS"],
@@ -424,6 +474,24 @@ function CompetitionsPage() {
         <div className="actions"><button className="primary" type="submit">Cadastrar competicao</button></div>
         <Message text={message[0]} type={message[1]} />
       </form>
+      {confirmOpen && (
+        <div className="modal-backdrop" role="alertdialog" aria-modal="true">
+          <section className="fight-confirm">
+            <h2>Confirmar criacao da competicao?</h2>
+            <p><strong>Nome:</strong> {form.name}</p>
+            <p><strong>Data inicial:</strong> {form.event_date}</p>
+            <p><strong>Hora de inicio:</strong> {form.start_time}</p>
+            <p><strong>Tipo:</strong> {form.competition_type}</p>
+            <p><strong>Dias:</strong> {form.competition_days}</p>
+            <p><strong>Datas inferidas:</strong> {competitionDayDates().join(", ")}</p>
+            <p><strong>MATS:</strong> {form.mat_count}</p>
+            <div className="actions">
+              <button className="secondary" type="button" onClick={() => setConfirmOpen(false)}>Cancelar</button>
+              <button className="primary" type="button" onClick={createCompetition}>Confirmar</button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
@@ -518,7 +586,6 @@ function BracketsPage() {
   const [categoryId, setCategoryId] = useState("");
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [result, setResult] = useState(null);
-  const [fightPanel, setFightPanel] = useState(null);
   const [message, setMessage] = useState(["", ""]);
 
   useEffect(() => {
@@ -532,17 +599,22 @@ function BracketsPage() {
     setResult(null);
     if (!id) return;
     try {
-      const registrations = await fetchJson(`/competitions/${id}/registrations`);
+      const [registrations, savedBrackets] = await Promise.all([
+        fetchJson(`/competitions/${id}/registrations`),
+        fetchJson(`/competitions/${id}/brackets`),
+      ]);
+      const savedCategoryIds = new Set(savedBrackets.map((bracket) => String(bracket.category_id)));
       const categories = new Map();
       registrations.forEach((registration) => {
         const key = String(registration.category.id);
+        if (savedCategoryIds.has(key)) return;
         const current = categories.get(key) || { category: registration.category, count: 0 };
         categories.set(key, { ...current, count: current.count + 1 });
       });
       setCategoryOptions([...categories.values()].sort((left, right) => {
         return categoryLabel(left.category).localeCompare(categoryLabel(right.category));
       }));
-      setMessage(["", ""]);
+      setMessage(savedCategoryIds.size ? [`${savedCategoryIds.size} categoria(s) ja possuem chave salva.`, ""] : ["", ""]);
     } catch (error) {
       setMessage([error.message, "error"]);
     }
@@ -553,7 +625,7 @@ function BracketsPage() {
     try {
       const bracket = await fetchJson(`/competitions/${competitionId}/brackets`, {
         method: "POST",
-        body: JSON.stringify({ category_id: Number(categoryId), replace_existing: true }),
+        body: JSON.stringify({ category_id: Number(categoryId) }),
       });
       setResult({
         competition_id: Number(competitionId),
@@ -561,20 +633,7 @@ function BracketsPage() {
         skipped_count: 0,
         brackets: [bracket],
       });
-      setMessage(["Chave da categoria gerada com sucesso.", "success"]);
-    } catch (error) {
-      setMessage([error.message, "error"]);
-    }
-  }
-
-  async function generateAll() {
-    try {
-      const data = await fetchJson(`/competitions/${competitionId}/brackets/generate-all`, {
-        method: "POST",
-        body: JSON.stringify({ replace_existing: true }),
-      });
-      setResult(data);
-      setMessage(["Todas as chaves foram geradas com sucesso.", "success"]);
+      setMessage([`Chave ID ${bracket.id} gerada e salva com sucesso.`, "success"]);
     } catch (error) {
       setMessage([error.message, "error"]);
     }
@@ -599,9 +658,6 @@ function BracketsPage() {
           <div className="inline-submit">
             <button className="primary" type="submit" disabled={!competitionId || !categoryId}>Gerar categoria</button>
           </div>
-          <div className="inline-submit">
-            <button className="secondary" type="button" onClick={generateAll} disabled={!competitionId}>Gerar todas</button>
-          </div>
         </div>
         <Message text={message[0]} type={message[1]} />
       </form>
@@ -609,21 +665,223 @@ function BracketsPage() {
         <section className="registration bracket-result">
           <div className="section-heading">
             <h2>Chaves Geradas</h2>
-            <span>{result.generated_count} chave(s) gerada(s)</span>
+            <span>{result.generated_count} chave(s) gerada(s) e salva(s)</span>
           </div>
           <div className="landscape-scroll" aria-label="Chaves em formato paisagem">
             <div className="ibjjf-sheets">
-              {result.brackets.map((bracket) => <BracketSheet bracket={bracket} key={bracket.id} onOpenFight={(match, matchNumber) => setFightPanel({ bracket, match, matchNumber })} />)}
+              {result.brackets.map((bracket) => <BracketSheet bracket={bracket} key={bracket.id} showDirectLink />)}
             </div>
+          </div>
+          <div className="actions">
+            <a className="secondary button-link" href="/chaves/salvas">Abrir chaves salvas</a>
           </div>
         </section>
       )}
-      {fightPanel && <FightPanel data={fightPanel} onClose={() => setFightPanel(null)} />}
     </section>
   );
 }
 
-function BracketSheet({ bracket, onOpenFight }) {
+function SavedBracketsPage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [brackets, setBrackets] = useState([]);
+  const [filters, setFilters] = useState({ belt: "", age_group: "", weight_class: "" });
+  const [fightPanel, setFightPanel] = useState(null);
+  const [blockedFightNotice, setBlockedFightNotice] = useState("");
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  async function loadSavedBrackets(id) {
+    setCompetitionId(id);
+    setBrackets([]);
+    setFilters({ belt: "", age_group: "", weight_class: "" });
+    setFightPanel(null);
+    if (!id) return;
+    try {
+      const data = await fetchJson(`/competitions/${id}/brackets`);
+      setBrackets(data);
+      setMessage(data.length ? [`${data.length} chave(s) salva(s) carregada(s).`, "success"] : ["Nenhuma chave salva para esta competicao.", ""]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  function updateBracket(updatedBracket) {
+    setBrackets((current) => current.map((bracket) => bracket.id === updatedBracket.id ? updatedBracket : bracket));
+  }
+
+  function updateSavedResult(savedResult) {
+    setFightPanel((current) => current ? { ...current, match: { ...current.match, result: savedResult } } : current);
+    setBrackets((current) => current.map((bracket) => ({
+      ...bracket,
+      matches: bracket.matches.map((match) => match.id === savedResult.match_id ? { ...match, result: savedResult } : match),
+    })));
+  }
+
+  const beltOptionsForBrackets = [...new Set(brackets.map((bracket) => bracket.category.belt))]
+    .sort((left, right) => (beltLabels[left] || left).localeCompare(beltLabels[right] || right));
+  const ageGroupOptionsForBrackets = [...new Set(
+    brackets
+      .filter((bracket) => !filters.belt || bracket.category.belt === filters.belt)
+      .map((bracket) => bracket.category.age_group),
+  )].sort((left, right) => left.localeCompare(right));
+  const weightOptionsForBrackets = [...new Set(
+    brackets
+      .filter((bracket) => !filters.belt || bracket.category.belt === filters.belt)
+      .filter((bracket) => !filters.age_group || bracket.category.age_group === filters.age_group)
+      .map((bracket) => bracket.category.weight_class),
+  )].sort((left, right) => left.localeCompare(right));
+  const selectedBracket = brackets.find((bracket) => (
+    bracket.category.belt === filters.belt
+    && bracket.category.age_group === filters.age_group
+    && bracket.category.weight_class === filters.weight_class
+  ));
+
+  return (
+    <section className="workspace stack">
+      <form className="registration bracket-generator">
+        <div className="section-heading"><h2>Chaves Salvas</h2><span>Selecione faixa, idade e peso</span></div>
+        <div className="grid bracket-generator-row">
+          <Select label="Competicao" value={competitionId} onChange={loadSavedBrackets} required options={[
+            ["", "Selecione a competicao"],
+            ...competitions.map((competition) => [String(competition.id), competition.name]),
+          ]} />
+          <Select label="Faixa" value={filters.belt} onChange={(belt) => setFilters({ belt, age_group: "", weight_class: "" })} disabled={!brackets.length} options={[
+            ["", brackets.length ? "Selecione a faixa" : "Selecione a competicao"],
+            ...beltOptionsForBrackets.map((belt) => [belt, beltLabels[belt] || belt]),
+          ]} />
+          <Select label="Categoria de idade" value={filters.age_group} onChange={(age_group) => setFilters({ ...filters, age_group, weight_class: "" })} disabled={!filters.belt} options={[
+            ["", filters.belt ? "Selecione a idade" : "Selecione a faixa"],
+            ...ageGroupOptionsForBrackets.map((ageGroup) => [ageGroup, ageGroup]),
+          ]} />
+          <Select label="Categoria de peso" value={filters.weight_class} onChange={(weight_class) => setFilters({ ...filters, weight_class })} disabled={!filters.age_group} options={[
+            ["", filters.age_group ? "Selecione o peso" : "Selecione a idade"],
+            ...weightOptionsForBrackets.map((weightClass) => [weightClass, weightClass]),
+          ]} />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </form>
+      {!!brackets.length && (
+        <section className="panel saved-brackets-panel">
+          <div className="section-heading">
+            <h2>Consulta de Chaves</h2>
+            <span>{selectedBracket ? `ID ${selectedBracket.id}` : `${brackets.length} chave(s) salva(s)`}</span>
+          </div>
+          {selectedBracket ? (
+            <div className="checkin-table-wrap">
+              <table className="checkin-table saved-brackets-table">
+                <thead><tr><th>ID</th><th>Faixa</th><th>Idade</th><th>Peso</th><th>Atletas</th><th>Lutas</th><th>Link</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td data-label="ID">#{selectedBracket.id}</td>
+                    <td data-label="Faixa">{beltLabels[selectedBracket.category.belt] || selectedBracket.category.belt}</td>
+                    <td data-label="Idade">{selectedBracket.category.age_group}</td>
+                    <td data-label="Peso">{selectedBracket.category.weight_class}</td>
+                    <td data-label="Atletas">{selectedBracket.entries.filter((entry) => entry.athlete).length}</td>
+                    <td data-label="Lutas">{selectedBracket.matches.length}</td>
+                    <td data-label="Link"><a href={`/chaves/${selectedBracket.id}`}>Abrir URL</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="empty">Selecione a faixa, a categoria de idade e a categoria de peso para exibir a chave.</div>
+          )}
+        </section>
+      )}
+      {selectedBracket && (
+        <section className="registration bracket-result">
+          <div className="section-heading">
+            <h2>Exibicao da Chave</h2>
+            <span>ID {selectedBracket.id} | {categoryLabel(selectedBracket.category)}</span>
+          </div>
+          <div className="landscape-scroll" aria-label="Chaves salvas em formato paisagem">
+            <div className="ibjjf-sheets">
+              <BracketSheet bracket={selectedBracket} showDirectLink onOpenFight={(match, matchNumber) => setFightPanel({ bracket: selectedBracket, match, matchNumber })} onBlockedFight={setBlockedFightNotice} />
+            </div>
+          </div>
+        </section>
+      )}
+      {blockedFightNotice && (
+        <div className="modal-backdrop fight-modal-backdrop" role="alertdialog" aria-modal="true">
+          <section className="fight-confirm">
+            <h2>Luta ja finalizada</h2>
+            <p>{blockedFightNotice}</p>
+            <div className="actions">
+              <button className="primary" type="button" onClick={() => setBlockedFightNotice("")}>OK</button>
+            </div>
+          </section>
+        </div>
+      )}
+      {fightPanel && <FightPanel data={fightPanel} onClose={() => setFightPanel(null)} onBracketUpdated={updateBracket} onResultSaved={updateSavedResult} />}
+    </section>
+  );
+}
+
+function BracketByIdPage({ bracketId }) {
+  const [bracket, setBracket] = useState(null);
+  const [fightPanel, setFightPanel] = useState(null);
+  const [blockedFightNotice, setBlockedFightNotice] = useState("");
+  const [message, setMessage] = useState(["Carregando chave...", ""]);
+
+  useEffect(() => {
+    fetchJson(`/competitions/brackets/${bracketId}`)
+      .then((data) => {
+        setBracket(data);
+        setMessage(["", ""]);
+      })
+      .catch((error) => setMessage([error.message, "error"]));
+  }, [bracketId]);
+
+  function updateSavedResult(savedResult) {
+    setFightPanel((current) => current ? { ...current, match: { ...current.match, result: savedResult } } : current);
+    setBracket((current) => current ? {
+      ...current,
+      matches: current.matches.map((match) => match.id === savedResult.match_id ? { ...match, result: savedResult } : match),
+    } : current);
+  }
+
+  return (
+    <section className="workspace stack">
+      <section className="registration bracket-result">
+        <div className="section-heading">
+          <h2>Consulta da Chave</h2>
+          <span>{bracket ? `ID ${bracket.id} | ${categoryLabel(bracket.category)}` : `ID ${bracketId}`}</span>
+        </div>
+        <Message text={message[0]} type={message[1]} />
+        {bracket && (
+          <>
+            <div className="landscape-scroll" aria-label="Chave em formato paisagem">
+              <div className="ibjjf-sheets">
+                <BracketSheet bracket={bracket} showDirectLink onOpenFight={(match, matchNumber) => setFightPanel({ bracket, match, matchNumber })} onBlockedFight={setBlockedFightNotice} />
+              </div>
+            </div>
+            <div className="actions">
+              <a className="secondary button-link" href="/chaves/salvas">Consultar outras chaves</a>
+            </div>
+          </>
+        )}
+      </section>
+      {blockedFightNotice && (
+        <div className="modal-backdrop fight-modal-backdrop" role="alertdialog" aria-modal="true">
+          <section className="fight-confirm">
+            <h2>Luta ja finalizada</h2>
+            <p>{blockedFightNotice}</p>
+            <div className="actions">
+              <button className="primary" type="button" onClick={() => setBlockedFightNotice("")}>OK</button>
+            </div>
+          </section>
+        </div>
+      )}
+      {fightPanel && <FightPanel data={fightPanel} onClose={() => setFightPanel(null)} onBracketUpdated={setBracket} onResultSaved={updateSavedResult} />}
+    </section>
+  );
+}
+
+function BracketSheet({ bracket, onOpenFight, onBlockedFight, showDirectLink = false }) {
   const sheetRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
@@ -652,13 +910,14 @@ function BracketSheet({ bracket, onOpenFight }) {
         <div className="ibjjf-sheet-header">
           <p className="ibjjf-kicker">FJJPE</p>
           <h2>{categoryLabel(bracket.category)}</h2>
-          <span>{summary}</span>
+          <span>ID {bracket.id} | {summary}</span>
         </div>
-        <div className={`ibjjf-board ${bracket.rounds >= 4 ? "split-brackets" : ""}`.trim()}>
-          {bracket.rounds >= 4 ? <SplitBracket bracket={bracket} onOpenFight={onOpenFight} /> : <CompactBracket bracket={bracket} onOpenFight={onOpenFight} />}
+        <div className="ibjjf-board">
+          <CompactBracket bracket={bracket} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
       </section>
       <div className="ibjjf-sheet-actions">
+        {showDirectLink && <a className="secondary button-link" href={`/chaves/${bracket.id}`}>URL da chave</a>}
         <button className="secondary" type="button" onClick={exportPdf} disabled={exporting}>
           {exporting ? "Exportando PDF" : "Exportar PDF"}
         </button>
@@ -668,7 +927,7 @@ function BracketSheet({ bracket, onOpenFight }) {
   );
 }
 
-function CompactBracket({ bracket, onOpenFight }) {
+function CompactBracket({ bracket, onOpenFight, onBlockedFight }) {
   const halfSize = bracket.bracket_size / 2;
   const sideA = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_end <= halfSize);
   const sideB = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_start > halfSize);
@@ -676,29 +935,29 @@ function CompactBracket({ bracket, onOpenFight }) {
   const matchNumbers = bracketMatchNumbers(sideA, sideB, finalMatch);
   return (
     <div className="ibjjf-compact-board">
-      <BracketSide title="Lado A" subtitle={`Posicoes 1-${halfSize}`} matches={sideA} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
-      <FinalSection match={finalMatch} title="Final" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
-      <BracketSide title="Lado B" subtitle={`Posicoes ${halfSize + 1}-${bracket.bracket_size}`} matches={sideB} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
+      <BracketSide title="Lado A" subtitle={`Posicoes 1-${halfSize}`} matches={sideA} allMatches={bracket.matches} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+      <FinalSection match={finalMatch} title="Final" allMatches={bracket.matches} matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+      <BracketSide title="Lado B" subtitle={`Posicoes ${halfSize + 1}-${bracket.bracket_size}`} matches={sideB} allMatches={bracket.matches} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
     </div>
   );
 }
 
-function SplitBracket({ bracket, onOpenFight }) {
+function SplitBracket({ bracket, onOpenFight, onBlockedFight }) {
   return (
     <>
-      <BracketHalf bracket={bracket} index={1} start={1} end={bracket.bracket_size / 2} onOpenFight={onOpenFight} />
-      <BracketHalf bracket={bracket} index={2} start={bracket.bracket_size / 2 + 1} end={bracket.bracket_size} onOpenFight={onOpenFight} />
+      <BracketHalf bracket={bracket} index={1} start={1} end={bracket.bracket_size / 2} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+      <BracketHalf bracket={bracket} index={2} start={bracket.bracket_size / 2 + 1} end={bracket.bracket_size} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
       <section className="ibjjf-finals-block">
         <div className="ibjjf-bracket-block-title">FINALS</div>
         <div className="ibjjf-finals-center">
-          <FinalSection match={bracket.matches.find((match) => match.round_number === bracket.rounds)} title="Final" onOpenFight={onOpenFight} />
+          <FinalSection match={bracket.matches.find((match) => match.round_number === bracket.rounds)} title="Final" onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
       </section>
     </>
   );
 }
 
-function BracketHalf({ bracket, index, start, end, onOpenFight }) {
+function BracketHalf({ bracket, index, start, end, onOpenFight, onBlockedFight }) {
   const blockRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
@@ -727,9 +986,9 @@ function BracketHalf({ bracket, index, start, end, onOpenFight }) {
       <section className="ibjjf-bracket-block" ref={blockRef}>
         <div className="ibjjf-bracket-block-title">BRACKET {index}/2</div>
         <div className="ibjjf-compact-board">
-          <BracketSide title={`Lado ${index}A`} subtitle={`Posicoes ${start}-${middle}`} matches={left} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
-          <FinalSection match={finalMatch} title="Final do bracket" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
-          <BracketSide title={`Lado ${index}B`} subtitle={`Posicoes ${middle + 1}-${end}`} matches={right} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} />
+          <BracketSide title={`Lado ${index}A`} subtitle={`Posicoes ${start}-${middle}`} matches={left} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+          <FinalSection match={finalMatch} title="Final do bracket" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+          <BracketSide title={`Lado ${index}B`} subtitle={`Posicoes ${middle + 1}-${end}`} matches={right} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
       </section>
       <div className="ibjjf-sheet-actions bracket-block-actions">
@@ -763,7 +1022,7 @@ function orderedBracketMatches(matches) {
   });
 }
 
-function BracketSide({ title, subtitle, matches, totalRounds, direction, matchNumbers, onOpenFight }) {
+function BracketSide({ title, subtitle, matches, allMatches, totalRounds, direction, matchNumbers, onOpenFight, onBlockedFight }) {
   const roundsRef = useRef(null);
   const [connectors, setConnectors] = useState([]);
   const grouped = useMemo(() => {
@@ -834,7 +1093,7 @@ function BracketSide({ title, subtitle, matches, totalRounds, direction, matchNu
             </div>
             <div className="ibjjf-match-list">
               {roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => (
-                <MatchCard match={match} direction={direction} key={match.id} matchNumber={matchNumbers?.get(match.id)} onOpenFight={onOpenFight} />
+                <MatchCard match={match} allMatches={allMatches} direction={direction} key={match.id} matchNumber={matchNumbers?.get(match.id)} matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
               ))}
             </div>
           </section>
@@ -851,11 +1110,11 @@ function buildConnectorPath(source, target, direction) {
   return `M ${sourceX} ${source.y} H ${middleX} V ${target.y} H ${targetX}`;
 }
 
-function FinalSection({ match, title, matchNumbers, onOpenFight }) {
+function FinalSection({ match, title, allMatches, matchNumbers, onOpenFight, onBlockedFight }) {
   return (
     <section className="ibjjf-final-section">
-      <div className="ibjjf-side-header final-header"><strong>{title}</strong><span>Vencedor do Lado A x Vencedor do Lado B</span></div>
-      <div className="ibjjf-final-match">{match && <MatchCard match={match} direction="final" matchNumber={matchNumbers?.get(match.id)} onOpenFight={onOpenFight} />}</div>
+      <div className="ibjjf-side-header final-header"><strong>{title}</strong></div>
+      <div className="ibjjf-final-match">{match && <MatchCard match={match} allMatches={allMatches} direction="final" matchNumber={matchNumbers?.get(match.id)} matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />}</div>
     </section>
   );
 }
@@ -868,36 +1127,98 @@ function roundLabel(roundNumber, totalRounds) {
   return `Rodada ${roundNumber}`;
 }
 
-function MatchCard({ match, direction, matchNumber, onOpenFight }) {
-  const left = match.athlete_a || { name: "A definir", team: { name: "" } };
-  const right = match.athlete_b || { name: "A definir", team: { name: "" } };
+function originMatchForSlot(match, allMatches, side) {
+  if (!allMatches || match.round_number <= 1) return null;
+  const middle = Math.floor((match.position_start + match.position_end) / 2);
+  const start = side === "a" ? match.position_start : middle + 1;
+  const end = side === "a" ? middle : match.position_end;
+  return allMatches.find((item) => (
+    item.round_number === match.round_number - 1
+    && item.position_start === start
+    && item.position_end === end
+  )) || null;
+}
+
+function placeholderAthlete(match, allMatches, matchNumbers, side) {
+  const origin = originMatchForSlot(match, allMatches, side);
+  if (origin) {
+    const originNumber = matchNumbers?.get(origin.id) || origin.match_number;
+    return { name: `Vencedor da luta ${originNumber}`, team: { name: "-" }, isPlaceholder: true };
+  }
+  return {
+    name: match.status === "bye" ? "BYE" : "Vencedor da luta",
+    team: { name: "-" },
+    isPlaceholder: true,
+  };
+}
+
+function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, onOpenFight, onBlockedFight }) {
+  const left = match.athlete_a || placeholderAthlete(match, allMatches, matchNumbers, "a");
+  const right = match.athlete_b || placeholderAthlete(match, allMatches, matchNumbers, "b");
   const athleteName = (athlete) => `${athlete.name}${athlete.is_ranked ? " *" : ""}`;
   const checkinClass = (athlete) => (athlete.checkin_status || "No Show").toLowerCase().replace(/\s+/g, "-");
+  const isFinalized = Boolean(match.result?.finalized);
+  const winnerId = match.result?.winner_id;
+  const resultMethodKey = (match.result?.finish_method || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+  const canOpenFight = Boolean(onOpenFight) && !isFinalized && left.id && right.id && left.checkin_status === "Checked" && right.checkin_status === "Checked";
+  const canInteract = canOpenFight || isFinalized;
+  const resultSide = (athlete) => {
+    if (!isFinalized || !athlete.id || !winnerId) return "";
+    return athlete.id === winnerId ? "result-winner" : "result-loser";
+  };
+  const resultBadge = (athlete) => {
+    const side = resultSide(athlete);
+    if (side !== "result-winner") return null;
+    return (
+      <span
+        className={`match-result-dot ${side} ${resultMethodKey}`}
+        title={`Vitoria por ${match.result.finish_method}`}
+        aria-label={`Vitoria por ${match.result.finish_method}`}
+      />
+    );
+  };
   const athleteLine = (athlete) => (
-    <span className="ibjjf-athlete-line">
-      {athlete.id && <span className={`bracket-check-status ${checkinClass(athlete)}`} title={athlete.checkin_status || "No Show"} />}
+    <span className={`ibjjf-athlete-line ${resultSide(athlete)}`.trim()}>
+      {athlete.id && !athlete.isPlaceholder && <span className={`bracket-check-status ${checkinClass(athlete)}`} title={athlete.checkin_status || "No Show"} />}
       <strong>{athleteName(athlete)}</strong>
+    </span>
+  );
+  const teamLine = (athlete) => (
+    <span className="ibjjf-team-line">
+      <small>{athlete.team?.name || ""}</small>
+      {resultBadge(athlete)}
     </span>
   );
   const displayedMatchNumber = matchNumber || match.match_number;
   const matchLabel = match.status === "bye"
-    ? `Luta ${displayedMatchNumber} | BYE`
-    : `Luta ${displayedMatchNumber}`;
+    ? `FIGHT ${displayedMatchNumber} | BYE`
+    : `FIGHT ${displayedMatchNumber}`;
+  const openFight = () => {
+    if (isFinalized) {
+      onBlockedFight?.("Luta ja finalizada. Nao e possivel reabrir ou alterar o resultado.");
+      return;
+    }
+    if (canOpenFight) onOpenFight?.(match, displayedMatchNumber);
+  };
   return (
-    <article className={`ibjjf-match ${direction}`} role="button" tabIndex="0" onClick={() => onOpenFight?.(match, displayedMatchNumber)} onKeyDown={(event) => {
+    <article className={`ibjjf-match ${direction} ${canOpenFight ? "clickable" : isFinalized ? "finalized" : "locked"}`.trim()} role={canInteract ? "button" : undefined} tabIndex={canInteract ? "0" : undefined} onClick={openFight} onKeyDown={(event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        onOpenFight?.(match, displayedMatchNumber);
+        openFight();
       }
     }}>
       <div className="ibjjf-match-meta"><strong>{matchLabel}</strong><span>Mat 10</span></div>
       <div className="ibjjf-slot winner">
         <span className="ibjjf-position">{match.position_start}</span>
-        <div>{athleteLine(left)}<small>{left.team?.name || ""}</small></div>
+        <div>{athleteLine(left)}{teamLine(left)}</div>
       </div>
       <div className="ibjjf-slot">
         <span className="ibjjf-position">{match.position_end}</span>
-        <div>{athleteLine(right)}<small>{right.team?.name || ""}</small></div>
+        <div>{athleteLine(right)}{teamLine(right)}</div>
       </div>
     </article>
   );
@@ -930,15 +1251,52 @@ function formatFightTime(seconds) {
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 }
 
-function FightPanel({ data, onClose }) {
+function emptyFightScores() {
+  return {
+    a: { points: 0, advantages: 0, penalties: 0 },
+    b: { points: 0, advantages: 0, penalties: 0 },
+  };
+}
+
+function resultToFightScores(result) {
+  if (!result) return emptyFightScores();
+  return {
+    a: {
+      points: result.athlete_a_points,
+      advantages: result.athlete_a_advantages,
+      penalties: result.athlete_a_penalties,
+    },
+    b: {
+      points: result.athlete_b_points,
+      advantages: result.athlete_b_advantages,
+      penalties: result.athlete_b_penalties,
+    },
+  };
+}
+
+function fightScoreWinner(scores, athleteA, athleteB) {
+  const checks = [
+    [scores.a.points, scores.b.points, true],
+    [scores.a.advantages, scores.b.advantages, true],
+    [scores.a.penalties, scores.b.penalties, false],
+  ];
+  for (const [left, right, higherWins] of checks) {
+    if (left === right) continue;
+    if (higherWins) return left > right ? athleteA : athleteB;
+    return left < right ? athleteA : athleteB;
+  }
+  return null;
+}
+
+function FightPanel({ data, onClose, onResultSaved, onBracketUpdated }) {
   const { bracket, match, matchNumber } = data;
   const duration = fightDurationSeconds(bracket.category);
   const [timeLeft, setTimeLeft] = useState(duration);
   const [running, setRunning] = useState(false);
-  const [scores, setScores] = useState({
-    a: { points: 0, advantages: 0, penalties: 0 },
-    b: { points: 0, advantages: 0, penalties: 0 },
-  });
+  const [scores, setScores] = useState(() => resultToFightScores(match.result));
+  const [savedResult, setSavedResult] = useState(match.result || null);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [pendingFinish, setPendingFinish] = useState(null);
   const athleteA = match.athlete_a || { name: "A definir", team: { name: "" } };
   const athleteB = match.athlete_b || { name: "A definir", team: { name: "" } };
   const categoryText = [
@@ -962,13 +1320,103 @@ function FightPanel({ data, onClose }) {
   }, [running, timeLeft]);
 
   function addScore(side, field) {
-    setScores((current) => ({
-      ...current,
+    adjustScore(side, field, 1);
+  }
+
+  async function persistScores(nextScores, finish = {}) {
+    const payload = {
+      athlete_a_points: nextScores.a.points,
+      athlete_a_advantages: nextScores.a.advantages,
+      athlete_a_penalties: nextScores.a.penalties,
+      athlete_b_points: nextScores.b.points,
+      athlete_b_advantages: nextScores.b.advantages,
+      athlete_b_penalties: nextScores.b.penalties,
+      finalized: finish.finalized ?? savedResult?.finalized ?? false,
+      finish_method: finish.finish_method ?? savedResult?.finish_method ?? null,
+      winner_id: finish.winner_id ?? savedResult?.winner_id ?? null,
+    };
+    if (!payload.finalized) {
+      payload.finish_method = null;
+      payload.winner_id = null;
+    }
+    const result = await fetchJson(`/competitions/${bracket.competition_id}/matches/${match.id}/result`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+    setSavedResult(result);
+    onResultSaved?.(result);
+    setSaveMessage(result.finalized ? `Resultado salvo: ${result.finish_method}` : "Placar salvo");
+    if (result.finalized) {
+      const updatedBracket = await fetchJson(`/competitions/brackets/${bracket.id}`);
+      onBracketUpdated?.(updatedBracket);
+      const updatedMatch = updatedBracket.matches.find((item) => item.id === match.id);
+      if (updatedMatch) {
+        setSavedResult(updatedMatch.result || result);
+      }
+      onClose?.();
+    }
+    return result;
+  }
+
+  async function adjustScore(side, field, delta) {
+    const nextScores = {
+      ...scores,
       [side]: {
-        ...current[side],
-        [field]: current[side][field] + 1,
+        ...scores[side],
+        [field]: Math.max(0, scores[side][field] + delta),
       },
-    }));
+    };
+    setScores(nextScores);
+    try {
+      await persistScores(nextScores);
+    } catch (error) {
+      setSaveMessage(error.message);
+    }
+  }
+
+  function finishByTime() {
+    const winner = fightScoreWinner(scores, athleteA, athleteB);
+    if (!winner) {
+      setSaveMessage("Empate total: pontos, vantagens e punicoes iguais.");
+      return;
+    }
+    setPendingFinish({
+      title: "Encerrar luta por tempo?",
+      body: `Deseja encerrar a luta por tempo? Vencedor pela pontuacao: ${winner.name}.`,
+      winnerName: winner.name,
+      finish: { finalized: true, finish_method: "Pontos", winner_id: null },
+    });
+  }
+
+  function finishBySubmission(side) {
+    const winner = side === "a" ? athleteA : athleteB;
+    setPendingFinish({
+      title: "Encerrar por finalizacao?",
+      body: `Deseja encerrar a luta por finalizacao de ${winner.name}?`,
+      winnerName: winner.name,
+      finish: { finalized: true, finish_method: "Finalização", winner_id: winner.id },
+    });
+  }
+
+  function disqualify(side) {
+    const disqualified = side === "a" ? athleteA : athleteB;
+    const winner = side === "a" ? athleteB : athleteA;
+    setPendingFinish({
+      title: "Encerrar por desclassificacao?",
+      body: `Deseja encerrar a luta por desclassificacao de ${disqualified.name}? Vencedor: ${winner.name}.`,
+      winnerName: winner.name,
+      finish: { finalized: true, finish_method: "Desclassificação do oponente", winner_id: winner.id },
+    });
+  }
+
+  async function confirmFinish() {
+    if (!pendingFinish) return;
+    try {
+      await persistScores(scores, pendingFinish.finish);
+      setPendingFinish(null);
+    } catch (error) {
+      setSaveMessage(error.message);
+    }
   }
 
   return (
@@ -976,44 +1424,73 @@ function FightPanel({ data, onClose }) {
       <section className="fight-panel">
         <button className="fight-close" type="button" onClick={onClose} aria-label="Fechar painel de luta">x</button>
         <div className="fight-rows">
-          <FightAthleteRow athlete={athleteA} score={scores.a} active onScore={(field) => addScore("a", field)} />
-          <FightAthleteRow athlete={athleteB} score={scores.b} onScore={(field) => addScore("b", field)} />
+          <FightAthleteRow athlete={athleteA} score={scores.a} active onScore={(field) => addScore("a", field)} onAdjust={(field, delta) => adjustScore("a", field, delta)} onSubmission={() => finishBySubmission("a")} onDisqualification={() => disqualify("a")} />
+          <FightAthleteRow athlete={athleteB} score={scores.b} onScore={(field) => addScore("b", field)} onAdjust={(field, delta) => adjustScore("b", field, delta)} onSubmission={() => finishBySubmission("b")} onDisqualification={() => disqualify("b")} />
         </div>
         <footer className="fight-footer">
           <div className="fight-info">
             <strong>{categoryText}</strong>
             <span>Luta {matchNumber} {match.status === "bye" ? "| BYE" : ""}</span>
-            <button className="secondary" type="button" onClick={() => {
-              setRunning(false);
-              setTimeLeft(duration);
-            }}>Reset</button>
+            {saveMessage && <small>{saveMessage}</small>}
+            <div className="fight-actions">
+              <button className="primary" type="button" onClick={finishByTime}>Finalizar por tempo</button>
+              <button className="secondary" type="button" onClick={() => {
+                setRunning(false);
+                setTimeLeft(duration);
+              }}>Reset tempo</button>
+            </div>
           </div>
           <button className={`fight-clock ${running ? "running" : ""}`} type="button" onClick={() => setRunning((current) => !current)}>
             {formatFightTime(timeLeft)}
           </button>
         </footer>
+        {pendingFinish && (
+          <div className="fight-confirm-backdrop" role="alertdialog" aria-modal="true">
+            <section className="fight-confirm">
+              <h2>{pendingFinish.title}</h2>
+              <p>{pendingFinish.body}</p>
+              <strong>Vencedor: {pendingFinish.winnerName}</strong>
+              <div className="actions">
+                <button className="secondary" type="button" onClick={() => setPendingFinish(null)}>Cancelar</button>
+                <button className="primary" type="button" onClick={confirmFinish}>Confirmar</button>
+              </div>
+            </section>
+          </div>
+        )}
       </section>
     </div>
   );
 }
 
-function FightAthleteRow({ athlete, score, active = false, onScore }) {
+function FightAthleteRow({ athlete, score, active = false, onScore, onAdjust, onSubmission, onDisqualification }) {
   return (
     <section className={`fight-athlete-row ${active ? "active" : ""}`.trim()}>
       <div className="fight-athlete-info">
         <div className="fight-athlete-name"><span className="fight-flag" aria-label="Brasil">🇧🇷</span><strong>{athlete.name}</strong></div>
         <span>{athlete.team?.name || ""}</span>
+        <div className="fight-finish-actions">
+          <button className="primary" type="button" onClick={onSubmission}>Finalizacao</button>
+          <button className="danger-button" type="button" onClick={onDisqualification}>Desclassificacao</button>
+        </div>
       </div>
-      <button className="fight-score points" type="button" onClick={() => onScore("points")} aria-label={`Adicionar ponto para ${athlete.name}`}>
-        {score.points}
-      </button>
-      <button className="fight-score advantages" type="button" onClick={() => onScore("advantages")} aria-label={`Adicionar vantagem para ${athlete.name}`}>
-        {score.advantages}
-      </button>
-      <button className="fight-score penalties" type="button" onClick={() => onScore("penalties")} aria-label={`Adicionar punicao para ${athlete.name}`}>
-        {score.penalties}
-      </button>
+      <FightScoreBox className="points" label="pontos" value={score.points} onScore={() => onScore("points")} onAdjust={(delta) => onAdjust("points", delta)} athleteName={athlete.name} />
+      <FightScoreBox className="advantages" label="vantagens" value={score.advantages} onScore={() => onScore("advantages")} onAdjust={(delta) => onAdjust("advantages", delta)} athleteName={athlete.name} />
+      <FightScoreBox className="penalties" label="punicoes" value={score.penalties} onScore={() => onScore("penalties")} onAdjust={(delta) => onAdjust("penalties", delta)} athleteName={athlete.name} />
     </section>
+  );
+}
+
+function FightScoreBox({ className, label, value, onScore, onAdjust, athleteName }) {
+  return (
+    <div className={`fight-score-box ${className}`}>
+      <button className={`fight-score ${className}`} type="button" onClick={onScore} aria-label={`Adicionar ${label} para ${athleteName}`}>
+        {value}
+      </button>
+      <div className="fight-score-controls">
+        <button type="button" onClick={() => onAdjust(1)} aria-label={`Adicionar ${label}`}>+</button>
+        <button type="button" onClick={() => onAdjust(-1)} aria-label={`Remover ${label}`}>-</button>
+      </div>
+    </div>
   );
 }
 

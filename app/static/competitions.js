@@ -3,6 +3,7 @@ const elements = {
   competitionForm: document.querySelector("#competitionForm"),
   competitionName: document.querySelector("#competitionName"),
   competitionDate: document.querySelector("#competitionDate"),
+  competitionStartTime: document.querySelector("#competitionStartTime"),
   competitionStatus: document.querySelector("#competitionStatus"),
   competitionMessage: document.querySelector("#competitionMessage"),
   competitionSubmitButton: document.querySelector("#competitionSubmitButton"),
@@ -53,6 +54,7 @@ function buildCompetitionPayload() {
   return {
     name: elements.competitionName.value.trim(),
     event_date: elements.competitionDate.value,
+    start_time: elements.competitionStartTime.value,
   };
 }
 

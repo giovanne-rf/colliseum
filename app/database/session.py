@@ -31,6 +31,23 @@ async def create_db_and_tables() -> None:
             await conn.execute(
                 text("ALTER TABLE competitions ADD COLUMN mat_count INTEGER NOT NULL DEFAULT 4")
             )
+        if "start_time" not in competition_columns:
+            await conn.execute(
+                text("ALTER TABLE competitions ADD COLUMN start_time VARCHAR(5) NOT NULL DEFAULT '09:00'")
+            )
+        if "competition_type" not in competition_columns:
+            await conn.execute(
+                text("ALTER TABLE competitions ADD COLUMN competition_type VARCHAR(20) NOT NULL DEFAULT 'Oficial'")
+            )
+        if "competition_days" not in competition_columns:
+            await conn.execute(
+                text("ALTER TABLE competitions ADD COLUMN competition_days INTEGER NOT NULL DEFAULT 2")
+            )
+        for day_column in ("dia_1", "dia_2", "dia_3", "dia_4"):
+            if day_column not in competition_columns:
+                await conn.execute(
+                    text(f"ALTER TABLE competitions ADD COLUMN {day_column} DATE")
+                )
         table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
         if "competition_checkins" not in table_names:
             await conn.execute(
@@ -117,3 +134,37 @@ async def create_db_and_tables() -> None:
             )
             await conn.execute(text("CREATE INDEX ix_match_results_id ON match_results (id)"))
             await conn.execute(text("CREATE INDEX ix_match_results_match_id ON match_results (match_id)"))
+        table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
+        if "competition_schedule" not in table_names:
+            await conn.execute(
+                text(
+                    """
+                    CREATE TABLE competition_schedule (
+                        id INTEGER NOT NULL,
+                        competition_id INTEGER NOT NULL,
+                        bracket_id INTEGER NOT NULL,
+                        category_id INTEGER NOT NULL,
+                        match_id INTEGER NOT NULL,
+                        mat_number INTEGER NOT NULL,
+                        day_number INTEGER NOT NULL,
+                        scheduled_start DATETIME NOT NULL,
+                        estimated_minutes INTEGER NOT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                        PRIMARY KEY (id),
+                        UNIQUE (match_id),
+                        FOREIGN KEY(competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
+                        FOREIGN KEY(bracket_id) REFERENCES brackets (id) ON DELETE CASCADE,
+                        FOREIGN KEY(category_id) REFERENCES categories (id) ON DELETE RESTRICT,
+                        FOREIGN KEY(match_id) REFERENCES matches (id) ON DELETE CASCADE
+                    )
+                    """
+                )
+            )
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_id ON competition_schedule (id)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_competition_id ON competition_schedule (competition_id)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_bracket_id ON competition_schedule (bracket_id)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_category_id ON competition_schedule (category_id)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_match_id ON competition_schedule (match_id)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_mat_number ON competition_schedule (mat_number)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_day_number ON competition_schedule (day_number)"))
+            await conn.execute(text("CREATE INDEX ix_competition_schedule_scheduled_start ON competition_schedule (scheduled_start)"))

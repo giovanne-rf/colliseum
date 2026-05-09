@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
+import re
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -13,7 +14,14 @@ from app.schemas.category import CategoryRead
 class CompetitionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=160, examples=["Rio Open 2026"])
     event_date: date = Field(..., examples=["2026-08-15"])
+    start_time: str = Field(default="09:00", examples=["09:00"])
     mat_count: int = Field(..., ge=4, le=12, examples=[4])
+    competition_type: str = Field(default="Oficial", examples=["Oficial"])
+    competition_days: int = Field(default=2, ge=1, le=3, examples=[2])
+    dia_1: date | None = None
+    dia_2: date | None = None
+    dia_3: date | None = None
+    dia_4: date | None = None
 
     @field_validator("name")
     @classmethod
@@ -29,6 +37,22 @@ class CompetitionCreate(BaseModel):
         if value % 2 != 0:
             raise ValueError("Mat count must be an even number.")
         return value
+
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", normalized):
+            raise ValueError("Start time must be in HH:MM format.")
+        return normalized
+
+    @field_validator("competition_type")
+    @classmethod
+    def validate_competition_type(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in {"Oficial", "Chancelado"}:
+            raise ValueError("Competition type must be Oficial or Chancelado.")
+        return normalized
 
 
 class CompetitionRead(CompetitionCreate):
@@ -112,11 +136,11 @@ class RegistrationOptionsRead(BaseModel):
 
 class BracketGenerateRequest(BaseModel):
     category_id: int = Field(..., gt=0, examples=[1])
-    replace_existing: bool = Field(default=True)
+    replace_existing: bool = Field(default=False)
 
 
 class BracketGenerateAllRequest(BaseModel):
-    replace_existing: bool = Field(default=True)
+    replace_existing: bool = Field(default=False)
 
 
 class BracketEntryRead(BaseModel):
@@ -157,6 +181,20 @@ class MatchResultRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class MatchScheduleRead(BaseModel):
+    id: int
+    competition_id: int
+    bracket_id: int
+    category_id: int
+    match_id: int
+    mat_number: int
+    day_number: int
+    scheduled_start: datetime
+    estimated_minutes: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class MatchRead(BaseModel):
     id: int
     round_number: int
@@ -168,6 +206,7 @@ class MatchRead(BaseModel):
     winner: AthleteRead | None = None
     status: MatchStatus
     result: MatchResultRead | None = None
+    schedule: MatchScheduleRead | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -193,3 +232,20 @@ class BracketBatchGenerateRead(BaseModel):
     generated_count: int
     skipped_count: int
     brackets: list[BracketRead]
+
+
+class ScheduleCategoryRead(BaseModel):
+    bracket_id: int
+    category_id: int
+    category: CategoryRead
+    sex: str
+    mat_number: int
+    day_number: int
+    start_time: datetime
+    fight_count: int
+
+
+class CompetitionScheduleRead(BaseModel):
+    competition: CompetitionRead
+    categories: list[ScheduleCategoryRead]
+    matches: list[MatchScheduleRead]

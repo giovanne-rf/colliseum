@@ -67,6 +67,16 @@ async def bracket_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/chaves/salvas", include_in_schema=False)
+async def saved_bracket_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
+@app.get("/chaves/{bracket_id}", include_in_schema=False)
+async def bracket_by_id_frontend(bracket_id: int) -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/checagem", include_in_schema=False)
 async def checkin_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")

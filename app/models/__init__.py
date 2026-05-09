@@ -2,6 +2,7 @@ from app.models.athlete import Athlete
 from app.models.bracket import (
     Bracket,
     BracketEntry,
+    CompetitionSchedule,
     CompetitionCheckin,
     Competition,
     CompetitionRegistration,
@@ -17,6 +18,7 @@ __all__ = [
     "Bracket",
     "BracketEntry",
     "Category",
+    "CompetitionSchedule",
     "CompetitionCheckin",
     "Competition",
     "CompetitionRegistration",
