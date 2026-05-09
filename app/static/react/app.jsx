@@ -7,6 +7,7 @@ const routes = [
   ["/inscricoes", "REGISTRATION"],
   ["/chaves", "GERAR CHAVES"],
   ["/chaves/salvas", "CHAVES SALVAS"],
+  ["/cronograma", "CRONOGRAMA"],
   ["/checagem", "LISTAGEM DE ATLETAS"],
   ["/checkin/pesagem", "PESAGEM"],
   ["/checkin", "CHECKIN"],
@@ -154,6 +155,16 @@ function categoryLabel(category) {
   return `${category.age_group} | ${beltLabels[category.belt] || category.belt} | ${category.weight_class}`;
 }
 
+function formatScheduleTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatScheduleDay(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
+}
+
 function Message({ text, type }) {
   return <p className={`message ${type || ""}`.trim()} role="status" aria-live="polite">{text}</p>;
 }
@@ -196,13 +207,14 @@ function App() {
         {path === "/inscricoes" && <RegistrationsPage />}
         {path === "/chaves" && <BracketsPage />}
         {path === "/chaves/salvas" && <SavedBracketsPage />}
+        {path === "/cronograma" && <SchedulePage />}
         {bracketRouteId && <BracketByIdPage bracketId={bracketRouteId} />}
         {path === "/checagem" && <AthleteListPage />}
         {path === "/checkin/pesagem" && <WeighinPage />}
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!bracketRouteId && !["/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
+        {!bracketRouteId && !["/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
           <AthletesPage />
         )}
       </main>
@@ -821,6 +833,97 @@ function SavedBracketsPage() {
   );
 }
 
+function SchedulePage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [schedule, setSchedule] = useState(null);
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  async function loadSchedule(id) {
+    setCompetitionId(id);
+    setSchedule(null);
+    if (!id) return;
+    try {
+      const data = await fetchJson(`/competitions/${id}/schedule`);
+      setSchedule(data);
+      setMessage(data.categories.length ? ["", ""] : ["Nenhuma chave agendada para esta competicao.", ""]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  const categoriesByDay = useMemo(() => {
+    const grouped = new Map();
+    (schedule?.categories || []).forEach((item) => {
+      if (!grouped.has(item.day_number)) grouped.set(item.day_number, []);
+      grouped.get(item.day_number).push(item);
+    });
+    return [...grouped.entries()].sort(([left], [right]) => left - right);
+  }, [schedule]);
+
+  const rowsBySex = (rows, sex) => rows
+    .filter((item) => item.sex === sex)
+    .sort((left, right) => new Date(left.start_time) - new Date(right.start_time));
+
+  return (
+    <section className="workspace stack schedule-workspace">
+      <form className="registration bracket-generator">
+        <div className="section-heading"><h2>Cronograma</h2><span>Horarios estimados por categoria</span></div>
+        <div className="grid bracket-generator-row">
+          <Select label="Competicao" value={competitionId} onChange={loadSchedule} required options={[
+            ["", "Selecione a competicao"],
+            ...competitions.map((competition) => [String(competition.id), competition.name]),
+          ]} />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </form>
+      {schedule && (
+        <section className="schedule-page">
+          <header className="schedule-header">
+            <h2>SCHEDULE</h2>
+            <p>{schedule.competition.name}</p>
+          </header>
+          <div className="schedule-copy">
+            <p>Este e o cronograma com os <strong>horarios estimados de inicio de cada categoria</strong>.</p>
+            <p>Os atletas devem estar no ginasio prontos com antecedencia minima de <strong>uma hora</strong>.</p>
+            <p>A luta pode iniciar antes ou depois do horario previsto conforme o andamento dos MATS.</p>
+          </div>
+          {categoriesByDay.map(([dayNumber, rows]) => {
+            const first = rows[0];
+            return (
+              <section className="schedule-day" key={dayNumber}>
+                <div className="schedule-day-band">
+                  <strong>{formatScheduleDay(first.start_time)}</strong>
+                  <span>START TIME: {formatScheduleTime(first.start_time)}</span>
+                </div>
+                <div className="schedule-columns">
+                  {["male", "female"].map((sex) => (
+                    <section className="schedule-sex-column" key={sex}>
+                      <h3>{sex === "male" ? "MALE" : "FEMALE"}</h3>
+                      <div className="schedule-list">
+                        {rowsBySex(rows, sex).map((item) => (
+                          <a className="schedule-row" href={`/chaves/${item.bracket_id}`} key={item.bracket_id}>
+                            <span>{categoryLabel(item.category)}</span>
+                            <strong>{formatScheduleTime(item.start_time)}, MAT {item.mat_number}</strong>
+                          </a>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </section>
+      )}
+    </section>
+  );
+}
+
 function BracketByIdPage({ bracketId }) {
   const [bracket, setBracket] = useState(null);
   const [fightPanel, setFightPanel] = useState(null);
@@ -1211,7 +1314,7 @@ function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, on
         openFight();
       }
     }}>
-      <div className="ibjjf-match-meta"><strong>{matchLabel}</strong><span>Mat 10</span></div>
+      <div className="ibjjf-match-meta"><strong>{matchLabel}</strong><span>Mat {match.schedule?.mat_number || "-"}</span></div>
       <div className="ibjjf-slot winner">
         <span className="ibjjf-position">{match.position_start}</span>
         <div>{athleteLine(left)}{teamLine(left)}</div>
@@ -1220,6 +1323,11 @@ function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, on
         <span className="ibjjf-position">{match.position_end}</span>
         <div>{athleteLine(right)}{teamLine(right)}</div>
       </div>
+      {match.schedule && (
+        <div className="ibjjf-match-schedule">
+          Dia {match.schedule.day_number} | {formatScheduleDay(match.schedule.scheduled_start)} {formatScheduleTime(match.schedule.scheduled_start)} | MAT {match.schedule.mat_number}
+        </div>
+      )}
     </article>
   );
 }

@@ -19,6 +19,7 @@ from app.schemas.bracket import (
     CompetitionRead,
     CompetitionRegistrationCreate,
     CompetitionRegistrationRead,
+    CompetitionScheduleRead,
     MatchResultRead,
     MatchResultUpdate,
     RegistrationOptionsRead,
@@ -28,6 +29,7 @@ from app.services.brackets import (
     CheckinService,
     CompetitionService,
     RegistrationService,
+    ScheduleService,
 )
 from app.services.exceptions import ServiceError
 
@@ -50,6 +52,18 @@ async def create_competition(payload: CompetitionCreate, session: DbSession) -> 
 @router.get("", response_model=list[CompetitionRead], summary="List competitions")
 async def list_competitions(session: DbSession) -> list[CompetitionRead]:
     return await CompetitionService(session).list()
+
+
+@router.get(
+    "/{competition_id}/schedule",
+    response_model=CompetitionScheduleRead,
+    summary="List competition schedule",
+)
+async def list_schedule(competition_id: int, session: DbSession) -> CompetitionScheduleRead:
+    try:
+        return await ScheduleService(session).list_for_competition(competition_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
 
 
 @router.post(

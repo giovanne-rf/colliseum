@@ -77,6 +77,11 @@ async def bracket_by_id_frontend(bracket_id: int) -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/cronograma", include_in_schema=False)
+async def schedule_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/checagem", include_in_schema=False)
 async def checkin_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")

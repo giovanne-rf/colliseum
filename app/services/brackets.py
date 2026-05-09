@@ -667,6 +667,40 @@ def max_weight_kg(weight_class: str) -> Decimal | None:
     return Decimal(match.group(1))
 
 
+def _parse_start_time(value: str) -> time:
+    hour, minute = value.split(":", 1)
+    return time(hour=int(hour), minute=int(minute))
+
+
+def _category_sex(weight_class: str) -> str:
+    normalized = weight_class.lower()
+    if "female" in normalized or "feminino" in normalized:
+        return "female"
+    if "male" in normalized or "masculino" in normalized:
+        return "male"
+    return "male"
+
+
+def _fight_duration_minutes(category: Category) -> int:
+    belt = str(category.belt)
+    age_group = category.age_group.lower()
+    if age_group == "adult":
+        return {
+            "white": 5,
+            "blue": 6,
+            "purple": 7,
+            "brown": 8,
+            "black": 10,
+        }.get(belt, 5)
+    if "juven" in age_group:
+        return 5
+    if "master 1" in age_group:
+        return 6 if belt in {"purple", "brown", "black"} else 5
+    if "master" in age_group:
+        return 5
+    return 5
+
+
 class BracketService:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -946,8 +980,14 @@ class BracketService:
         for match in ordered_matches:
             mat_options = list(mat_states)
             if category_mat is not None:
-                preferred = [key for key in mat_options if key[1] == category_mat]
-                mat_options = preferred + [key for key in mat_options if key[1] != category_mat]
+                preferred = [
+                    key
+                    for key in mat_options
+                    if key[1] == category_mat
+                    and int(mat_states[key]["count"]) < MAX_MATCHES_PER_MAT_DAY
+                ]
+                if preferred:
+                    mat_options = preferred
 
             athlete_ids = [
                 athlete_id

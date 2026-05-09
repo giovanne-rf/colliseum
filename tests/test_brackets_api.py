@@ -166,7 +166,19 @@ async def test_generate_bracket_uses_power_of_two_byes_and_separates_same_team(
     assert bracket["same_team_conflicts"] == 0
     assert len(bracket["entries"]) == 4
     assert len(bracket["matches"]) == 3
+    assert all(match["schedule"] is not None for match in bracket["matches"])
+    assert {match["schedule"]["mat_number"] for match in bracket["matches"]} == {1}
+    assert [match["schedule"]["day_number"] for match in bracket["matches"]] == [1, 1, 1]
     assert {entry["athlete"]["checkin_status"] for entry in bracket["entries"] if entry["athlete"]} == {"No Show"}
+
+    schedule_response = await client.get(f"/competitions/{competition_id}/schedule")
+    assert schedule_response.status_code == 200
+    schedule = schedule_response.json()
+    assert schedule["competition"]["id"] == competition_id
+    assert len(schedule["matches"]) == 3
+    assert len(schedule["categories"]) == 1
+    assert schedule["categories"][0]["fight_count"] == 3
+    assert schedule["categories"][0]["start_time"] == bracket["matches"][0]["schedule"]["scheduled_start"]
 
     positions_by_team = defaultdict(list)
     for entry in bracket["entries"]:

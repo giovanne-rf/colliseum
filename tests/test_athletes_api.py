@@ -144,6 +144,7 @@ async def test_frontend_is_served(client: AsyncClient):
     brackets_response = await client.get("/chaves")
     saved_brackets_response = await client.get("/chaves/salvas")
     bracket_by_id_response = await client.get("/chaves/123")
+    schedule_response = await client.get("/cronograma")
     checkin_response = await client.get("/checagem")
     weighin_response = await client.get("/checkin/pesagem")
     ready_checkin_response = await client.get("/checkin")
@@ -155,7 +156,7 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.jsx" in response.text
-    assert "bracket-url-layout-20260509" in response.text
+    assert "restore-bracket-visual-20260509" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
     assert "/inscricoes" in response.text
@@ -180,6 +181,8 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "/static/react/app.jsx" in saved_brackets_response.text
     assert bracket_by_id_response.status_code == 200
     assert "/static/react/app.jsx" in bracket_by_id_response.text
+    assert schedule_response.status_code == 200
+    assert "/static/react/app.jsx" in schedule_response.text
     assert checkin_response.status_code == 200
     assert "/static/react/app.jsx" in checkin_response.text
     assert weighin_response.status_code == 200
@@ -201,7 +204,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.jsx?v=bracket-url-layout-20260509" in react_shell_response.text
+    assert "/static/react/app.jsx?v=restore-bracket-visual-20260509" in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
     assert react_app_response.status_code == 200
     assert "FJJPE" in react_app_response.text
@@ -214,6 +217,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "function BracketsPage" in react_app_response.text
     assert "function SavedBracketsPage" in react_app_response.text
     assert "function BracketByIdPage" in react_app_response.text
+    assert "function SchedulePage" in react_app_response.text
     assert "function FightPanel" in react_app_response.text
     assert "function fightDurationSeconds" in react_app_response.text
     assert "function CheckinPage" in react_app_response.text
@@ -224,6 +228,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "/checkin" in react_app_response.text
     assert '["/chaves", "GERAR CHAVES"]' in react_app_response.text
     assert '["/chaves/salvas", "CHAVES SALVAS"]' in react_app_response.text
+    assert '["/cronograma", "CRONOGRAMA"]' in react_app_response.text
     assert '["/checagem", "LISTAGEM DE ATLETAS"]' in react_app_response.text
     assert '["/checkin/pesagem", "PESAGEM"]' in react_app_response.text
     assert '["/checkin", "CHECKIN"]' in react_app_response.text
@@ -268,6 +273,9 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "Abrir URL" in react_app_response.text
     assert "Vencedor da luta" in react_app_response.text
     assert "function originMatchForSlot" in react_app_response.text
+    assert "/schedule" in react_app_response.text
+    assert "Horarios estimados por categoria" in react_app_response.text
+    assert "ibjjf-match-schedule" in react_app_response.text
     assert "Exibicao da Chave" in react_app_response.text
     assert "Categoria de idade" in react_app_response.text
     assert "Categoria de peso" in react_app_response.text
