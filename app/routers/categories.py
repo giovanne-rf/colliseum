@@ -50,3 +50,11 @@ async def get_category(category_id: int, session: DbSession) -> CategoryRead:
         return await CategoryService(session).get(category_id)
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
+
+
+@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete category")
+async def delete_category(category_id: int, session: DbSession) -> None:
+    try:
+        await CategoryService(session).delete(category_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc

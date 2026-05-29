@@ -2,6 +2,7 @@ const { useEffect, useLayoutEffect, useMemo, useRef, useState } = React;
 
 const routes = [
   ["/categorias", "CATEGORIAS"],
+  ["/config-categorias", "CONFIG. CATEGORIAS"],
   ["/ordem", "ORDEM DE LUTAS"],
   ["/cadastros", "ATHLETES"],
   ["/equipes", "ACADEMIES"],
@@ -208,6 +209,7 @@ function App() {
       </section>
       <main className={`shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""} ${isOrdem ? "ordem-shell" : ""}`.trim()}>
         {path === "/categorias" && <CategoriasPage />}
+        {path === "/config-categorias" && <ConfigCategoriasPage />}
         {path === "/ordem" && <OrdemPage />}
         {path === "/equipes" && <TeamsPage />}
         {path === "/competicoes" && <CompetitionsPage />}
@@ -221,7 +223,7 @@ function App() {
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!bracketRouteId && !["/categorias", "/ordem", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
+        {!bracketRouteId && !["/categorias", "/config-categorias", "/ordem", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
           <AthletesPage />
         )}
       </main>
@@ -2173,6 +2175,225 @@ function CheckinGroup({ groupKey, items }) {
 }
 
 const ORDEM_REFRESH_MS = 2 * 60 * 1000;
+
+// ── IBJJF category rules ────────────────────────────────────────────────────
+const IBJJF_AGE_GROUPS = [
+  "Infantil 1", "Infantil 2", "Infantil 3", "Infantil 4", "Infantil 5",
+  "Juvenil 1", "Juvenil 2",
+  "Adulto", "Master 1", "Master 2", "Master 3", "Master 4", "Master 5", "Master 6", "Master 7",
+];
+
+const IBJJF_BELTS = {
+  "Infantil 1":  ["white", "gray", "gray_white", "gray_black"],
+  "Infantil 2":  ["white", "gray", "gray_white", "gray_black"],
+  "Infantil 3":  ["white", "yellow", "yellow_white", "yellow_black"],
+  "Infantil 4":  ["white", "yellow", "yellow_white", "yellow_black", "orange", "orange_white", "orange_black"],
+  "Infantil 5":  ["white", "orange", "orange_white", "orange_black", "green", "green_white", "green_black"],
+  "Juvenil 1":   ["white", "blue"],
+  "Juvenil 2":   ["white", "blue", "purple"],
+  "Adulto":      ["white", "blue", "purple", "brown", "black"],
+  "Master 1":    ["white", "blue", "purple", "brown", "black"],
+  "Master 2":    ["blue", "purple", "brown", "black"],
+  "Master 3":    ["blue", "purple", "brown", "black"],
+  "Master 4":    ["blue", "purple", "brown", "black"],
+  "Master 5":    ["blue", "purple", "brown", "black"],
+  "Master 6":    ["blue", "purple", "brown", "black"],
+  "Master 7":    ["purple", "brown", "black"],
+};
+
+const IBJJF_WEIGHTS_KIDS = {
+  "Infantil 1": ["-18kg", "-20kg", "-22kg", "-24kg", "-26kg", "-28kg", "+28kg"],
+  "Infantil 2": ["-22kg", "-24kg", "-26kg", "-28kg", "-30kg", "-32kg", "+32kg"],
+  "Infantil 3": ["-25kg", "-28kg", "-31kg", "-34kg", "-37kg", "-40kg", "+40kg"],
+  "Infantil 4": ["-30kg", "-34kg", "-38kg", "-42kg", "-46kg", "-50kg", "+50kg"],
+  "Infantil 5": ["-36kg", "-40kg", "-44kg", "-48kg", "-52kg", "-56kg", "+56kg"],
+};
+
+const IBJJF_WEIGHTS_STANDARD = [
+  "Galo", "Pluma", "Pena", "Leve", "Médio", "Meio-Pesado", "Pesado", "Super-Pesado", "Pesadíssimo",
+];
+
+function ibjjfWeights(ageGroup) {
+  return IBJJF_WEIGHTS_KIDS[ageGroup] || IBJJF_WEIGHTS_STANDARD;
+}
+
+function buildAllIbjjfCategories() {
+  const cats = [];
+  for (const age_group of IBJJF_AGE_GROUPS) {
+    for (const belt of IBJJF_BELTS[age_group]) {
+      for (const weight_class of ibjjfWeights(age_group)) {
+        cats.push({ age_group, belt, weight_class });
+      }
+    }
+  }
+  return cats;
+}
+
+function ConfigCategoriasPage() {
+  const [categories, setCategories] = useState([]);
+  const [form, setForm] = useState({ age_group: "", belt: "", weight_class: "" });
+  const [loading, setLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [message, setMessage] = useState(["", ""]);
+  const [deleteId, setDeleteId] = useState(null);
+
+  async function load() {
+    try {
+      const data = await fetchJson("/categories");
+      setCategories(data);
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  const validBelts = form.age_group ? (IBJJF_BELTS[form.age_group] || []) : [];
+  const validWeights = form.age_group ? ibjjfWeights(form.age_group) : [];
+
+  async function addCategory(e) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(["", ""]);
+    try {
+      await fetchJson("/categories", { method: "POST", body: JSON.stringify(form) });
+      setMessage(["Categoria criada com sucesso.", "success"]);
+      setForm({ age_group: form.age_group, belt: "", weight_class: "" });
+      await load();
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function importAll() {
+    setImportLoading(true);
+    setMessage(["", ""]);
+    try {
+      const all = buildAllIbjjfCategories();
+      const existing = new Set(categories.map((c) => `${c.age_group}|${c.belt}|${c.weight_class}`));
+      const toCreate = all.filter((c) => !existing.has(`${c.age_group}|${c.belt}|${c.weight_class}`));
+      if (!toCreate.length) {
+        setMessage(["Todas as categorias IBJJF já estão cadastradas.", "success"]);
+        return;
+      }
+      const created = await fetchJson("/categories/bulk", { method: "POST", body: JSON.stringify(toCreate) });
+      setMessage([`${created.length} categoria(s) importada(s) com sucesso.`, "success"]);
+      await load();
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setImportLoading(false);
+    }
+  }
+
+  async function deleteCategory(id) {
+    try {
+      await fetchJson(`/categories/${id}`, { method: "DELETE" });
+      setDeleteId(null);
+      await load();
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    }
+  }
+
+  // group existing categories for display
+  const grouped = useMemo(() => {
+    const map = new Map();
+    for (const cat of categories) {
+      const key = cat.age_group;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(cat);
+    }
+    return [...map.entries()].sort(([a], [b]) => IBJJF_AGE_GROUPS.indexOf(a) - IBJJF_AGE_GROUPS.indexOf(b));
+  }, [categories]);
+
+  const allTotal = buildAllIbjjfCategories().length;
+  const coverage = Math.round((categories.length / allTotal) * 100);
+
+  return (
+    <section className="workspace stack">
+      <section className="registration panel">
+        <div className="section-heading">
+          <h2>Configuração de Categorias IBJJF</h2>
+          <span>{categories.length} cadastrada(s) de {allTotal} ({coverage}%)</span>
+        </div>
+
+        <div className="ccats-import-bar">
+          <div>
+            <p className="ccats-import-desc">
+              Importa automaticamente todas as combinações válidas de grupo de idade, faixa e peso conforme as regras da IBJJF.
+            </p>
+          </div>
+          <button className="primary" onClick={importAll} disabled={importLoading} type="button">
+            {importLoading ? "Importando..." : `Importar todas as categorias IBJJF (${allTotal})`}
+          </button>
+        </div>
+
+        <div className="ccats-divider">ou adicione manualmente</div>
+
+        <form onSubmit={addCategory}>
+          <div className="grid ccats-form-row">
+            <Select label="Grupo de Idade" value={form.age_group} onChange={(v) => setForm({ age_group: v, belt: "", weight_class: "" })} required options={[
+              ["", "Selecione"],
+              ...IBJJF_AGE_GROUPS.map((ag) => [ag, ag]),
+            ]} />
+            <Select label="Faixa" value={form.belt} onChange={(v) => setForm({ ...form, belt: v, weight_class: "" })} required disabled={!form.age_group} options={[
+              ["", form.age_group ? "Selecione" : "Selecione a idade primeiro"],
+              ...validBelts.map((b) => [b, beltLabels[b] || b]),
+            ]} />
+            <Select label="Categoria de Peso" value={form.weight_class} onChange={(v) => setForm({ ...form, weight_class: v })} required disabled={!form.belt} options={[
+              ["", form.belt ? "Selecione" : "Selecione a faixa primeiro"],
+              ...validWeights.map((w) => [w, w]),
+            ]} />
+            <div className="inline-submit">
+              <button className="primary" type="submit" disabled={loading || !form.weight_class}>
+                {loading ? "Salvando..." : "Adicionar"}
+              </button>
+            </div>
+          </div>
+          <Message text={message[0]} type={message[1]} />
+        </form>
+      </section>
+
+      {grouped.length > 0 && (
+        <section className="panel">
+          <div className="section-heading"><h2>Categorias Cadastradas</h2></div>
+          <div className="ccats-groups">
+            {grouped.map(([ageGroup, cats]) => (
+              <div key={ageGroup} className="ccats-group">
+                <div className="ccats-group-header">{ageGroup}</div>
+                <div className="ccats-group-body">
+                  {cats
+                    .sort((a, b) => (IBJJF_BELTS[ageGroup] || []).indexOf(a.belt) - (IBJJF_BELTS[ageGroup] || []).indexOf(b.belt) || ibjjfWeights(ageGroup).indexOf(a.weight_class) - ibjjfWeights(ageGroup).indexOf(b.weight_class))
+                    .map((cat) => (
+                      <div key={cat.id} className="ccats-item">
+                        <span className="ccats-belt-dot" style={{ background: BELT_COLORS[cat.belt] || "#555" }} />
+                        <span className="ccats-item-label">{beltLabels[cat.belt] || cat.belt} · {cat.weight_class}</span>
+                        {deleteId === cat.id ? (
+                          <div className="ccats-confirm">
+                            <button className="danger-button compact-button" onClick={() => deleteCategory(cat.id)}>Confirmar</button>
+                            <button className="secondary compact-button" onClick={() => setDeleteId(null)}>Cancelar</button>
+                          </div>
+                        ) : (
+                          <button className="icon-button compact-button" title="Excluir" onClick={() => setDeleteId(cat.id)}>×</button>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {deleteId && (
+        <div style={{display:"none"}} />
+      )}
+    </section>
+  );
+}
 
 function OrdemPage() {
   const [competitions, setCompetitions] = useState([]);

@@ -46,3 +46,14 @@ class CategoryService:
         if category is None:
             raise NotFoundError("Category not found.")
         return category
+
+    async def delete(self, category_id: int) -> None:
+        category = await self.session.get(Category, category_id)
+        if category is None:
+            raise NotFoundError("Category not found.")
+        try:
+            await self.session.delete(category)
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            raise ConflictError("Category is in use and cannot be deleted.") from exc

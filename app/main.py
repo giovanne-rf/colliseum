@@ -46,6 +46,11 @@ async def categorias_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/config-categorias", include_in_schema=False)
+async def config_categorias_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/ordem", include_in_schema=False)
 async def ordem_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
