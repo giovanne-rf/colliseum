@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -169,6 +170,9 @@ async def test_generate_bracket_uses_power_of_two_byes_and_separates_same_team(
     assert all(match["schedule"] is not None for match in bracket["matches"])
     assert {match["schedule"]["mat_number"] for match in bracket["matches"]} == {1}
     assert [match["schedule"]["day_number"] for match in bracket["matches"]] == [1, 1, 1]
+    first_start = datetime.fromisoformat(bracket["matches"][0]["schedule"]["scheduled_start"])
+    second_start = datetime.fromisoformat(bracket["matches"][1]["schedule"]["scheduled_start"])
+    assert second_start - first_start == timedelta(minutes=9)
     assert {entry["athlete"]["checkin_status"] for entry in bracket["entries"] if entry["athlete"]} == {"No Show"}
 
     schedule_response = await client.get(f"/competitions/{competition_id}/schedule")
@@ -719,6 +723,7 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     assert result["winner_id"] == match["athlete_a"]["id"]
     assert result["finish_method"] == "Pontos"
     assert result["finalized"] is True
+    assert result["finished_at"] is not None
 
     blocked_update_response = await client.put(
         f"/competitions/{competition_id}/matches/{match['id']}/result",
@@ -738,6 +743,15 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     saved_bracket_response = await client.get(f"/competitions/brackets/{bracket['id']}")
     assert saved_bracket_response.status_code == 200
     saved_bracket = saved_bracket_response.json()
+    finished_at = datetime.fromisoformat(result["finished_at"])
+    following_matches = [
+        item for item in saved_bracket["matches"]
+        if item["id"] != match["id"] and item["schedule"]["mat_number"] == match["schedule"]["mat_number"]
+    ]
+    assert min(
+        datetime.fromisoformat(item["schedule"]["scheduled_start"])
+        for item in following_matches
+    ) >= finished_at + timedelta(minutes=3)
     saved_match = next(item for item in saved_bracket["matches"] if item["id"] == match["id"])
     assert saved_match["result"]["winner_id"] == match["athlete_a"]["id"]
     assert saved_match["winner"]["id"] == match["athlete_a"]["id"]

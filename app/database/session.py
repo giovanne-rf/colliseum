@@ -122,6 +122,7 @@ async def create_db_and_tables() -> None:
                         winner_id INTEGER,
                         finish_method VARCHAR(30),
                         finalized BOOLEAN NOT NULL DEFAULT 0,
+                        finished_at DATETIME,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
                         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
                         PRIMARY KEY (id),
@@ -134,6 +135,15 @@ async def create_db_and_tables() -> None:
             )
             await conn.execute(text("CREATE INDEX ix_match_results_id ON match_results (id)"))
             await conn.execute(text("CREATE INDEX ix_match_results_match_id ON match_results (match_id)"))
+        else:
+            match_result_columns = await conn.run_sync(
+                lambda sync_conn: {
+                    column["name"]
+                    for column in inspect(sync_conn).get_columns("match_results")
+                }
+            )
+            if "finished_at" not in match_result_columns:
+                await conn.execute(text("ALTER TABLE match_results ADD COLUMN finished_at DATETIME"))
         table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
         if "competition_schedule" not in table_names:
             await conn.execute(

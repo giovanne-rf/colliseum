@@ -257,6 +257,7 @@ class MatchResult(Base):
     )
     finish_method: Mapped[str | None] = mapped_column(String(30), nullable=True)
     finalized: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

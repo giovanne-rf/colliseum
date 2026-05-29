@@ -52,7 +52,7 @@ CHECKIN_STATUS_NO_CHECKED = "No checked"
 CHECKIN_STATUS_NO_SHOW = "No Show"
 CHECKIN_STATUS_OUT_OF_WEIGHT = "Out of weight"
 MAX_MATCHES_PER_MAT_DAY = 80
-BETWEEN_MATCHES_MINUTES = 2
+BETWEEN_MATCHES_MINUTES = 3
 SAME_ATHLETE_REST_MINUTES = 20
 
 
@@ -897,12 +897,19 @@ class BracketService:
         result.finalized = payload.finalized
         result.finish_method = payload.finish_method if payload.finalized else None
         result.winner_id = winner_id if payload.finalized else None
+        result.finished_at = datetime.now() if payload.finalized else None
 
         if payload.finalized:
             match.winner_id = winner_id
             match.status = MatchStatus.completed
             await self.session.flush()
             await self._advance_available_winners(match.bracket_id)
+            await self.session.flush()
+            await self._reschedule_mat_after_finished_match(
+                competition_id=competition_id,
+                match_id=match_id,
+                finished_at=result.finished_at,
+            )
 
         await self.session.commit()
         await self.session.refresh(result)
@@ -1027,12 +1034,94 @@ class BracketService:
             self.session.add(schedule)
             state = mat_states[(day_number, mat_number)]
             state["count"] = int(state["count"]) + 1
-            state["next"] = scheduled_start + timedelta(
-                minutes=estimated_minutes + BETWEEN_MATCHES_MINUTES
-            )
+            estimated_finish = scheduled_start + timedelta(minutes=estimated_minutes)
+            state["next"] = estimated_finish + timedelta(minutes=BETWEEN_MATCHES_MINUTES)
             for athlete_id in athlete_ids:
-                athlete_available[athlete_id] = scheduled_start + timedelta(
-                    minutes=max(estimated_minutes, SAME_ATHLETE_REST_MINUTES)
+                athlete_available[athlete_id] = estimated_finish + timedelta(
+                    minutes=SAME_ATHLETE_REST_MINUTES
+                )
+
+    async def _reschedule_mat_after_finished_match(
+        self,
+        *,
+        competition_id: int,
+        match_id: int,
+        finished_at: datetime | None,
+    ) -> None:
+        if finished_at is None:
+            return
+
+        current_result = await self.session.execute(
+            select(CompetitionSchedule)
+            .where(
+                CompetitionSchedule.competition_id == competition_id,
+                CompetitionSchedule.match_id == match_id,
+            )
+            .options(selectinload(CompetitionSchedule.match))
+        )
+        current_schedule = current_result.scalar_one_or_none()
+        if current_schedule is None:
+            return
+
+        rows_result = await self.session.execute(
+            select(CompetitionSchedule)
+            .where(
+                CompetitionSchedule.competition_id == competition_id,
+                CompetitionSchedule.day_number == current_schedule.day_number,
+                CompetitionSchedule.mat_number == current_schedule.mat_number,
+                CompetitionSchedule.scheduled_start > current_schedule.scheduled_start,
+            )
+            .options(
+                selectinload(CompetitionSchedule.match).selectinload(Match.result),
+            )
+            .order_by(CompetitionSchedule.scheduled_start, CompetitionSchedule.id)
+        )
+        rows = list(rows_result.scalars().all())
+        if not rows:
+            return
+
+        athlete_available: dict[int, datetime] = {}
+        current_match = current_schedule.match
+        for athlete_id in (current_match.athlete_a_id, current_match.athlete_b_id):
+            if athlete_id is not None:
+                athlete_available[athlete_id] = finished_at + timedelta(
+                    minutes=SAME_ATHLETE_REST_MINUTES
+                )
+
+        next_start = finished_at + timedelta(minutes=BETWEEN_MATCHES_MINUTES)
+        for row in rows:
+            match = row.match
+            match_result = match.result
+            if match_result is not None and match_result.finalized:
+                actual_finish = match_result.finished_at or (
+                    row.scheduled_start + timedelta(minutes=row.estimated_minutes)
+                )
+                next_start = max(
+                    next_start,
+                    actual_finish + timedelta(minutes=BETWEEN_MATCHES_MINUTES),
+                )
+                for athlete_id in (match.athlete_a_id, match.athlete_b_id):
+                    if athlete_id is not None:
+                        athlete_available[athlete_id] = actual_finish + timedelta(
+                            minutes=SAME_ATHLETE_REST_MINUTES
+                        )
+                continue
+
+            athlete_ids = [
+                athlete_id
+                for athlete_id in (match.athlete_a_id, match.athlete_b_id)
+                if athlete_id is not None
+            ]
+            rest_ready_at = max(
+                [athlete_available.get(athlete_id, datetime.min) for athlete_id in athlete_ids],
+                default=datetime.min,
+            )
+            row.scheduled_start = max(next_start, rest_ready_at)
+            estimated_finish = row.scheduled_start + timedelta(minutes=row.estimated_minutes)
+            next_start = estimated_finish + timedelta(minutes=BETWEEN_MATCHES_MINUTES)
+            for athlete_id in athlete_ids:
+                athlete_available[athlete_id] = estimated_finish + timedelta(
+                    minutes=SAME_ATHLETE_REST_MINUTES
                 )
 
     async def advance_checked_byes_for_athlete(self, *, competition_id: int, athlete_id: int) -> None:

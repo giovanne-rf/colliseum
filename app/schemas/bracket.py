@@ -175,6 +175,7 @@ class MatchResultRead(BaseModel):
     winner_id: int | None = None
     finish_method: str | None = None
     finalized: bool
+    finished_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
