@@ -144,6 +144,20 @@ async def create_db_and_tables() -> None:
             )
             if "finished_at" not in match_result_columns:
                 await conn.execute(text("ALTER TABLE match_results ADD COLUMN finished_at DATETIME"))
+        # Make athletes.team_id nullable (required for belts above black)
+        athlete_columns = await conn.run_sync(
+            lambda sync_conn: {
+                col["name"]: col
+                for col in inspect(sync_conn).get_columns("athletes")
+            }
+        )
+        team_col = athlete_columns.get("team_id", {})
+        if team_col.get("nullable") is False:
+            dialect = conn.dialect.name
+            if dialect == "postgresql":
+                await conn.execute(text("ALTER TABLE athletes ALTER COLUMN team_id DROP NOT NULL"))
+            # SQLite does not support ALTER COLUMN — the ORM create_all already handles new DBs correctly.
+
         table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
         if "competition_schedule" not in table_names:
             await conn.execute(

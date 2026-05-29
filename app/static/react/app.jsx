@@ -41,6 +41,7 @@ const beltLabels = {
 };
 
 const beltOptions = Object.entries(beltLabels);
+const BELTS_ABOVE_BLACK = new Set(["red_black", "red_white", "red"]);
 
 const sexLabels = {
   male: "Masculino",
@@ -281,7 +282,7 @@ function AthletesPage() {
     try {
       const athlete = await fetchJson("/athletes", {
         method: "POST",
-        body: JSON.stringify({ ...form, team_id: Number(form.team_id) }),
+        body: JSON.stringify({ ...form, team_id: form.team_id ? Number(form.team_id) : null }),
       });
       setMessage([`Atleta ${athlete.name} cadastrado com sucesso.`, "success"]);
       setForm(emptyForm);
@@ -322,10 +323,18 @@ function AthletesPage() {
             ["male", "Masculino"],
             ["female", "Feminino"],
           ]} />
-          <Select label="Equipe" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required disabled={!teams.length} options={[
-            ["", teams.length ? "Selecione a equipe" : "Nenhuma equipe cadastrada"],
-            ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
-          ]} />
+          {!BELTS_ABOVE_BLACK.has(form.belt) && (
+            <Select label="Equipe" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required disabled={!teams.length} options={[
+              ["", teams.length ? "Selecione a equipe" : "Nenhuma equipe cadastrada"],
+              ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
+            ]} />
+          )}
+          {BELTS_ABOVE_BLACK.has(form.belt) && (
+            <Select label="Equipe (opcional)" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} disabled={!teams.length} options={[
+              ["", "Sem equipe"],
+              ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
+            ]} />
+          )}
           <Select label="Faixa" value={form.belt} onChange={(belt) => setForm({ ...form, belt })} required options={[
             ["", "Selecione"],
             ...beltOptions,
