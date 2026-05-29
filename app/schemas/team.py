@@ -10,22 +10,12 @@ from app.core.validators import validate_team_phone
 class TeamBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=160, examples=["Gracie Barra"])
     created_date: date = Field(..., examples=["2002-04-12"])
-    responsible: str | None = Field(None, min_length=1, max_length=160, examples=["Carlos Gracie Jr."])
+    responsible: str = Field(..., min_length=1, max_length=160, examples=["Carlos Gracie Jr."])
     phone: str = Field(..., min_length=13, max_length=13, examples=["11-99999-1234"])
 
-    @field_validator("name")
+    @field_validator("name", "responsible")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("Field cannot be blank.")
-        return normalized
-
-    @field_validator("responsible")
-    @classmethod
-    def strip_optional_responsible(cls, value: str | None) -> str | None:
-        if value is None:
-            return value
         normalized = value.strip()
         if not normalized:
             raise ValueError("Field cannot be blank.")
@@ -103,7 +93,6 @@ class TeamUpdate(BaseModel):
 
 class TeamRead(TeamBase):
     id: int
-    responsible: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

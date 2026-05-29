@@ -360,17 +360,27 @@ function AthletesPage() {
 
 function TeamsPage() {
   const [form, setForm] = useState({ name: "", created_date: "", responsible: "", phone: "" });
+  const [blackBelts, setBlackBelts] = useState([]);
   const [message, setMessage] = useState(["", ""]);
   const [loading, setLoading] = useState(false);
+
+  async function loadBlackBelts() {
+    const page = await fetchJson("/athletes?belt=black&limit=100&offset=0");
+    setBlackBelts(page.items);
+  }
+
+  useEffect(() => {
+    loadBlackBelts().catch((error) => setMessage([error.message, "error"]));
+  }, []);
 
   async function submit(event) {
     event.preventDefault();
     setLoading(true);
     try {
-      const payload = { ...form, responsible: form.responsible.trim() || null };
-      const team = await fetchJson("/teams", { method: "POST", body: JSON.stringify(payload) });
+      const team = await fetchJson("/teams", { method: "POST", body: JSON.stringify(form) });
       setMessage([`Equipe ${team.name} cadastrada com sucesso.`, "success"]);
       setForm({ name: "", created_date: "", responsible: "", phone: "" });
+      await loadBlackBelts();
     } catch (error) {
       setMessage([error.message, "error"]);
     } finally {
@@ -383,15 +393,19 @@ function TeamsPage() {
       <form className="registration" onSubmit={submit}>
         <div className="section-heading">
           <h2>Cadastro de Equipes</h2>
+          <span>{blackBelts.length ? `Faixas pretas: ${blackBelts.length}` : "Carregando faixas pretas"}</span>
         </div>
         <div className="grid">
           <Field label="Nome" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
           <Field label="Data de criacao" type="date" value={form.created_date} onChange={(created_date) => setForm({ ...form, created_date })} required />
-          <Field label="Responsavel (opcional)" value={form.responsible} onChange={(responsible) => setForm({ ...form, responsible })} />
+          <Select label="Responsavel" value={form.responsible} onChange={(responsible) => setForm({ ...form, responsible })} required disabled={!blackBelts.length} options={[
+            ["", blackBelts.length ? "Selecione o responsavel" : "Nenhum faixa preta cadastrado"],
+            ...blackBelts.map((athlete) => [athlete.name, athlete.name]),
+          ]} />
           <Field label="Telefone" value={form.phone} onChange={(phone) => setForm({ ...form, phone: maskTeamPhone(phone) })} required />
         </div>
         <div className="actions">
-          <button className="primary" type="submit" disabled={loading}>Cadastrar equipe</button>
+          <button className="primary" type="submit" disabled={loading || !blackBelts.length}>Cadastrar equipe</button>
         </div>
         <Message text={message[0]} type={message[1]} />
       </form>
