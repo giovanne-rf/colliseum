@@ -47,6 +47,11 @@ async def categorias_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/ordem", include_in_schema=False)
+async def ordem_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/cadastros", include_in_schema=False)
 async def athlete_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")

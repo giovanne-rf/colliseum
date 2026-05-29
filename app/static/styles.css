@@ -1573,6 +1573,235 @@ button:disabled {
   color: #fff;
 }
 
+/* ── Ordem de Lutas page (BJJCOMPSYSTEM tournament_days style) ──────── */
+
+.ordem-shell {
+  padding-top: 0;
+  width: min(100% - 24px, 1600px);
+}
+
+.ordem-page {
+  padding: 24px 0 60px;
+  display: grid;
+  gap: 16px;
+}
+
+.ordem-top {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ordem-comp-select {
+  min-width: 280px;
+  max-width: 420px;
+}
+
+.ordem-comp-info {
+  display: grid;
+  gap: 3px;
+  padding-bottom: 4px;
+}
+
+.ordem-comp-info strong {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--blue);
+  text-transform: uppercase;
+}
+
+.ordem-comp-info span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.ordem-refresh-badge {
+  margin-left: auto;
+  padding-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ok);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.ordem-refresh-hint {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.ordem-mat-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(240px, 320px);
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  align-items: start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) var(--surface-2);
+}
+
+.ordem-mat-grid::-webkit-scrollbar {
+  height: 8px;
+}
+
+.ordem-mat-grid::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+
+.ordem-mat-grid::-webkit-scrollbar-thumb {
+  background: var(--blue);
+}
+
+.ordem-mat-col {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.ordem-mat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--blue);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.ordem-mat-label {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ordem-mat-count {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.ordem-mat-fights {
+  display: grid;
+}
+
+.ordem-fight {
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ordem-fight:last-child {
+  border-bottom: 0;
+}
+
+.ordem-fight--done {
+  opacity: 0.6;
+  background: #f8f8f8;
+}
+
+.ordem-fight-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ordem-fight-time {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--blue);
+}
+
+.ordem-fight-round {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--muted);
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
+
+.ordem-fight--done .ordem-fight-round {
+  background: var(--ok);
+}
+
+.ordem-fight-done {
+  margin-left: auto;
+  color: var(--ok);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ordem-fight-cat {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
+.ordem-fight-athletes {
+  display: grid;
+  gap: 0;
+}
+
+.ordem-athlete {
+  padding: 5px 0;
+}
+
+.ordem-athlete--winner .ordem-athlete-name {
+  color: var(--ok);
+  font-weight: 900;
+}
+
+.ordem-athlete--loser .ordem-athlete-name {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.ordem-athlete-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ordem-athlete-team {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.ordem-athlete-tbd {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.ordem-fight-vs {
+  text-align: center;
+  font-size: 10px;
+  color: var(--line);
+  letter-spacing: 3px;
+  padding: 3px 0;
+}
+
 /* ── Categorias page (BJJCOMPSYSTEM style) ─────────────────────────── */
 
 .categorias-shell {

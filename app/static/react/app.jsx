@@ -2,6 +2,7 @@ const { useEffect, useLayoutEffect, useMemo, useRef, useState } = React;
 
 const routes = [
   ["/categorias", "CATEGORIAS"],
+  ["/ordem", "ORDEM DE LUTAS"],
   ["/cadastros", "ATHLETES"],
   ["/equipes", "ACADEMIES"],
   ["/competicoes", "CHAMPIONSHIPS"],
@@ -183,6 +184,7 @@ function App() {
   const title = bracketRouteId ? `CHAVE #${bracketRouteId}` : routes.find(([route]) => route === path)?.[1] || "ATHLETES";
   const isBracket = path === "/chaves" || path === "/chaves/salvas" || Boolean(bracketRouteId);
   const isCategorias = path === "/categorias";
+  const isOrdem = path === "/ordem";
 
   return (
     <>
@@ -203,8 +205,9 @@ function App() {
       <section className="page-title-band">
         <h1>{title}</h1>
       </section>
-      <main className={`shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""}`.trim()}>
+      <main className={`shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""} ${isOrdem ? "ordem-shell" : ""}`.trim()}>
         {path === "/categorias" && <CategoriasPage />}
+        {path === "/ordem" && <OrdemPage />}
         {path === "/equipes" && <TeamsPage />}
         {path === "/competicoes" && <CompetitionsPage />}
         {path === "/inscricoes" && <RegistrationsPage />}
@@ -217,7 +220,7 @@ function App() {
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!bracketRouteId && !["/categorias", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
+        {!bracketRouteId && !["/categorias", "/ordem", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
           <AthletesPage />
         )}
       </main>
@@ -2150,6 +2153,199 @@ function CheckinGroup({ groupKey, items }) {
         </table>
       </div>
     </section>
+  );
+}
+
+const ORDEM_REFRESH_MS = 2 * 60 * 1000;
+
+function OrdemPage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [brackets, setBrackets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(["", ""]);
+  const [dayFilter, setDayFilter] = useState(1);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const competitionIdRef = useRef("");
+
+  useEffect(() => {
+    fetchJson("/competitions")
+      .then(setCompetitions)
+      .catch((err) => setMessage([err.message, "error"]));
+  }, []);
+
+  async function fetchBrackets(id, silent = false) {
+    if (!id) return;
+    if (!silent) setLoading(true);
+    try {
+      const data = await fetchJson(`/competitions/${id}/brackets`);
+      setBrackets(data);
+      setLastRefresh(new Date());
+      if (!data.length) setMessage(["Nenhuma chave gerada para esta competicao.", ""]);
+      else if (!silent) setMessage(["", ""]);
+    } catch (err) {
+      if (!silent) setMessage([err.message, "error"]);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }
+
+  async function loadBrackets(id) {
+    setCompetitionId(id);
+    competitionIdRef.current = id;
+    setBrackets([]);
+    setDayFilter(1);
+    setMessage(["", ""]);
+    setLastRefresh(null);
+    await fetchBrackets(id, false);
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (competitionIdRef.current) fetchBrackets(competitionIdRef.current, true);
+    }, ORDEM_REFRESH_MS);
+    return () => clearInterval(interval);
+  }, []);
+
+  const allMatches = useMemo(() => {
+    const result = [];
+    for (const bracket of brackets) {
+      const maxRound = Math.max(...bracket.matches.map((m) => m.round_number), 0);
+      for (const match of bracket.matches) {
+        if (!match.schedule) continue;
+        if (match.result?.finalized) continue;
+        result.push({ match, bracket, maxRound });
+      }
+    }
+    return result;
+  }, [brackets]);
+
+  const days = useMemo(() => [...new Set(allMatches.map((m) => m.match.schedule.day_number))].sort(), [allMatches]);
+
+  const matchesForDay = useMemo(
+    () => allMatches.filter((m) => m.match.schedule.day_number === dayFilter),
+    [allMatches, dayFilter]
+  );
+
+  const matColumns = useMemo(() => {
+    const cols = new Map();
+    for (const item of matchesForDay) {
+      const mat = item.match.schedule.mat_number;
+      if (!cols.has(mat)) cols.set(mat, []);
+      cols.get(mat).push(item);
+    }
+    for (const [, items] of cols) {
+      items.sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
+    }
+    return [...cols.entries()].sort(([a], [b]) => a - b);
+  }, [matchesForDay]);
+
+  const competition = competitions.find((c) => String(c.id) === competitionId);
+
+  return (
+    <div className="ordem-page">
+      <div className="ordem-top">
+        <div className="ordem-comp-select">
+          <label className="field">
+            <span>Competição</span>
+            <select value={competitionId} onChange={(e) => loadBrackets(e.target.value)}>
+              <option value="">Selecione a competição</option>
+              {competitions.map((c) => <option value={String(c.id)} key={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+        </div>
+        {competition && (
+          <div className="ordem-comp-info">
+            <strong>{competition.name}</strong>
+            <span>{new Date(competition.event_date).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</span>
+          </div>
+        )}
+        {lastRefresh && (
+          <div className="ordem-refresh-badge">
+            <span>Atualizado às {lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+            <span className="ordem-refresh-hint">· próxima atualização em 2 min</span>
+          </div>
+        )}
+      </div>
+
+      {message[0] && <p className={`message ${message[1]}`}>{message[0]}</p>}
+      {loading && <p className="message">Carregando lutas...</p>}
+
+      {days.length > 1 && (
+        <div className="cat-filter-bar">
+          {days.map((d) => (
+            <button
+              key={d}
+              className={`cat-filter-btn ${dayFilter === d ? "active" : ""}`}
+              onClick={() => setDayFilter(d)}
+            >Dia {d}</button>
+          ))}
+        </div>
+      )}
+
+      {matColumns.length > 0 && (
+        <div className="ordem-mat-grid">
+          {matColumns.map(([matNumber, items]) => (
+            <div key={matNumber} className="ordem-mat-col">
+              <div className="ordem-mat-header">
+                <span className="ordem-mat-label">MAT {matNumber}</span>
+                <span className="ordem-mat-count">{items.length} luta{items.length !== 1 ? "s" : ""}</span>
+              </div>
+              <div className="ordem-mat-fights">
+                {items.map(({ match, bracket, maxRound }) => {
+                  const sched = match.schedule;
+                  const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                  const round = roundLabel(match.round_number, maxRound);
+                  const cat = bracket.category;
+                  const finished = match.result?.finalized;
+                  const athleteA = match.athlete_a;
+                  const athleteB = match.athlete_b;
+                  const winnerId = match.winner?.id;
+                  return (
+                    <div key={match.id} className={`ordem-fight ${finished ? "ordem-fight--done" : ""}`}>
+                      <div className="ordem-fight-header">
+                        <span className="ordem-fight-time">{time}</span>
+                        <span className="ordem-fight-round">{round}</span>
+                        {finished && <span className="ordem-fight-done">✓</span>}
+                      </div>
+                      <div className="ordem-fight-cat">
+                        {cat.age_group} · {beltLabels[cat.belt] || cat.belt} · {cat.weight_class}
+                      </div>
+                      <div className="ordem-fight-athletes">
+                        <OrdemAthlete athlete={athleteA} winnerId={winnerId} side="a" />
+                        <div className="ordem-fight-vs">✦ ✦ ✦</div>
+                        <OrdemAthlete athlete={athleteB} winnerId={winnerId} side="b" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && competitionId && !matColumns.length && !message[0] && (
+        <div className="empty">Nenhuma luta agendada. Gere as chaves e o cronograma primeiro.</div>
+      )}
+    </div>
+  );
+}
+
+function OrdemAthlete({ athlete, winnerId, side }) {
+  const isWinner = athlete && winnerId === athlete.id;
+  const isLoser = winnerId && athlete && winnerId !== athlete.id;
+  return (
+    <div className={`ordem-athlete ${isWinner ? "ordem-athlete--winner" : ""} ${isLoser ? "ordem-athlete--loser" : ""}`}>
+      {athlete ? (
+        <>
+          <span className="ordem-athlete-name">{athlete.name}</span>
+          <span className="ordem-athlete-team">{athlete.team?.name || "—"}</span>
+        </>
+      ) : (
+        <span className="ordem-athlete-tbd">A definir</span>
+      )}
+    </div>
   );
 }
 
