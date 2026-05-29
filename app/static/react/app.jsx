@@ -1,6 +1,7 @@
 const { useEffect, useLayoutEffect, useMemo, useRef, useState } = React;
 
 const routes = [
+  ["/categorias", "CATEGORIAS"],
   ["/cadastros", "ATHLETES"],
   ["/equipes", "ACADEMIES"],
   ["/competicoes", "CHAMPIONSHIPS"],
@@ -181,6 +182,7 @@ function App() {
 
   const title = bracketRouteId ? `CHAVE #${bracketRouteId}` : routes.find(([route]) => route === path)?.[1] || "ATHLETES";
   const isBracket = path === "/chaves" || path === "/chaves/salvas" || Boolean(bracketRouteId);
+  const isCategorias = path === "/categorias";
 
   return (
     <>
@@ -201,7 +203,8 @@ function App() {
       <section className="page-title-band">
         <h1>{title}</h1>
       </section>
-      <main className={`shell ${isBracket ? "bracket-shell" : ""}`.trim()}>
+      <main className={`shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""}`.trim()}>
+        {path === "/categorias" && <CategoriasPage />}
         {path === "/equipes" && <TeamsPage />}
         {path === "/competicoes" && <CompetitionsPage />}
         {path === "/inscricoes" && <RegistrationsPage />}
@@ -214,7 +217,7 @@ function App() {
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!bracketRouteId && !["/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
+        {!bracketRouteId && !["/categorias", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
           <AthletesPage />
         )}
       </main>
@@ -2147,6 +2150,199 @@ function CheckinGroup({ groupKey, items }) {
         </table>
       </div>
     </section>
+  );
+}
+
+const SEX_LABELS = { male: "Masculino", female: "Feminino" };
+const BELT_ORDER = ["white","gray","gray_white","gray_black","yellow","yellow_white","yellow_black","orange","orange_white","orange_black","green","green_white","green_black","blue","purple","brown","black","red_black","red_white","red"];
+const BELT_COLORS = {
+  white: "#f0f0f0", gray: "#9e9e9e", gray_white: "#bdbdbd", gray_black: "#757575",
+  yellow: "#f9c107", yellow_white: "#fdd835", yellow_black: "#f9a825",
+  orange: "#f57c00", orange_white: "#fb8c00", orange_black: "#e65100",
+  green: "#388e3c", green_white: "#66bb6a", green_black: "#1b5e20",
+  blue: "#1565c0", purple: "#6a1b9a", brown: "#4e342e",
+  black: "#212121", red_black: "#b71c1c", red_white: "#e53935", red: "#c62828",
+};
+
+function CategoriasPage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [brackets, setBrackets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(["", ""]);
+  const [sexFilter, setSexFilter] = useState("");
+  const [ageFilter, setAgeFilter] = useState("");
+  const [beltFilter, setBeltFilter] = useState("");
+
+  useEffect(() => {
+    fetchJson("/competitions")
+      .then(setCompetitions)
+      .catch((err) => setMessage([err.message, "error"]));
+  }, []);
+
+  async function loadBrackets(id) {
+    setCompetitionId(id);
+    setBrackets([]);
+    setSexFilter("");
+    setAgeFilter("");
+    setBeltFilter("");
+    setMessage(["", ""]);
+    if (!id) return;
+    setLoading(true);
+    try {
+      const data = await fetchJson(`/competitions/${id}/brackets`);
+      setBrackets(data);
+      if (!data.length) setMessage(["Nenhuma chave gerada para esta competicao.", ""]);
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const availableSexes = [...new Set(
+    brackets.flatMap((b) => b.entries.filter((e) => e.athlete).map((e) => e.athlete.sex))
+  )].sort();
+
+  const filtered = brackets.filter((b) => {
+    const athletes = b.entries.filter((e) => e.athlete);
+    if (sexFilter && !athletes.some((e) => e.athlete.sex === sexFilter)) return false;
+    if (ageFilter && b.category.age_group !== ageFilter) return false;
+    if (beltFilter && b.category.belt !== beltFilter) return false;
+    return true;
+  });
+
+  const ageGroups = [...new Set(
+    brackets
+      .filter((b) => {
+        if (!sexFilter) return true;
+        return b.entries.filter((e) => e.athlete).some((e) => e.athlete.sex === sexFilter);
+      })
+      .map((b) => b.category.age_group)
+  )].sort();
+
+  const belts = [...new Set(
+    brackets
+      .filter((b) => {
+        if (!sexFilter) return true;
+        return b.entries.filter((e) => e.athlete).some((e) => e.athlete.sex === sexFilter);
+      })
+      .filter((b) => !ageFilter || b.category.age_group === ageFilter)
+      .map((b) => b.category.belt)
+  )].sort((a, z) => BELT_ORDER.indexOf(a) - BELT_ORDER.indexOf(z));
+
+  const competition = competitions.find((c) => String(c.id) === competitionId);
+
+  return (
+    <div className="categorias-page">
+      <div className="categorias-top">
+        <div className="categorias-comp-select">
+          <label className="field">
+            <span>Competição</span>
+            <select value={competitionId} onChange={(e) => loadBrackets(e.target.value)}>
+              <option value="">Selecione a competição</option>
+              {competitions.map((c) => <option value={String(c.id)} key={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+        </div>
+        {competition && (
+          <div className="categorias-comp-info">
+            <strong>{competition.name}</strong>
+            <span>{new Date(competition.event_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</span>
+          </div>
+        )}
+      </div>
+
+      {message[0] && <p className={`message ${message[1]}`}>{message[0]}</p>}
+      {loading && <p className="message">Carregando chaves...</p>}
+
+      {!!brackets.length && (
+        <>
+          {availableSexes.length > 1 && (
+            <div className="cat-filter-bar">
+              <button
+                className={`cat-filter-btn ${!sexFilter ? "active" : ""}`}
+                onClick={() => { setSexFilter(""); setAgeFilter(""); setBeltFilter(""); }}
+              >Todos</button>
+              {availableSexes.map((s) => (
+                <button
+                  key={s}
+                  className={`cat-filter-btn ${sexFilter === s ? "active" : ""}`}
+                  onClick={() => { setSexFilter(s); setAgeFilter(""); setBeltFilter(""); }}
+                >{SEX_LABELS[s] || s}</button>
+              ))}
+            </div>
+          )}
+
+          {ageGroups.length > 1 && (
+            <div className="cat-filter-bar cat-filter-bar--secondary">
+              <button
+                className={`cat-filter-btn cat-filter-btn--sm ${!ageFilter ? "active" : ""}`}
+                onClick={() => { setAgeFilter(""); setBeltFilter(""); }}
+              >Todas as idades</button>
+              {ageGroups.map((ag) => (
+                <button
+                  key={ag}
+                  className={`cat-filter-btn cat-filter-btn--sm ${ageFilter === ag ? "active" : ""}`}
+                  onClick={() => { setAgeFilter(ag); setBeltFilter(""); }}
+                >{ag}</button>
+              ))}
+            </div>
+          )}
+
+          {belts.length > 1 && (
+            <div className="cat-filter-bar cat-filter-bar--belts">
+              <button
+                className={`cat-filter-btn cat-filter-btn--sm ${!beltFilter ? "active" : ""}`}
+                onClick={() => setBeltFilter("")}
+              >Todas as faixas</button>
+              {belts.map((belt) => (
+                <button
+                  key={belt}
+                  className={`cat-filter-btn cat-filter-btn--sm cat-filter-btn--belt ${beltFilter === belt ? "active" : ""}`}
+                  style={{ "--belt-color": BELT_COLORS[belt] || "#555" }}
+                  onClick={() => setBeltFilter(belt)}
+                >{beltLabels[belt] || belt}</button>
+              ))}
+            </div>
+          )}
+
+          <div className="categorias-summary">
+            <span>{filtered.length} categoria(s) exibida(s)</span>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="empty">Nenhuma categoria encontrada para os filtros selecionados.</div>
+          ) : (
+            <div className="cat-grid">
+              {filtered.map((b) => {
+                const athletes = b.entries.filter((e) => e.athlete);
+                const matches = b.matches.filter((m) => m.status !== "bye");
+                const done = b.matches.filter((m) => m.status === "finished").length;
+                const belt = b.category.belt;
+                return (
+                  <a key={b.id} className="cat-card" href={`/chaves/${b.id}`}>
+                    <div className="cat-card-belt" style={{ background: BELT_COLORS[belt] || "#555" }} />
+                    <div className="cat-card-body">
+                      <div className="cat-card-age">{b.category.age_group}</div>
+                      <div className="cat-card-belt-label">{beltLabels[belt] || belt}</div>
+                      <div className="cat-card-weight">{b.category.weight_class}</div>
+                      <div className="cat-card-stats">
+                        <span>{athletes.length} atleta{athletes.length !== 1 ? "s" : ""}</span>
+                        {matches.length > 0 && (
+                          <span className={done === matches.length ? "cat-stat-done" : ""}>{done}/{matches.length} luta{matches.length !== 1 ? "s" : ""}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="cat-card-arrow">›</div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 

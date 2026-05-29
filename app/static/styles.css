@@ -1573,6 +1573,208 @@ button:disabled {
   color: #fff;
 }
 
+/* ── Categorias page (BJJCOMPSYSTEM style) ─────────────────────────── */
+
+.categorias-shell {
+  padding-top: 0;
+  width: min(1280px, calc(100% - 32px));
+}
+
+.categorias-page {
+  padding: 24px 0 60px;
+  display: grid;
+  gap: 0;
+}
+
+.categorias-top {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.categorias-comp-select {
+  min-width: 280px;
+  max-width: 420px;
+}
+
+.categorias-comp-info {
+  display: grid;
+  gap: 3px;
+  padding-bottom: 4px;
+}
+
+.categorias-comp-info strong {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.categorias-comp-info span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cat-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cat-filter-bar--secondary {
+  background: #f8f8f8;
+  padding: 10px 14px;
+  margin: 0 -14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cat-filter-bar--belts {
+  padding: 10px 0;
+  border-bottom: 2px solid var(--line);
+}
+
+.cat-filter-btn {
+  min-height: 38px;
+  padding: 7px 18px;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s, color 0.1s;
+}
+
+.cat-filter-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.cat-filter-btn.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.cat-filter-btn--sm {
+  min-height: 32px;
+  padding: 5px 13px;
+  font-size: 12px;
+}
+
+.cat-filter-btn--belt {
+  border-left: 4px solid var(--belt-color, #555);
+}
+
+.cat-filter-btn--belt.active {
+  background: var(--belt-color, var(--blue));
+  border-color: var(--belt-color, var(--blue));
+  color: #fff;
+}
+
+.categorias-summary {
+  padding: 10px 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.cat-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 6px 1fr auto;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  background: #fff;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.12s, box-shadow 0.12s;
+  overflow: hidden;
+}
+
+.cat-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 2px 12px rgba(0, 77, 133, 0.13);
+}
+
+.cat-card-belt {
+  width: 6px;
+  flex: 0 0 auto;
+}
+
+.cat-card-body {
+  padding: 12px 10px 12px 14px;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cat-card-age {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.cat-card-belt-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--blue);
+  text-transform: uppercase;
+}
+
+.cat-card-weight {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.cat-card-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.cat-stat-done {
+  color: var(--ok);
+}
+
+.cat-card-arrow {
+  display: grid;
+  place-items: center;
+  padding: 0 14px;
+  font-size: 22px;
+  color: var(--line);
+  font-weight: 300;
+}
+
+.cat-card:hover .cat-card-arrow {
+  color: var(--blue);
+}
+
 @media (max-width: 900px) {
   .ibjjf-mainbar {
     align-items: stretch;
