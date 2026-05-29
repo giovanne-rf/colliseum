@@ -14,8 +14,7 @@ from app.routers import athletes, categories, competitions, health, ranking, tea
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings.app_env == "development":
-        await create_db_and_tables()
+    await create_db_and_tables()
     yield
 
 
