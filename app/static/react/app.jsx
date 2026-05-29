@@ -323,14 +323,21 @@ function AthletesPage() {
             ["male", "Masculino"],
             ["female", "Feminino"],
           ]} />
-          {!BELTS_ABOVE_BLACK.has(form.belt) && (
-            <Select label="Equipe" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required disabled={!teams.length} options={[
-              ["", teams.length ? "Selecione a equipe" : "Nenhuma equipe cadastrada"],
+          {!BELTS_ABOVE_BLACK.has(form.belt) && !teams.length ? (
+            <div className="field">
+              <span>Equipe</span>
+              <p className="no-teams-warning">
+                Nenhuma equipe cadastrada.{" "}
+                <a href="/equipes">Cadastre uma equipe</a> antes de registrar o atleta.
+              </p>
+            </div>
+          ) : !BELTS_ABOVE_BLACK.has(form.belt) ? (
+            <Select label="Equipe" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required options={[
+              ["", "Selecione a equipe"],
               ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
             ]} />
-          )}
-          {BELTS_ABOVE_BLACK.has(form.belt) && (
-            <Select label="Equipe (opcional)" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} disabled={!teams.length} options={[
+          ) : (
+            <Select label="Equipe (opcional)" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} options={[
               ["", "Sem equipe"],
               ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
             ]} />

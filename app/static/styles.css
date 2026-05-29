@@ -1620,6 +1620,21 @@ button:disabled {
   text-transform: capitalize;
 }
 
+.no-teams-warning {
+  margin: 0;
+  padding: 10px 12px;
+  background: #fff8e1;
+  border: 1px solid #f9c107;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.no-teams-warning a {
+  color: var(--blue);
+  font-weight: 800;
+}
+
 .ordem-refresh-badge {
   margin-left: auto;
   padding-bottom: 4px;
