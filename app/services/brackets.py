@@ -164,6 +164,8 @@ class RegistrationService:
             cpf=payload.cpf,
             birth_date=payload.birth_date,
         )
+        if options.athlete.team_id is None:
+            raise ValidationError("Atleta deve estar associado a uma academia antes de se inscrever na competição.")
         category = await self._ensure_category_exists(payload.category_id)
         if category.id not in {option.id for option in options.categories}:
             raise ValidationError("Selected category is not eligible for this athlete.")

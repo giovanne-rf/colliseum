@@ -34,7 +34,8 @@ class AthleteService:
             belt=payload.belt,
             reference_date=date.today(),
         )
-        await self._ensure_team_exists(payload.team_id)
+        if payload.team_id is not None:
+            await self._ensure_team_exists(payload.team_id)
         await self._ensure_no_duplicate(name=payload.name, team_id=payload.team_id)
         await self._ensure_cpf_is_available(cpf=payload.cpf)
         await self._ensure_email_is_available(email=payload.email)
@@ -62,7 +63,8 @@ class AthleteService:
                 birth_date=payload.birth_date,
                 graduation_date=payload.graduation_date,
             )
-            await self._ensure_team_exists(payload.team_id)
+            if payload.team_id is not None:
+                await self._ensure_team_exists(payload.team_id)
             await self._ensure_no_duplicate(name=payload.name, team_id=payload.team_id)
             await self._ensure_cpf_is_available(cpf=payload.cpf)
             await self._ensure_email_is_available(email=payload.email)
@@ -144,7 +146,7 @@ class AthleteService:
             graduation_date=target_graduation_date,
         )
 
-        if "team_id" in data:
+        if "team_id" in data and target_team_id is not None:
             await self._ensure_team_exists(target_team_id)
 
         if {"name", "team_id"} & data.keys():
@@ -193,14 +195,15 @@ class AthleteService:
         return stmt
 
     def _validate_bulk_payload(self, payloads: list[AthleteCreate]) -> None:
-        seen_name_team: set[tuple[str, int]] = set()
+        seen_name_team: set[tuple[str, int | None]] = set()
         seen_cpfs: set[str] = set()
         seen_emails: set[str] = set()
 
         for payload in payloads:
+            # Only check name+team uniqueness when team is set; CPF is the primary key otherwise
             name_team_key = (payload.name.lower(), payload.team_id)
             email_key = payload.email.lower()
-            if name_team_key in seen_name_team:
+            if payload.team_id is not None and name_team_key in seen_name_team:
                 raise ConflictError("Bulk payload contains duplicate athlete name/team.")
             if payload.cpf in seen_cpfs:
                 raise ConflictError("Bulk payload contains duplicate CPF.")
@@ -221,9 +224,12 @@ class AthleteService:
         self,
         *,
         name: str,
-        team_id: int,
+        team_id: int | None,
         exclude_athlete_id: int | None = None,
     ) -> None:
+        # Only enforce name+team uniqueness when team is defined
+        if team_id is None:
+            return
         stmt = select(Athlete.id).where(
             func.lower(Athlete.name) == name.lower(),
             Athlete.team_id == team_id,
