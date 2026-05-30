@@ -238,22 +238,14 @@ function AthletesPage() {
     email: "",
     phone: "",
     sex: "",
-    team_id: "",
     belt: "",
     graduation_date: "",
     birth_date: "",
   };
   const [form, setForm] = useState(emptyForm);
-  const [teams, setTeams] = useState([]);
   const [message, setMessage] = useState(["", ""]);
   const [loading, setLoading] = useState(false);
   const [cpfError, setCpfError] = useState("");
-
-  useEffect(() => {
-    fetchJson("/teams?limit=100&offset=0")
-      .then((page) => setTeams(page.items))
-      .catch((error) => setMessage([error.message, "error"]));
-  }, []);
 
   async function validateCpfOnBlur() {
     if (!form.cpf) {
@@ -284,7 +276,7 @@ function AthletesPage() {
     try {
       const athlete = await fetchJson("/athletes", {
         method: "POST",
-        body: JSON.stringify({ ...form, team_id: form.team_id ? Number(form.team_id) : null }),
+        body: JSON.stringify({ ...form, team_id: null }),
       });
       setMessage([`Atleta ${athlete.name} cadastrado com sucesso.`, "success"]);
       setForm(emptyForm);
@@ -300,7 +292,6 @@ function AthletesPage() {
       <form className="registration" onSubmit={submit}>
         <div className="section-heading">
           <h2>Cadastro de Atletas</h2>
-          <span>{teams.length ? `Equipes: ${teams.length}` : "Carregando equipes"}</span>
         </div>
         <div className="grid">
           <Field label="Nome" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
@@ -325,25 +316,6 @@ function AthletesPage() {
             ["male", "Masculino"],
             ["female", "Feminino"],
           ]} />
-          {!BELTS_ABOVE_BLACK.has(form.belt) && !teams.length ? (
-            <div className="field">
-              <span>Equipe</span>
-              <p className="no-teams-warning">
-                Nenhuma equipe cadastrada.{" "}
-                <a href="/equipes">Cadastre uma equipe</a> antes de registrar o atleta.
-              </p>
-            </div>
-          ) : !BELTS_ABOVE_BLACK.has(form.belt) ? (
-            <Select label="Equipe" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required options={[
-              ["", "Selecione a equipe"],
-              ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
-            ]} />
-          ) : (
-            <Select label="Equipe (opcional)" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} options={[
-              ["", "Sem equipe"],
-              ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((team) => [String(team.id), team.name]),
-            ]} />
-          )}
           <Select label="Faixa" value={form.belt} onChange={(belt) => setForm({ ...form, belt })} required options={[
             ["", "Selecione"],
             ...beltOptions,
@@ -352,7 +324,7 @@ function AthletesPage() {
           <Field label="Data de nascimento" type="date" value={form.birth_date} onChange={(birth_date) => setForm({ ...form, birth_date })} required />
         </div>
         <div className="actions">
-          <button className="primary" type="submit" disabled={loading || !teams.length}>Cadastrar atleta</button>
+          <button className="primary" type="submit" disabled={loading}>Cadastrar atleta</button>
         </div>
         <Message text={cpfError || message[0]} type={cpfError ? "error" : message[1]} />
       </form>
@@ -534,13 +506,15 @@ function CompetitionsPage() {
 
 function RegistrationsPage() {
   const [competitions, setCompetitions] = useState([]);
-  const [form, setForm] = useState({ competition_id: "", cpf: "", birth_date: "", category_id: "" });
+  const [teams, setTeams] = useState([]);
+  const [form, setForm] = useState({ competition_id: "", cpf: "", birth_date: "", team_id: "", category_id: "" });
   const [options, setOptions] = useState(null);
   const [status, setStatus] = useState("Informe competicao, CPF e nascimento");
   const [message, setMessage] = useState(["", ""]);
 
   useEffect(() => {
     fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+    fetchJson("/teams?limit=200&offset=0").then((page) => setTeams(page.items)).catch(() => {});
   }, []);
 
   async function verify(nextForm = form) {
@@ -555,6 +529,8 @@ function RegistrationsPage() {
       );
       setOptions(data);
       setStatus(`${data.age_group} | ${data.age} anos`);
+      // pre-fill team from athlete if already set
+      setForm((f) => ({ ...f, team_id: data.athlete.team_id ? String(data.athlete.team_id) : "" }));
       setMessage(["", ""]);
     } catch (error) {
       setStatus("Dados nao conferem");
@@ -569,6 +545,13 @@ function RegistrationsPage() {
       return;
     }
     try {
+      // update athlete's team if selected
+      if (form.team_id) {
+        await fetchJson(`/athletes/${options.athlete.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ team_id: Number(form.team_id) }),
+        });
+      }
       const registration = await fetchJson(`/competitions/${form.competition_id}/registrations`, {
         method: "POST",
         body: JSON.stringify({
@@ -578,12 +561,16 @@ function RegistrationsPage() {
         }),
       });
       setMessage([`${registration.athlete.name} inscrito em ${categoryLabel(registration.category)}.`, "success"]);
-      setForm({ competition_id: form.competition_id, cpf: "", birth_date: "", category_id: "" });
+      setForm({ competition_id: form.competition_id, cpf: "", birth_date: "", team_id: "", category_id: "" });
       setOptions(null);
     } catch (error) {
       setMessage([error.message, "error"]);
     }
   }
+
+  const athleteLabel = options
+    ? `${options.athlete.name} | ${beltLabels[options.athlete.belt] || options.athlete.belt}`
+    : "";
 
   return (
     <section className="workspace stack">
@@ -601,13 +588,17 @@ function RegistrationsPage() {
             setForm(next);
             verify(next);
           }} required />
-          <Field label="Atleta confirmado" value={options ? `${options.athlete.name} | ${options.athlete.team.name} | ${options.athlete.belt}` : ""} readOnly placeholder="Atleta confirmado apos validacao" />
+          <Field label="Atleta confirmado" value={athleteLabel} readOnly placeholder="Confirmado apos validacao" />
+          <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required disabled={!options} options={[
+            ["", options ? "Selecione a academia" : "Aguardando validacao"],
+            ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((t) => [String(t.id), t.name]),
+          ]} />
           <Select label="Categoria" value={form.category_id} onChange={(category_id) => setForm({ ...form, category_id })} required disabled={!options} options={[
-            ["", options ? "Selecione a categoria" : "Categoria calculada apos validacao"],
+            ["", options ? "Selecione a categoria" : "Aguardando validacao"],
             ...(options?.categories || []).map((category) => [String(category.id), categoryLabel(category)]),
           ]} />
           <div className="inline-submit">
-            <button className="primary" type="submit" disabled={!options}>Inscrever atleta</button>
+            <button className="primary" type="submit" disabled={!options || !form.team_id}>Inscrever atleta</button>
           </div>
         </div>
         <Message text={message[0]} type={message[1]} />

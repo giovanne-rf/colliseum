@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from app.core.dates import calculate_age
 from app.core.validators import validate_and_normalize_cpf, validate_email, validate_phone
 from app.models.common import Belt, Sex
-from app.models.athlete import BELTS_ABOVE_BLACK
 from app.schemas.team import TeamRead
 
 
@@ -19,12 +18,6 @@ class AthleteBase(BaseModel):
     sex: Sex = Field(..., examples=[Sex.female])
     team_id: int | None = Field(None, gt=0, examples=[1])
     belt: Belt = Field(..., examples=[Belt.blue])
-
-    @model_validator(mode="after")
-    def team_required_below_red(self) -> "AthleteBase":
-        if self.belt not in BELTS_ABOVE_BLACK and self.team_id is None:
-            raise ValueError("Equipe é obrigatória para faixas até preta.")
-        return self
     graduation_date: date = Field(..., examples=["2024-12-10"])
     birth_date: date = Field(..., examples=["2002-05-14"])
 

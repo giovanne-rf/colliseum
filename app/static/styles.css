@@ -323,12 +323,13 @@ h3 {
 .registration-row {
   align-items: end;
   grid-template-columns:
-    minmax(180px, 1.05fr)
-    minmax(130px, 0.8fr)
-    minmax(150px, 0.8fr)
-    minmax(230px, 1.3fr)
-    minmax(210px, 1.25fr)
-    minmax(150px, auto);
+    minmax(180px, 1fr)
+    minmax(130px, 0.75fr)
+    minmax(150px, 0.75fr)
+    minmax(200px, 1.1fr)
+    minmax(180px, 1fr)
+    minmax(200px, 1.1fr)
+    minmax(140px, auto);
 }
 
 .inline-submit {
