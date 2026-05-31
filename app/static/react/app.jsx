@@ -1499,6 +1499,7 @@ function BracketSheet({ bracket, onOpenFight, onBlockedFight, showDirectLink = f
         <div className="ibjjf-board">
           <CompactBracket bracket={bracket} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
+        <MobileBracket bracket={bracket} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
       </section>
       <div className="ibjjf-sheet-actions">
         {showDirectLink && <a className="secondary button-link" href={`/chaves/${bracket.id}`}>URL da chave</a>}
@@ -1508,6 +1509,63 @@ function BracketSheet({ bracket, onOpenFight, onBlockedFight, showDirectLink = f
         {exportError && <span className="pdf-error">{exportError}</span>}
       </div>
     </section>
+  );
+}
+
+function MobileBracket({ bracket, onOpenFight, onBlockedFight }) {
+  const groupSize = bracket.bracket_size >= 32 ? 16 : bracket.bracket_size;
+  const groupCount = Math.max(1, Math.ceil(bracket.bracket_size / groupSize));
+  const matchNumbers = new Map(
+    orderedBracketMatches(bracket.matches).map((match, index) => [match.id, index + 1])
+  );
+  const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+
+  return (
+    <div className="ibjjf-mobile-board">
+      {Array.from({ length: groupCount }, (_, index) => {
+        const start = index * groupSize + 1;
+        const end = Math.min((index + 1) * groupSize, bracket.bracket_size);
+        const matches = orderedBracketMatches(bracket.matches.filter((match) => (
+          match.round_number < bracket.rounds
+          && match.position_start >= start
+          && match.position_start <= end
+        )));
+        if (!matches.length) return null;
+        return (
+          <section className="ibjjf-mobile-bracket" key={start}>
+            <h3>Bracket {index + 1}/{groupCount}</h3>
+            <div className="ibjjf-mobile-match-list">
+              {matches.map((match) => (
+                <MatchCard
+                  match={match}
+                  allMatches={bracket.matches}
+                  direction="mobile"
+                  key={match.id}
+                  matchNumber={matchNumbers.get(match.id)}
+                  matchNumbers={matchNumbers}
+                  onOpenFight={onOpenFight}
+                  onBlockedFight={onBlockedFight}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+      {finalMatch && (
+        <section className="ibjjf-mobile-bracket final">
+          <h3>Final</h3>
+          <MatchCard
+            match={finalMatch}
+            allMatches={bracket.matches}
+            direction="mobile"
+            matchNumber={matchNumbers.get(finalMatch.id)}
+            matchNumbers={matchNumbers}
+            onOpenFight={onOpenFight}
+            onBlockedFight={onBlockedFight}
+          />
+        </section>
+      )}
+    </div>
   );
 }
 
