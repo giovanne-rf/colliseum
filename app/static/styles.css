@@ -779,10 +779,6 @@ button:disabled {
   padding-top: 22px;
 }
 
-.ibjjf-mobile-board {
-  display: none;
-}
-
 .ibjjf-board.split-brackets {
   gap: 46px;
 }
@@ -2327,106 +2323,8 @@ button:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .bracket-shell .bracket-result {
-    padding: 8px;
-  }
-
-  .landscape-scroll {
-    overflow-x: visible;
-    padding-bottom: 0;
-  }
-
-  .ibjjf-sheet {
-    padding: 10px 0 18px;
-  }
-
-  .ibjjf-sheet-header {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    align-items: center;
-    padding: 0 4px 10px;
-  }
-
   .ibjjf-sheet-header h2 {
     font-size: 20px;
-    line-height: 1.16;
-  }
-
-  .ibjjf-sheet-header span,
-  .ibjjf-kicker {
-    text-align: center;
-  }
-
-  .ibjjf-board {
-    display: none;
-  }
-
-  .ibjjf-mobile-board {
-    display: grid;
-    gap: 18px;
-    padding-top: 16px;
-  }
-
-  .ibjjf-mobile-bracket {
-    display: grid;
-    gap: 10px;
-  }
-
-  .ibjjf-mobile-bracket h3 {
-    margin: 0;
-    padding: 8px 0 4px;
-    border-bottom: 2px solid #222;
-    color: #111;
-    font-size: 18px;
-    font-weight: 500;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  .ibjjf-mobile-match-list {
-    display: grid;
-    gap: 12px;
-  }
-
-  .ibjjf-mobile-board .ibjjf-match {
-    border: 0;
-    background: transparent;
-  }
-
-  .ibjjf-mobile-board .ibjjf-match-meta {
-    min-height: 0;
-    padding: 0 2px 4px;
-    font-size: 10px;
-    line-height: 1.2;
-  }
-
-  .ibjjf-mobile-board .ibjjf-slot {
-    grid-template-columns: 36px minmax(0, 1fr);
-    min-height: 42px;
-    background: #f7f7f7;
-  }
-
-  .ibjjf-mobile-board .ibjjf-slot.winner {
-    background: #68c3f0;
-  }
-
-  .ibjjf-mobile-board .ibjjf-slot div {
-    padding: 6px 8px;
-  }
-
-  .ibjjf-mobile-board .ibjjf-slot strong {
-    font-size: 13px;
-  }
-
-  .ibjjf-mobile-board .ibjjf-slot small {
-    font-size: 11px;
-  }
-
-  .ibjjf-mobile-board .ibjjf-match-schedule {
-    padding: 5px 2px 0;
-    color: #111;
-    font-size: 10px;
-    text-transform: uppercase;
   }
 
   .fight-athlete-row {
