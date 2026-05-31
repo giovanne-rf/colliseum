@@ -138,6 +138,8 @@ async def test_reject_athletes_bulk_duplicate_cpf_without_partial_insert(client:
 async def test_frontend_is_served(client: AsyncClient):
     root_response = await client.get("/")
     response = await client.get("/cadastros")
+    academies_response = await client.get("/academias")
+    academy_edit_response = await client.get("/academias/123")
     teams_response = await client.get("/equipes")
     competitions_response = await client.get("/competicoes")
     registrations_response = await client.get("/inscricoes")
@@ -156,12 +158,17 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.js" in response.text
-    assert "athlete-edit-limit-20260531" in response.text
+    assert "academies-menu-20260531" in response.text
+    assert "/academias" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
     assert "/inscricoes" in response.text
     assert "/chaves" in response.text
     assert "/checagem" in response.text
+    assert academies_response.status_code == 200
+    assert "/static/react/app.js" in academies_response.text
+    assert academy_edit_response.status_code == 200
+    assert "/static/react/app.js" in academy_edit_response.text
     assert teams_response.status_code == 200
     assert "/static/react/app.js" in teams_response.text
     assert "/cadastros" in teams_response.text
@@ -205,7 +212,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.js?v=athlete-edit-limit-20260531" in react_shell_response.text
+    assert "/static/react/app.js?v=academies-menu-20260531" in react_shell_response.text
     assert "@babel/standalone" not in react_shell_response.text
     assert 'type="text/babel"' not in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
@@ -220,6 +227,14 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "function AtletaEditPage" in react_app_response.text
     assert "Alterar Cadastro de Atleta" in react_app_response.text
     assert "Atualizar" in react_app_response.text
+    assert 'label: "ACADEMIAS"' in react_app_response.text
+    assert '["/academias", "Listagem"]' in react_app_response.text
+    assert '["/equipes", "Cadastro"]' in react_app_response.text
+    assert "function AcademiesListPage" in react_app_response.text
+    assert "function AcademyEditPage" in react_app_response.text
+    assert "Academias Cadastradas" in react_app_response.text
+    assert "Alterar Cadastro de Academia" in react_app_response.text
+    assert "/teams/${teamId}" in react_app_response.text
     assert "function TeamsPage" in react_app_response.text
     assert "function CompetitionsPage" in react_app_response.text
     assert "function RegistrationsPage" in react_app_response.text

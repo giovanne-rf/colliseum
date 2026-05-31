@@ -6,10 +6,13 @@ const routes = [
     ["/atletas", "Listagem"],
     ["/cadastros", "Cadastro"],
   ]},
+  { label: "ACADEMIAS", items: [
+    ["/academias", "Listagem"],
+    ["/equipes", "Cadastro"],
+  ]},
   ["/categorias", "CATEGORIAS"],
   ["/config-categorias", "CONFIG. CATEGORIAS"],
   ["/ordem", "ORDEM DE LUTAS"],
-  ["/equipes", "ACADEMIES"],
   ["/competicoes", "CHAMPIONSHIPS"],
   ["/inscricoes", "REGISTRATION"],
   ["/chaves", "GERAR CHAVES"],
@@ -190,6 +193,8 @@ function App() {
 
   const athleteEditMatch = path.match(/^\/atletas\/(\d+)$/);
   const athleteEditId = athleteEditMatch ? Number(athleteEditMatch[1]) : null;
+  const academyEditMatch = path.match(/^\/academias\/(\d+)$/);
+  const academyEditId = academyEditMatch ? Number(academyEditMatch[1]) : null;
 
   function findRouteLabel(p) {
     for (const r of routes) {
@@ -203,7 +208,9 @@ function App() {
     ? `CHAVE #${bracketRouteId}`
     : athleteEditId
       ? `EDITAR ATLETA #${athleteEditId}`
-      : (findRouteLabel(path) || "ATHLETES");
+      : academyEditId
+        ? `EDITAR ACADEMIA #${academyEditId}`
+        : (findRouteLabel(path) || "ATHLETES");
 
   const isBracket = path === "/chaves" || path === "/chaves/salvas" || Boolean(bracketRouteId);
   const isCategorias = path === "/categorias";
@@ -211,7 +218,7 @@ function App() {
 
   const knownPaths = [
     "/atletas", "/cadastros", "/categorias", "/config-categorias", "/ordem",
-    "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas",
+    "/academias", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas",
     "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking",
   ];
 
@@ -230,7 +237,11 @@ function App() {
               );
             }
             // dropdown
-            const isActive = r.items.some(([rp]) => rp === path || (rp === "/atletas" && Boolean(athleteEditId)));
+            const isActive = r.items.some(([rp]) =>
+              rp === path ||
+              (rp === "/atletas" && Boolean(athleteEditId)) ||
+              (rp === "/academias" && Boolean(academyEditId))
+            );
             const isOpen = openNavDropdown === r.label;
             return (
               <div className={`nav-dropdown ${isActive ? "active" : ""} ${isOpen ? "open" : ""}`.trim()} key={r.label}>
@@ -260,6 +271,8 @@ function App() {
         {path === "/atletas" && <AtletasListPage />}
         {path === "/cadastros" && <AthletesPage />}
         {athleteEditId && <AtletaEditPage athleteId={athleteEditId} />}
+        {path === "/academias" && <AcademiesListPage />}
+        {academyEditId && <AcademyEditPage teamId={academyEditId} />}
         {path === "/categorias" && <CategoriasPage />}
         {path === "/config-categorias" && <ConfigCategoriasPage />}
         {path === "/ordem" && <OrdemPage />}
@@ -275,7 +288,7 @@ function App() {
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!bracketRouteId && !athleteEditId && ![...knownPaths].includes(path) && <AthletesPage />}
+        {!bracketRouteId && !athleteEditId && !academyEditId && ![...knownPaths].includes(path) && <AthletesPage />}
       </main>
     </>
   );
@@ -580,6 +593,182 @@ function AthletesPage() {
           <button className="primary" type="submit" disabled={loading}>Cadastrar atleta</button>
         </div>
         <Message text={cpfError || message[0]} type={cpfError ? "error" : message[1]} />
+      </form>
+    </section>
+  );
+}
+
+function AcademiesListPage() {
+  const [teams, setTeams] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(["", ""]);
+  const PAGE_SIZE = 50;
+  const [offset, setOffset] = useState(0);
+
+  async function load(off = 0) {
+    setLoading(true);
+    try {
+      const data = await fetchJson(`/teams?limit=${PAGE_SIZE}&offset=${off}`);
+      setTeams(data.items);
+      setTotal(data.total);
+      setOffset(off);
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(0); }, []);
+
+  const filtered = teams.filter((team) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      team.name.toLowerCase().includes(q) ||
+      (team.responsible || "").toLowerCase().includes(q) ||
+      team.phone.includes(q)
+    );
+  });
+
+  function formatDate(value) {
+    if (!value) return "-";
+    const [year, month, day] = value.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  return (
+    <section className="workspace stack">
+      <section className="panel atletas-list-panel">
+        <div className="section-heading">
+          <h2>Academias Cadastradas</h2>
+          <span>{total} academia(s) no total</span>
+        </div>
+        <div className="filters single" style={{marginBottom: "14px"}}>
+          <input
+            type="search"
+            placeholder="Buscar por nome, responsavel ou telefone..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            style={{width:"100%"}}
+          />
+        </div>
+        {loading && <p className="message">Carregando...</p>}
+        <Message text={message[0]} type={message[1]} />
+        {!loading && (
+          <div className="checkin-table-wrap">
+            <table className="checkin-table atletas-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Data de criacao</th>
+                  <th>Responsavel</th>
+                  <th>Telefone</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr><td colSpan="5" style={{textAlign:"center",color:"var(--muted)"}}>Nenhuma academia encontrada.</td></tr>
+                )}
+                {filtered.map((team) => (
+                  <tr key={team.id}>
+                    <td data-label="Nome">{team.name}</td>
+                    <td data-label="Data de criacao">{formatDate(team.created_date)}</td>
+                    <td data-label="Responsavel">{team.responsible || <span style={{color:"var(--muted)"}}>Sem responsavel</span>}</td>
+                    <td data-label="Telefone">{team.phone}</td>
+                    <td data-label="Editar">
+                      <a className="atleta-edit-btn" href={`/academias/${team.id}`} title="Editar">&#9998;</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {total > PAGE_SIZE && (
+          <div className="atletas-pagination">
+            <button className="secondary compact-button" disabled={offset === 0} onClick={() => load(offset - PAGE_SIZE)}>&#171; Anterior</button>
+            <span>{Math.floor(offset / PAGE_SIZE) + 1} / {Math.ceil(total / PAGE_SIZE)}</span>
+            <button className="secondary compact-button" disabled={offset + PAGE_SIZE >= total} onClick={() => load(offset + PAGE_SIZE)}>Proxima &#187;</button>
+          </div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function AcademyEditPage({ teamId }) {
+  const [form, setForm] = useState(null);
+  const [blackBelts, setBlackBelts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    Promise.all([
+      fetchJson(`/teams/${teamId}`),
+      fetchJson("/athletes?belt=black&limit=100&offset=0"),
+    ]).then(([team, blackBeltsPage]) => {
+      setForm({
+        name: team.name,
+        created_date: team.created_date,
+        responsible: team.responsible || "",
+        phone: team.phone,
+      });
+      setBlackBelts(blackBeltsPage.items);
+      setLoading(false);
+    }).catch((err) => {
+      setMessage([err.message, "error"]);
+      setLoading(false);
+    });
+  }, [teamId]);
+
+  async function submit(event) {
+    event.preventDefault();
+    setSaving(true);
+    setMessage(["", ""]);
+    try {
+      const team = await fetchJson(`/teams/${teamId}`, {
+        method: "PUT",
+        body: JSON.stringify({ ...form, responsible: form.responsible || null }),
+      });
+      setMessage([`Academia ${team.name} atualizada com sucesso.`, "success"]);
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <p className="message" style={{padding:"24px"}}>Carregando academia...</p>;
+  if (!form) return <Message text={message[0]} type={message[1]} />;
+
+  return (
+    <section className="workspace stack">
+      <form className="registration" onSubmit={submit}>
+        <div className="section-heading">
+          <h2>Alterar Cadastro de Academia</h2>
+          <a href="/academias" className="button-link secondary" style={{fontSize:"13px"}}>&#171; Voltar</a>
+        </div>
+        <div className="grid">
+          <Field label="Nome" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
+          <Field label="Data de criacao" type="date" value={form.created_date} onChange={(created_date) => setForm({ ...form, created_date })} required />
+          <Select label="Responsavel" value={form.responsible} onChange={(responsible) => setForm({ ...form, responsible })} required disabled={!blackBelts.length} options={[
+            ["", blackBelts.length ? "Selecione o responsavel" : "Nenhum faixa preta cadastrado"],
+            ...blackBelts.map((athlete) => [athlete.name, athlete.name]),
+          ]} />
+          <Field label="Telefone" value={form.phone} onChange={(phone) => setForm({ ...form, phone: maskTeamPhone(phone) })} required />
+        </div>
+        <div className="actions">
+          <a href="/academias" className="button-link secondary">Cancelar</a>
+          <button className="primary" type="submit" disabled={saving || !blackBelts.length}>
+            {saving ? "Atualizando..." : "Atualizar"}
+          </button>
+        </div>
+        <Message text={message[0]} type={message[1]} />
       </form>
     </section>
   );

@@ -76,6 +76,16 @@ async def team_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/academias", include_in_schema=False)
+async def academies_list_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
+@app.get("/academias/{team_id}", include_in_schema=False)
+async def academy_edit_frontend(team_id: int) -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/competicoes", include_in_schema=False)
 async def competition_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
