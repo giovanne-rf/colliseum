@@ -2551,6 +2551,8 @@ function FinalCheckPage() {
   const [competitions, setCompetitions] = useState([]);
   const [competitionId, setCompetitionId] = useState("");
   const [rows, setRows] = useState([]);
+  const [filters, setFilters] = useState({ sex: "", belt: "", age_group: "", weight_class: "" });
+  const [closeTarget, setCloseTarget] = useState(null);
   const [message, setMessage] = useState(["", ""]);
 
   useEffect(() => {
@@ -2560,6 +2562,7 @@ function FinalCheckPage() {
   async function load(id) {
     setCompetitionId(id);
     setRows([]);
+    setFilters({ sex: "", belt: "", age_group: "", weight_class: "" });
     if (!id) return;
     try {
       setRows(await fetchJson(`/competitions/${id}/final-checks`));
@@ -2569,23 +2572,29 @@ function FinalCheckPage() {
     }
   }
 
-  async function closeCategory(categoryId) {
-    if (!competitionId) return;
-    const ok = window.confirm("Confirma o encerramento do checkin desta categoria?");
-    if (!ok) return;
+  async function closeCategory() {
+    if (!competitionId || !closeTarget?.categoryId) return;
     try {
-      await fetchJson(`/competitions/${competitionId}/categories/${categoryId}/checkin/close`, {
+      await fetchJson(`/competitions/${competitionId}/categories/${closeTarget.categoryId}/checkin/close`, {
         method: "POST",
       });
       setMessage(["Checkin encerrado para a categoria.", "success"]);
+      setCloseTarget(null);
       setRows(await fetchJson(`/competitions/${competitionId}/final-checks`));
     } catch (error) {
       setMessage([error.message, "error"]);
     }
   }
 
+  const values = (selector) => [...new Set(rows.map(selector).filter(Boolean))].sort();
+  const filtered = rows.filter((item) => (
+    (!filters.sex || item.athlete.sex === filters.sex) &&
+    (!filters.belt || item.category.belt === filters.belt) &&
+    (!filters.age_group || item.category.age_group === filters.age_group) &&
+    (!filters.weight_class || item.category.weight_class === filters.weight_class)
+  ));
   const groups = new Map();
-  rows.forEach((item) => {
+  filtered.forEach((item) => {
     const key = [item.category.belt, item.category.age_group, item.category.weight_class].join("|");
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(item);
@@ -2596,10 +2605,14 @@ function FinalCheckPage() {
       <section className="registration checkin-toolbar">
         <div className="section-heading">
           <h2>Checagem Final</h2>
-          <span>{rows.length} atleta(s) na checagem final</span>
+          <span>{filtered.length} atleta(s) exibido(s) de {rows.length} na checagem final</span>
         </div>
-        <div className="grid final-check-row">
+        <div className="grid checkin-filters">
           <Select label="Competicao" className="wide" value={competitionId} onChange={load} options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
+          <Select label="Sexo" value={filters.sex} onChange={(sex) => setFilters({ ...filters, sex })} options={[["", "Todos"], ...values((item) => item.athlete.sex).map((value) => [value, sexLabels[value] || value])]} />
+          <Select label="Faixa" value={filters.belt} onChange={(belt) => setFilters({ ...filters, belt })} options={[["", "Todas"], ...values((item) => item.category.belt).map((value) => [value, beltLabels[value] || value])]} />
+          <Select label="Categoria" value={filters.age_group} onChange={(age_group) => setFilters({ ...filters, age_group })} options={[["", "Todas"], ...values((item) => item.category.age_group).map((value) => [value, value])]} />
+          <Select label="Peso" value={filters.weight_class} onChange={(weight_class) => setFilters({ ...filters, weight_class })} options={[["", "Todos"], ...values((item) => item.category.weight_class).map((value) => [value, value])]} />
         </div>
         <Message text={message[0]} type={message[1]} />
       </section>
@@ -2607,11 +2620,24 @@ function FinalCheckPage() {
         <div className="checkin-groups">
           {!competitionId && <div className="empty">Selecione uma competicao para consultar a checagem final.</div>}
           {competitionId && !rows.length && <div className="empty">Nenhum atleta inscrito nesta competicao.</div>}
+          {competitionId && rows.length > 0 && filtered.length === 0 && <div className="empty">Nenhum atleta encontrado para os filtros selecionados.</div>}
           {[...groups.entries()].map(([key, items]) => (
-            <FinalCheckGroup groupKey={key} items={items} key={key} onCloseCategory={closeCategory} />
+            <FinalCheckGroup groupKey={key} items={items} key={key} onCloseCategory={setCloseTarget} />
           ))}
         </div>
       </section>
+      {closeTarget && (
+        <div className="modal-backdrop fight-modal-backdrop" role="alertdialog" aria-modal="true">
+          <section className="fight-confirm">
+            <h2>Encerrar checkin?</h2>
+            <p>Confirma o encerramento do checkin da categoria {closeTarget.label}? Depois disso, novos checkins dessa categoria ficarao bloqueados.</p>
+            <div className="actions">
+              <button className="secondary" type="button" onClick={() => setCloseTarget(null)}>Cancelar</button>
+              <button className="danger-button" type="button" onClick={closeCategory}>Encerrar Checkin</button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
@@ -2620,13 +2646,14 @@ function FinalCheckGroup({ groupKey, items, onCloseCategory }) {
   const [belt, ageGroup, weight] = groupKey.split("|");
   const closed = items.some((item) => item.checkin_closed);
   const categoryId = items[0]?.category.id;
+  const label = [beltLabels[belt] || belt, ageGroup, weight].join(" | ");
   return (
     <section className="checkin-group">
       <div className="checkin-group-heading">
-        <h2>{[beltLabels[belt] || belt, ageGroup, weight].join(" | ")}</h2>
+        <h2>{label}</h2>
         <div className="checkin-group-actions">
           <span>{closed ? "Checkin encerrado" : `${items.length} atleta(s)`}</span>
-          <button className="secondary compact-button" type="button" disabled={closed} onClick={() => onCloseCategory?.(categoryId)}>
+          <button className="secondary compact-button" type="button" disabled={closed} onClick={() => onCloseCategory?.({ categoryId, label })}>
             Encerrar Checkin
           </button>
         </div>

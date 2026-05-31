@@ -1526,6 +1526,8 @@
     const [competitions, setCompetitions] = useState([]);
     const [competitionId, setCompetitionId] = useState("");
     const [rows, setRows] = useState([]);
+    const [filters, setFilters] = useState({ sex: "", belt: "", age_group: "", weight_class: "" });
+    const [closeTarget, setCloseTarget] = useState(null);
     const [message, setMessage] = useState(["", ""]);
     useEffect(() => {
       fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
@@ -1533,6 +1535,7 @@
     async function load(id) {
       setCompetitionId(id);
       setRows([]);
+      setFilters({ sex: "", belt: "", age_group: "", weight_class: "" });
       if (!id) return;
       try {
         setRows(await fetchJson(`/competitions/${id}/final-checks`));
@@ -1541,33 +1544,35 @@
         setMessage([error.message, "error"]);
       }
     }
-    async function closeCategory(categoryId) {
-      if (!competitionId) return;
-      const ok = window.confirm("Confirma o encerramento do checkin desta categoria?");
-      if (!ok) return;
+    async function closeCategory() {
+      if (!competitionId || !closeTarget?.categoryId) return;
       try {
-        await fetchJson(`/competitions/${competitionId}/categories/${categoryId}/checkin/close`, {
+        await fetchJson(`/competitions/${competitionId}/categories/${closeTarget.categoryId}/checkin/close`, {
           method: "POST"
         });
         setMessage(["Checkin encerrado para a categoria.", "success"]);
+        setCloseTarget(null);
         setRows(await fetchJson(`/competitions/${competitionId}/final-checks`));
       } catch (error) {
         setMessage([error.message, "error"]);
       }
     }
+    const values = (selector) => [...new Set(rows.map(selector).filter(Boolean))].sort();
+    const filtered = rows.filter((item) => (!filters.sex || item.athlete.sex === filters.sex) && (!filters.belt || item.category.belt === filters.belt) && (!filters.age_group || item.category.age_group === filters.age_group) && (!filters.weight_class || item.category.weight_class === filters.weight_class));
     const groups = /* @__PURE__ */ new Map();
-    rows.forEach((item) => {
+    filtered.forEach((item) => {
       const key = [item.category.belt, item.category.age_group, item.category.weight_class].join("|");
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(item);
     });
-    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("section", { className: "registration checkin-toolbar" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Checagem Final"), /* @__PURE__ */ React.createElement("span", null, rows.length, " atleta(s) na checagem final")), /* @__PURE__ */ React.createElement("div", { className: "grid final-check-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", className: "wide", value: competitionId, onChange: load, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), /* @__PURE__ */ React.createElement("section", { className: "panel checkin-panel" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-groups" }, !competitionId && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Selecione uma competicao para consultar a checagem final."), competitionId && !rows.length && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum atleta inscrito nesta competicao."), [...groups.entries()].map(([key, items]) => /* @__PURE__ */ React.createElement(FinalCheckGroup, { groupKey: key, items, key, onCloseCategory: closeCategory })))));
+    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("section", { className: "registration checkin-toolbar" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Checagem Final"), /* @__PURE__ */ React.createElement("span", null, filtered.length, " atleta(s) exibido(s) de ", rows.length, " na checagem final")), /* @__PURE__ */ React.createElement("div", { className: "grid checkin-filters" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", className: "wide", value: competitionId, onChange: load, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] }), /* @__PURE__ */ React.createElement(Select, { label: "Sexo", value: filters.sex, onChange: (sex) => setFilters({ ...filters, sex }), options: [["", "Todos"], ...values((item) => item.athlete.sex).map((value) => [value, sexLabels[value] || value])] }), /* @__PURE__ */ React.createElement(Select, { label: "Faixa", value: filters.belt, onChange: (belt) => setFilters({ ...filters, belt }), options: [["", "Todas"], ...values((item) => item.category.belt).map((value) => [value, beltLabels[value] || value])] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria", value: filters.age_group, onChange: (age_group) => setFilters({ ...filters, age_group }), options: [["", "Todas"], ...values((item) => item.category.age_group).map((value) => [value, value])] }), /* @__PURE__ */ React.createElement(Select, { label: "Peso", value: filters.weight_class, onChange: (weight_class) => setFilters({ ...filters, weight_class }), options: [["", "Todos"], ...values((item) => item.category.weight_class).map((value) => [value, value])] })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), /* @__PURE__ */ React.createElement("section", { className: "panel checkin-panel" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-groups" }, !competitionId && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Selecione uma competicao para consultar a checagem final."), competitionId && !rows.length && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum atleta inscrito nesta competicao."), competitionId && rows.length > 0 && filtered.length === 0 && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum atleta encontrado para os filtros selecionados."), [...groups.entries()].map(([key, items]) => /* @__PURE__ */ React.createElement(FinalCheckGroup, { groupKey: key, items, key, onCloseCategory: setCloseTarget })))), closeTarget && /* @__PURE__ */ React.createElement("div", { className: "modal-backdrop fight-modal-backdrop", role: "alertdialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-confirm" }, /* @__PURE__ */ React.createElement("h2", null, "Encerrar checkin?"), /* @__PURE__ */ React.createElement("p", null, "Confirma o encerramento do checkin da categoria ", closeTarget.label, "? Depois disso, novos checkins dessa categoria ficarao bloqueados."), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => setCloseTarget(null) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "danger-button", type: "button", onClick: closeCategory }, "Encerrar Checkin")))));
   }
   function FinalCheckGroup({ groupKey, items, onCloseCategory }) {
     const [belt, ageGroup, weight] = groupKey.split("|");
     const closed = items.some((item) => item.checkin_closed);
     const categoryId = items[0]?.category.id;
-    return /* @__PURE__ */ React.createElement("section", { className: "checkin-group" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [beltLabels[belt] || belt, ageGroup, weight].join(" | ")), /* @__PURE__ */ React.createElement("div", { className: "checkin-group-actions" }, /* @__PURE__ */ React.createElement("span", null, closed ? "Checkin encerrado" : `${items.length} atleta(s)`), /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", type: "button", disabled: closed, onClick: () => onCloseCategory?.(categoryId) }, "Encerrar Checkin"))), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table final-check-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Peso checado"), /* @__PURE__ */ React.createElement("th", null, "Status da checagem"))), /* @__PURE__ */ React.createElement("tbody", null, items.map((item) => /* @__PURE__ */ React.createElement("tr", { key: item.registration_id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Peso checado" }, item.weight_display || (item.checked_weight ? `${Number(item.checked_weight).toFixed(2)} kg` : "-")), /* @__PURE__ */ React.createElement("td", { "data-label": "Status da checagem" }, /* @__PURE__ */ React.createElement("span", { className: `check-status ${item.status.toLowerCase().replace(/\s+/g, "-")}` }, item.status))))))));
+    const label = [beltLabels[belt] || belt, ageGroup, weight].join(" | ");
+    return /* @__PURE__ */ React.createElement("section", { className: "checkin-group" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, label), /* @__PURE__ */ React.createElement("div", { className: "checkin-group-actions" }, /* @__PURE__ */ React.createElement("span", null, closed ? "Checkin encerrado" : `${items.length} atleta(s)`), /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", type: "button", disabled: closed, onClick: () => onCloseCategory?.({ categoryId, label }) }, "Encerrar Checkin"))), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table final-check-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Peso checado"), /* @__PURE__ */ React.createElement("th", null, "Status da checagem"))), /* @__PURE__ */ React.createElement("tbody", null, items.map((item) => /* @__PURE__ */ React.createElement("tr", { key: item.registration_id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Peso checado" }, item.weight_display || (item.checked_weight ? `${Number(item.checked_weight).toFixed(2)} kg` : "-")), /* @__PURE__ */ React.createElement("td", { "data-label": "Status da checagem" }, /* @__PURE__ */ React.createElement("span", { className: `check-status ${item.status.toLowerCase().replace(/\s+/g, "-")}` }, item.status))))))));
   }
   function AthleteListPage() {
     const [competitions, setCompetitions] = useState([]);
