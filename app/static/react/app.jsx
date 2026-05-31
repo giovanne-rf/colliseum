@@ -445,7 +445,7 @@ function AtletaEditPage({ athleteId }) {
     <section className="workspace stack">
       <form className="registration" onSubmit={submit}>
         <div className="section-heading">
-          <h2>Editar Atleta</h2>
+          <h2>Alterar Cadastro de Atleta</h2>
           <a href="/atletas" className="button-link secondary" style={{fontSize:"13px"}}>&#171; Voltar</a>
         </div>
         <div className="grid">
@@ -475,7 +475,7 @@ function AtletaEditPage({ athleteId }) {
         <div className="actions">
           <a href="/atletas" className="button-link secondary">Cancelar</a>
           <button className="primary" type="submit" disabled={saving}>
-            {saving ? "Salvando..." : "Salvar alteracoes"}
+            {saving ? "Atualizando..." : "Atualizar"}
           </button>
         </div>
         <Message text={message[0]} type={message[1]} />
