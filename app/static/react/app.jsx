@@ -232,7 +232,7 @@ function App() {
             const isActive = r.items.some(([rp]) => rp === path || (rp === "/atletas" && Boolean(athleteEditId)));
             return (
               <div className={`nav-dropdown ${isActive ? "active" : ""}`} key={r.label}>
-                <span className="nav-dropdown-trigger">{r.label} ▾</span>
+                <span className="nav-dropdown-trigger">{r.label} &#9660;</span>
                 <div className="nav-dropdown-menu">
                   {r.items.map(([rp, rl]) => (
                     <a key={rp} href={rp} className={rp === path ? "active" : ""}>{rl}</a>
@@ -308,7 +308,7 @@ function AtletasListPage() {
   });
 
   function formatDate(d) {
-    if (!d) return "—";
+    if (!d) return "-";
     const [y, m, day] = d.split("-");
     return `${day}/${m}/${y}`;
   }
@@ -356,7 +356,7 @@ function AtletasListPage() {
                     <td data-label="Faixa">{beltLabels[a.belt] || a.belt}</td>
                     <td data-label="Academia">{a.team?.name || <span style={{color:"var(--muted)"}}>Sem academia</span>}</td>
                     <td data-label="Editar">
-                      <a className="atleta-edit-btn" href={`/atletas/${a.id}`} title="Editar">✏</a>
+                      <a className="atleta-edit-btn" href={`/atletas/${a.id}`} title="Editar">&#9998;</a>
                     </td>
                   </tr>
                 ))}
@@ -366,9 +366,9 @@ function AtletasListPage() {
         )}
         {total > PAGE_SIZE && (
           <div className="atletas-pagination">
-            <button className="secondary compact-button" disabled={offset === 0} onClick={() => load(offset - PAGE_SIZE)}>← Anterior</button>
+            <button className="secondary compact-button" disabled={offset === 0} onClick={() => load(offset - PAGE_SIZE)}>&#171; Anterior</button>
             <span>{Math.floor(offset / PAGE_SIZE) + 1} / {Math.ceil(total / PAGE_SIZE)}</span>
-            <button className="secondary compact-button" disabled={offset + PAGE_SIZE >= total} onClick={() => load(offset + PAGE_SIZE)}>Próxima →</button>
+            <button className="secondary compact-button" disabled={offset + PAGE_SIZE >= total} onClick={() => load(offset + PAGE_SIZE)}>Proxima &#187;</button>
           </div>
         )}
       </section>
@@ -436,7 +436,7 @@ function AtletaEditPage({ athleteId }) {
       <form className="registration" onSubmit={submit}>
         <div className="section-heading">
           <h2>Editar Atleta</h2>
-          <a href="/atletas" className="button-link secondary" style={{fontSize:"13px"}}>← Voltar à listagem</a>
+          <a href="/atletas" className="button-link secondary" style={{fontSize:"13px"}}>&#171; Voltar</a>
         </div>
         <div className="grid">
           <Field label="Nome" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
@@ -459,13 +459,13 @@ function AtletaEditPage({ athleteId }) {
             ["", "Selecione"],
             ...beltOptions,
           ]} />
-          <Field label="Data da graduação" type="date" value={form.graduation_date} onChange={(graduation_date) => setForm({ ...form, graduation_date })} required />
+          <Field label="Data da graduacao" type="date" value={form.graduation_date} onChange={(graduation_date) => setForm({ ...form, graduation_date })} required />
           <Field label="Data de nascimento" type="date" value={form.birth_date} onChange={(birth_date) => setForm({ ...form, birth_date })} required />
         </div>
         <div className="actions">
           <a href="/atletas" className="button-link secondary">Cancelar</a>
           <button className="primary" type="submit" disabled={saving}>
-            {saving ? "Salvando..." : "Salvar alterações"}
+            {saving ? "Salvando..." : "Salvar alteracoes"}
           </button>
         </div>
         <Message text={message[0]} type={message[1]} />
