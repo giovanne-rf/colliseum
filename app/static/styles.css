@@ -69,6 +69,8 @@ select {
 }
 
 .ibjjf-mainbar {
+  position: relative;
+  z-index: 50;
   display: flex;
   align-items: center;
   gap: 22px;
@@ -109,7 +111,7 @@ select {
   gap: 0;
   min-width: 0;
   flex: 1;
-  overflow-x: auto;
+  overflow: visible;
   scrollbar-width: none;
 }
 
@@ -143,6 +145,8 @@ select {
 }
 
 .nav-dropdown-trigger {
+  border: 0;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   min-height: 62px;
@@ -157,6 +161,7 @@ select {
 }
 
 .nav-dropdown.active .nav-dropdown-trigger,
+.nav-dropdown.open .nav-dropdown-trigger,
 .nav-dropdown:hover .nav-dropdown-trigger {
   background: var(--blue-dark);
 }
@@ -173,6 +178,8 @@ select {
   flex-direction: column;
 }
 
+.nav-dropdown.open .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu,
 .nav-dropdown:hover .nav-dropdown-menu {
   display: flex;
 }

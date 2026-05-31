@@ -182,6 +182,7 @@ function App() {
   const bracketRouteMatch = path.match(/^\/chaves\/(\d+)$/);
   const bracketRouteId = bracketRouteMatch ? Number(bracketRouteMatch[1]) : null;
   const [apiOk, setApiOk] = useState(false);
+  const [openNavDropdown, setOpenNavDropdown] = useState("");
 
   useEffect(() => {
     fetchJson("/health").then(() => setApiOk(true)).catch(() => setApiOk(false));
@@ -230,9 +231,17 @@ function App() {
             }
             // dropdown
             const isActive = r.items.some(([rp]) => rp === path || (rp === "/atletas" && Boolean(athleteEditId)));
+            const isOpen = openNavDropdown === r.label;
             return (
-              <div className={`nav-dropdown ${isActive ? "active" : ""}`} key={r.label}>
-                <span className="nav-dropdown-trigger">{r.label} &#9660;</span>
+              <div className={`nav-dropdown ${isActive ? "active" : ""} ${isOpen ? "open" : ""}`.trim()} key={r.label}>
+                <button
+                  className="nav-dropdown-trigger"
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenNavDropdown(isOpen ? "" : r.label)}
+                >
+                  {r.label} &#9660;
+                </button>
                 <div className="nav-dropdown-menu">
                   {r.items.map(([rp, rl]) => (
                     <a key={rp} href={rp} className={rp === path ? "active" : ""}>{rl}</a>

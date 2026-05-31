@@ -156,7 +156,7 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.jsx" in response.text
-    assert "ascii-clean-20260530" in response.text
+    assert "nav-dropdown-fix-20260531" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
     assert "/inscricoes" in response.text
@@ -204,7 +204,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.jsx?v=ascii-clean-20260530" in react_shell_response.text
+    assert "/static/react/app.jsx?v=nav-dropdown-fix-20260531" in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
     assert react_app_response.status_code == 200
     assert "FJJPE" in react_app_response.text
