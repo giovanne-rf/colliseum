@@ -1760,7 +1760,7 @@ function FightPanel({ data, onClose, onResultSaved, onBracketUpdated }) {
       title: "Encerrar por finalizacao?",
       body: `Deseja encerrar a luta por finalizacao de ${winner.name}?`,
       winnerName: winner.name,
-      finish: { finalized: true, finish_method: "Finalização", winner_id: winner.id },
+      finish: { finalized: true, finish_method: "Finalizacao", winner_id: winner.id },
     });
   }
 
@@ -1771,7 +1771,7 @@ function FightPanel({ data, onClose, onResultSaved, onBracketUpdated }) {
       title: "Encerrar por desclassificacao?",
       body: `Deseja encerrar a luta por desclassificacao de ${disqualified.name}? Vencedor: ${winner.name}.`,
       winnerName: winner.name,
-      finish: { finalized: true, finish_method: "Desclassificação do oponente", winner_id: winner.id },
+      finish: { finalized: true, finish_method: "Desclassificacao do oponente", winner_id: winner.id },
     });
   }
 
@@ -2444,7 +2444,7 @@ const IBJJF_WEIGHTS_KIDS = {
 };
 
 const IBJJF_WEIGHTS_STANDARD = [
-  "Galo", "Pluma", "Pena", "Leve", "Médio", "Meio-Pesado", "Pesado", "Super-Pesado", "Pesadíssimo",
+  "Galo", "Pluma", "Pena", "Leve", "Medio", "Meio-Pesado", "Pesado", "Super-Pesado", "Pesadissimo",
 ];
 
 function ibjjfWeights(ageGroup) {
@@ -2509,7 +2509,7 @@ function ConfigCategoriasPage() {
       const existing = new Set(categories.map((c) => `${c.age_group}|${c.belt}|${c.weight_class}`));
       const toCreate = all.filter((c) => !existing.has(`${c.age_group}|${c.belt}|${c.weight_class}`));
       if (!toCreate.length) {
-        setMessage(["Todas as categorias IBJJF já estão cadastradas.", "success"]);
+        setMessage(["Todas as categorias IBJJF ja estao cadastradas.", "success"]);
         return;
       }
       const created = await fetchJson("/categories/bulk", { method: "POST", body: JSON.stringify(toCreate) });
@@ -2550,14 +2550,14 @@ function ConfigCategoriasPage() {
     <section className="workspace stack">
       <section className="registration panel">
         <div className="section-heading">
-          <h2>Configuração de Categorias IBJJF</h2>
+          <h2>Configuracao de Categorias IBJJF</h2>
           <span>{categories.length} cadastrada(s) de {allTotal} ({coverage}%)</span>
         </div>
 
         <div className="ccats-import-bar">
           <div>
             <p className="ccats-import-desc">
-              Importa automaticamente todas as combinações válidas de grupo de idade, faixa e peso conforme as regras da IBJJF.
+              Importa automaticamente todas as combinacoes validas de grupo de idade, faixa e peso conforme as regras da IBJJF.
             </p>
           </div>
           <button className="primary" onClick={importAll} disabled={importLoading} type="button">
@@ -2604,14 +2604,14 @@ function ConfigCategoriasPage() {
                     .map((cat) => (
                       <div key={cat.id} className="ccats-item">
                         <span className="ccats-belt-dot" style={{ background: BELT_COLORS[cat.belt] || "#555" }} />
-                        <span className="ccats-item-label">{beltLabels[cat.belt] || cat.belt} · {cat.weight_class}</span>
+                        <span className="ccats-item-label">{beltLabels[cat.belt] || cat.belt} | {cat.weight_class}</span>
                         {deleteId === cat.id ? (
                           <div className="ccats-confirm">
                             <button className="danger-button compact-button" onClick={() => deleteCategory(cat.id)}>Confirmar</button>
                             <button className="secondary compact-button" onClick={() => setDeleteId(null)}>Cancelar</button>
                           </div>
                         ) : (
-                          <button className="icon-button compact-button" title="Excluir" onClick={() => setDeleteId(cat.id)}>×</button>
+                          <button className="icon-button compact-button" title="Excluir" onClick={() => setDeleteId(cat.id)}>x</button>
                         )}
                       </div>
                     ))}
@@ -2718,9 +2718,9 @@ function OrdemPage() {
       <div className="ordem-top">
         <div className="ordem-comp-select">
           <label className="field">
-            <span>Competição</span>
+            <span>Competicao</span>
             <select value={competitionId} onChange={(e) => loadBrackets(e.target.value)}>
-              <option value="">Selecione a competição</option>
+              <option value="">Selecione a competicao</option>
               {competitions.map((c) => <option value={String(c.id)} key={c.id}>{c.name}</option>)}
             </select>
           </label>
@@ -2733,8 +2733,8 @@ function OrdemPage() {
         )}
         {lastRefresh && (
           <div className="ordem-refresh-badge">
-            <span>Atualizado às {lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-            <span className="ordem-refresh-hint">· próxima atualização em 2 min</span>
+            <span>Atualizado as {lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+            <span className="ordem-refresh-hint">| proxima atualizacao em 2 min</span>
           </div>
         )}
       </div>
@@ -2905,9 +2905,9 @@ function CategoriasPage() {
       <div className="categorias-top">
         <div className="categorias-comp-select">
           <label className="field">
-            <span>Competição</span>
+            <span>Competicao</span>
             <select value={competitionId} onChange={(e) => loadBrackets(e.target.value)}>
-              <option value="">Selecione a competição</option>
+              <option value="">Selecione a competicao</option>
               {competitions.map((c) => <option value={String(c.id)} key={c.id}>{c.name}</option>)}
             </select>
           </label>
