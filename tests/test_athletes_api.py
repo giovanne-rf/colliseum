@@ -158,7 +158,7 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.js" in response.text
-    assert "athlete-academy-required-20260531" in response.text
+    assert "bracket-podium-20260531" in response.text
     assert "/academias" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
@@ -212,7 +212,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.js?v=athlete-academy-required-20260531" in react_shell_response.text
+    assert "/static/react/app.js?v=bracket-podium-20260531" in react_shell_response.text
     assert "@babel/standalone" not in react_shell_response.text
     assert 'type="text/babel"' not in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
