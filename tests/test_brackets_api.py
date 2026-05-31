@@ -792,6 +792,66 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     }
 
 
+async def test_finalize_match_accepts_unaccented_finish_methods_from_scoreboard(
+    client: AsyncClient,
+):
+    team_id = await create_team(client, "Equipe Finalizacao")
+    category_id = await create_category(client)
+    competition_id = await create_competition(client)
+    for index in range(1, 5):
+        await create_athlete(client, index, team_id)
+        registration_response = await client.post(
+            f"/competitions/{competition_id}/registrations",
+            json=athlete_registration_payload(index, category_id),
+        )
+        assert registration_response.status_code == 201
+
+    bracket_response = await client.post(
+        f"/competitions/{competition_id}/brackets",
+        json={"category_id": category_id, "replace_existing": True},
+    )
+    assert bracket_response.status_code == 201
+    bracket = bracket_response.json()
+    matches = [
+        item for item in bracket["matches"]
+        if item["round_number"] == 1 and item["athlete_a"] is not None and item["athlete_b"] is not None
+    ]
+
+    submission_response = await client.put(
+        f"/competitions/{competition_id}/matches/{matches[0]['id']}/result",
+        json={
+            "athlete_a_points": 0,
+            "athlete_a_advantages": 0,
+            "athlete_a_penalties": 0,
+            "athlete_b_points": 0,
+            "athlete_b_advantages": 0,
+            "athlete_b_penalties": 0,
+            "finish_method": "Finalizacao",
+            "winner_id": matches[0]["athlete_a"]["id"],
+            "finalized": True,
+        },
+    )
+    assert submission_response.status_code == 200
+    assert submission_response.json()["finish_method"] == "Finalização"
+
+    disqualification_response = await client.put(
+        f"/competitions/{competition_id}/matches/{matches[1]['id']}/result",
+        json={
+            "athlete_a_points": 0,
+            "athlete_a_advantages": 0,
+            "athlete_a_penalties": 0,
+            "athlete_b_points": 0,
+            "athlete_b_advantages": 0,
+            "athlete_b_penalties": 0,
+            "finish_method": "Desclassificacao do oponente",
+            "winner_id": matches[1]["athlete_b"]["id"],
+            "finalized": True,
+        },
+    )
+    assert disqualification_response.status_code == 200
+    assert disqualification_response.json()["finish_method"] == "Desclassificação do oponente"
+
+
 async def test_finalize_match_advances_winner_against_bye_winner(client: AsyncClient):
     teams = [await create_team(client, f"Equipe Avanco Bye {index}") for index in range(1, 4)]
     category_id = await create_category(client)

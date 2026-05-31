@@ -53,6 +53,9 @@ CHECKIN_STATUS_NO_SHOW = "No Show"
 CHECKIN_STATUS_OUT_OF_WEIGHT = "Out of weight"
 MAX_MATCHES_PER_MAT_DAY = 80
 BETWEEN_MATCHES_MINUTES = 3
+
+
+_INVALID_FINISH_METHOD = object()
 SAME_ATHLETE_REST_MINUTES = 20
 
 
@@ -725,6 +728,19 @@ def _ibjjf_weight_classes(sex_prefix: str) -> list[str]:
     ]
 
 
+def _normalize_finish_method(value: str | None) -> str | None | object:
+    if value is None:
+        return None
+    aliases = {
+        "Pontos": "Pontos",
+        "Finalização": "Finalização",
+        "Finalizacao": "Finalização",
+        "Desclassificação do oponente": "Desclassificação do oponente",
+        "Desclassificacao do oponente": "Desclassificação do oponente",
+    }
+    return aliases.get(value, _INVALID_FINISH_METHOD)
+
+
 def max_weight_kg(weight_class: str) -> Decimal | None:
     match = re.search(r"\(-\s*(\d+(?:\.\d+)?)\s*kg\)", weight_class, flags=re.IGNORECASE)
     if match is None:
@@ -932,15 +948,15 @@ class BracketService:
         if match.athlete_a_id is None or match.athlete_b_id is None:
             raise ValidationError("Both athletes are required to score a match.")
 
-        allowed_methods = {None, "Pontos", "Finalização", "Desclassificação do oponente"}
-        if payload.finish_method not in allowed_methods:
+        finish_method = _normalize_finish_method(payload.finish_method)
+        if finish_method is _INVALID_FINISH_METHOD:
             raise ValidationError("Invalid finish method.")
 
         winner_id = payload.winner_id
         if payload.finalized:
-            if payload.finish_method == "Pontos":
+            if finish_method == "Pontos":
                 winner_id = self._time_winner_id(match, payload)
-            elif payload.finish_method in {"Finalização", "Desclassificação do oponente"}:
+            elif finish_method in {"Finalização", "Desclassificação do oponente"}:
                 if winner_id not in {match.athlete_a_id, match.athlete_b_id}:
                     raise ValidationError("Winner must be one of the match athletes.")
             else:
@@ -960,7 +976,7 @@ class BracketService:
         result.athlete_b_advantages = payload.athlete_b_advantages
         result.athlete_b_penalties = payload.athlete_b_penalties
         result.finalized = payload.finalized
-        result.finish_method = payload.finish_method if payload.finalized else None
+        result.finish_method = finish_method if payload.finalized else None
         result.winner_id = winner_id if payload.finalized else None
         result.finished_at = datetime.now() if payload.finalized else None
 
