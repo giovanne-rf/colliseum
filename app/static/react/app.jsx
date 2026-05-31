@@ -180,6 +180,20 @@ function Message({ text, type }) {
   return <p className={`message ${type || ""}`.trim()} role="status" aria-live="polite">{text}</p>;
 }
 
+async function loadAllTeams() {
+  const limit = 100;
+  let offset = 0;
+  let items = [];
+  let total = 0;
+  do {
+    const page = await fetchJson(`/teams?limit=${limit}&offset=${offset}`);
+    items = [...items, ...page.items];
+    total = page.total;
+    offset += limit;
+  } while (items.length < total);
+  return items.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function App() {
   const path = window.location.pathname === "/" ? "/cadastros" : window.location.pathname;
   const bracketRouteMatch = path.match(/^\/chaves\/(\d+)$/);
@@ -409,8 +423,8 @@ function AtletaEditPage({ athleteId }) {
   useEffect(() => {
     Promise.all([
       fetchJson(`/athletes/${athleteId}`),
-      fetchJson("/teams?limit=100&offset=0"),
-    ]).then(([athlete, teamsPage]) => {
+      loadAllTeams(),
+    ]).then(([athlete, teamsList]) => {
       setForm({
         name: athlete.name,
         cpf: athlete.cpf,
@@ -422,7 +436,7 @@ function AtletaEditPage({ athleteId }) {
         graduation_date: athlete.graduation_date,
         birth_date: athlete.birth_date,
       });
-      setTeams(teamsPage.items);
+      setTeams(teamsList);
       setLoading(false);
     }).catch((err) => {
       setMessage([err.message, "error"]);
@@ -432,6 +446,10 @@ function AtletaEditPage({ athleteId }) {
 
   async function submit(e) {
     e.preventDefault();
+    if (form.belt !== "black" && !form.team_id) {
+      setMessage(["Selecione a academia do atleta.", "error"]);
+      return;
+    }
     setSaving(true);
     setMessage(["", ""]);
     try {
@@ -474,9 +492,9 @@ function AtletaEditPage({ athleteId }) {
             ["male", "Masculino"],
             ["female", "Feminino"],
           ]} />
-          <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} options={[
-            ["", "Sem academia"],
-            ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((t) => [String(t.id), t.name]),
+          <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required={form.belt !== "black"} options={[
+            ["", form.belt === "black" ? "Sem academia (faixa preta)" : "Selecione a academia"],
+            ...teams.map((t) => [String(t.id), t.name]),
           ]} />
           <Select label="Faixa" value={form.belt} onChange={(belt) => setForm({ ...form, belt })} required options={[
             ["", "Selecione"],
@@ -504,14 +522,20 @@ function AthletesPage() {
     email: "",
     phone: "",
     sex: "",
+    team_id: "",
     belt: "",
     graduation_date: "",
     birth_date: "",
   };
   const [form, setForm] = useState(emptyForm);
+  const [teams, setTeams] = useState([]);
   const [message, setMessage] = useState(["", ""]);
   const [loading, setLoading] = useState(false);
   const [cpfError, setCpfError] = useState("");
+
+  useEffect(() => {
+    loadAllTeams().then(setTeams).catch((error) => setMessage([error.message, "error"]));
+  }, []);
 
   async function validateCpfOnBlur() {
     if (!form.cpf) {
@@ -538,11 +562,15 @@ function AthletesPage() {
     event.preventDefault();
     const cpfAvailable = await validateCpfOnBlur();
     if (!cpfAvailable) return;
+    if (form.belt !== "black" && !form.team_id) {
+      setMessage(["Selecione a academia do atleta.", "error"]);
+      return;
+    }
     setLoading(true);
     try {
       const athlete = await fetchJson("/athletes", {
         method: "POST",
-        body: JSON.stringify({ ...form, team_id: null }),
+        body: JSON.stringify({ ...form, team_id: form.team_id ? Number(form.team_id) : null }),
       });
       setMessage([`Atleta ${athlete.name} cadastrado com sucesso.`, "success"]);
       setForm(emptyForm);
@@ -581,6 +609,10 @@ function AthletesPage() {
             ["", "Selecione"],
             ["male", "Masculino"],
             ["female", "Feminino"],
+          ]} />
+          <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required={form.belt !== "black"} options={[
+            ["", form.belt === "black" ? "Sem academia (faixa preta)" : "Selecione a academia"],
+            ...teams.map((t) => [String(t.id), t.name]),
           ]} />
           <Select label="Faixa" value={form.belt} onChange={(belt) => setForm({ ...form, belt })} required options={[
             ["", "Selecione"],
@@ -959,20 +991,6 @@ function RegistrationsPage() {
     loadAllTeams().then(setTeams).catch(() => {});
   }, []);
 
-  async function loadAllTeams() {
-    const limit = 100;
-    let offset = 0;
-    let items = [];
-    let total = 0;
-    do {
-      const page = await fetchJson(`/teams?limit=${limit}&offset=${offset}`);
-      items = [...items, ...page.items];
-      total = page.total;
-      offset += limit;
-    } while (items.length < total);
-    return items.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
   async function verify(nextForm = form) {
     setOptions(null);
     if (!nextForm.competition_id || normalizeCpf(nextForm.cpf).length !== 11 || !nextForm.birth_date) {
@@ -985,7 +1003,7 @@ function RegistrationsPage() {
       );
       setOptions(data);
       setStatus(`${data.age_group} | ${beltLabels[data.athlete.belt] || data.athlete.belt} | ${data.age} anos`);
-      setForm((f) => ({ ...f, team_id: "", category_id: "" }));
+      setForm((f) => ({ ...f, team_id: data.athlete.team_id ? String(data.athlete.team_id) : "", category_id: "" }));
       setMessage(["", ""]);
     } catch (error) {
       setStatus("Dados nao conferem");
@@ -1000,13 +1018,6 @@ function RegistrationsPage() {
       return;
     }
     try {
-      // update athlete's team if selected
-      if (form.team_id) {
-        await fetchJson(`/athletes/${options.athlete.id}`, {
-          method: "PUT",
-          body: JSON.stringify({ team_id: Number(form.team_id) }),
-        });
-      }
       const registration = await fetchJson(`/competitions/${form.competition_id}/registrations`, {
         method: "POST",
         body: JSON.stringify({
@@ -1044,8 +1055,8 @@ function RegistrationsPage() {
             verify(next);
           }} required />
           <Field label="Atleta confirmado" value={athleteLabel} readOnly placeholder="Confirmado apos validacao" />
-          <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required disabled={!options} options={[
-            ["", options ? "Selecione a academia" : "Aguardando validacao"],
+          <Select label="Academia" value={form.team_id} onChange={() => {}} required disabled options={[
+            ["", options ? "Atleta sem academia cadastrada" : "Aguardando validacao"],
             ...teams.map((t) => [String(t.id), t.name]),
           ]} />
           <Select label="Categoria" value={form.category_id} onChange={(category_id) => setForm({ ...form, category_id })} required disabled={!options} options={[

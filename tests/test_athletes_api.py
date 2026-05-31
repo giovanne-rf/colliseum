@@ -158,7 +158,7 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.js" in response.text
-    assert "registration-academies-20260531" in response.text
+    assert "athlete-academy-required-20260531" in response.text
     assert "/academias" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
@@ -212,7 +212,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.js?v=registration-academies-20260531" in react_shell_response.text
+    assert "/static/react/app.js?v=athlete-academy-required-20260531" in react_shell_response.text
     assert "@babel/standalone" not in react_shell_response.text
     assert 'type="text/babel"' not in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
@@ -285,11 +285,14 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "/athletes/check-cpf?cpf=" in react_app_response.text
     assert "CPF ja cadastrado para outro atleta." in react_app_response.text
     assert "const cpfAvailable = await validateCpfOnBlur();" in react_app_response.text
-    assert "/teams?limit=100&offset=0" in react_app_response.text
+    assert "/teams?limit=${limit}&offset=${offset}" in react_app_response.text
     assert "function loadAllTeams" in react_app_response.text
     assert "Selecione a categoria de peso" in react_app_response.text
     assert "category.weight_class" in react_app_response.text
-    assert 'team_id: "", category_id: ""' in react_app_response.text
+    assert "Selecione a academia do atleta." in react_app_response.text
+    assert "Sem academia (faixa preta)" in react_app_response.text
+    assert "Atleta sem academia cadastrada" in react_app_response.text
+    assert "data.athlete.team_id ? String(data.athlete.team_id) : \"\"" in react_app_response.text
     assert "/athletes?belt=black&limit=100&offset=0" in react_app_response.text
     assert "registration-options" in react_app_response.text
     assert "Gerar todas" not in react_app_response.text
@@ -371,6 +374,42 @@ async def test_allow_white_belt_at_any_valid_age(client: AsyncClient):
         ),
     )
     assert athlete_response.status_code == 201
+
+
+async def test_require_team_unless_athlete_is_black_belt(client: AsyncClient):
+    white_response = await client.post(
+        "/athletes",
+        json=athlete_payload(team_id=None),
+    )
+    assert white_response.status_code == 422
+    assert "academy" in white_response.text
+
+    black_response = await client.post(
+        "/athletes",
+        json=athlete_payload(
+            name="Faixa Preta Sem Academia",
+            cpf="390.533.447-05",
+            email="preta.sem.academia@example.com",
+            phone="81-98888.1234",
+            team_id=None,
+            belt="black",
+            birth_date="1990-01-01",
+            graduation_date="2024-01-01",
+        ),
+    )
+    assert black_response.status_code == 201
+    assert black_response.json()["team_id"] is None
+
+
+async def test_reject_update_that_removes_team_from_non_black_belt(client: AsyncClient):
+    team_id = await create_team(client)
+    athlete_response = await client.post("/athletes", json=athlete_payload(team_id=team_id))
+    athlete_id = athlete_response.json()["id"]
+
+    update_response = await client.put(f"/athletes/{athlete_id}", json={"team_id": None})
+
+    assert update_response.status_code == 422
+    assert "academy" in update_response.text
 
 
 @pytest.mark.parametrize(

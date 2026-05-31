@@ -34,6 +34,7 @@ class AthleteService:
             belt=payload.belt,
             reference_date=date.today(),
         )
+        self._validate_team_required_for_belt(team_id=payload.team_id, belt=payload.belt)
         if payload.team_id is not None:
             await self._ensure_team_exists(payload.team_id)
         await self._ensure_no_duplicate(name=payload.name, team_id=payload.team_id)
@@ -63,6 +64,7 @@ class AthleteService:
                 birth_date=payload.birth_date,
                 graduation_date=payload.graduation_date,
             )
+            self._validate_team_required_for_belt(team_id=payload.team_id, belt=payload.belt)
             if payload.team_id is not None:
                 await self._ensure_team_exists(payload.team_id)
             await self._ensure_no_duplicate(name=payload.name, team_id=payload.team_id)
@@ -145,6 +147,7 @@ class AthleteService:
             birth_date=target_birth_date,
             graduation_date=target_graduation_date,
         )
+        self._validate_team_required_for_belt(team_id=target_team_id, belt=target_belt)
 
         if "team_id" in data and target_team_id is not None:
             await self._ensure_team_exists(target_team_id)
@@ -287,6 +290,10 @@ class AthleteService:
     def _validate_graduation_date(self, *, birth_date: date, graduation_date: date) -> None:
         if graduation_date < birth_date:
             raise ValidationError("Graduation date cannot be before birth date.")
+
+    def _validate_team_required_for_belt(self, *, team_id: int | None, belt: Belt) -> None:
+        if belt != Belt.black and team_id is None:
+            raise ValidationError("Athlete must belong to an academy unless they are a black belt.")
 
 
 def minimum_age_for_belt(belt: Belt) -> int:
