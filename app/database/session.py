@@ -158,6 +158,18 @@ async def create_db_and_tables() -> None:
                 await conn.execute(text("ALTER TABLE athletes ALTER COLUMN team_id DROP NOT NULL"))
             # SQLite does not support ALTER COLUMN — the ORM create_all already handles new DBs correctly.
 
+        team_columns = await conn.run_sync(
+            lambda sync_conn: {
+                col["name"]: col
+                for col in inspect(sync_conn).get_columns("teams")
+            }
+        )
+        responsible_col = team_columns.get("responsible", {})
+        if responsible_col.get("nullable") is False:
+            dialect = conn.dialect.name
+            if dialect == "postgresql":
+                await conn.execute(text("ALTER TABLE teams ALTER COLUMN responsible DROP NOT NULL"))
+
         table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
         if "competition_schedule" not in table_names:
             await conn.execute(

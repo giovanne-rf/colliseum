@@ -83,6 +83,16 @@ async def test_prevent_duplicate_team_name(client: AsyncClient):
     assert duplicate_response.status_code == 409
 
 
+async def test_create_team_without_responsible(client: AsyncClient):
+    payload = team_payload()
+    payload.pop("responsible")
+
+    response = await client.post("/teams", json=payload)
+
+    assert response.status_code == 201
+    assert response.json()["responsible"] is None
+
+
 async def test_create_teams_bulk(client: AsyncClient):
     response = await client.post(
         "/teams/bulk",
