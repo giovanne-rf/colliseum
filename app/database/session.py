@@ -106,6 +106,37 @@ async def create_db_and_tables() -> None:
                     )
                 )
         table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
+        if "competition_checkin_closures" not in table_names:
+            await conn.execute(
+                text(
+                    """
+                    CREATE TABLE competition_checkin_closures (
+                        id INTEGER NOT NULL,
+                        competition_id INTEGER NOT NULL,
+                        category_id INTEGER NOT NULL,
+                        closed_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                        PRIMARY KEY (id),
+                        UNIQUE (competition_id, category_id),
+                        FOREIGN KEY(competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
+                        FOREIGN KEY(category_id) REFERENCES categories (id) ON DELETE RESTRICT
+                    )
+                    """
+                )
+            )
+            await conn.execute(text("CREATE INDEX ix_competition_checkin_closures_id ON competition_checkin_closures (id)"))
+            await conn.execute(
+                text(
+                    "CREATE INDEX ix_competition_checkin_closures_competition_id "
+                    "ON competition_checkin_closures (competition_id)"
+                )
+            )
+            await conn.execute(
+                text(
+                    "CREATE INDEX ix_competition_checkin_closures_category_id "
+                    "ON competition_checkin_closures (category_id)"
+                )
+            )
+        table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
         if "match_results" not in table_names:
             await conn.execute(
                 text(

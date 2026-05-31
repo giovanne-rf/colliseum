@@ -98,6 +98,7 @@ class CompetitionCheckinRead(BaseModel):
     status: str
     is_overweight: bool
     max_weight_kg: Decimal | None = None
+    weight_display: str | None = None
     athlete: AthleteRead
     category: CategoryRead
     created_at: datetime
@@ -112,6 +113,8 @@ class CompetitionCheckinLookupRead(BaseModel):
     athlete: AthleteRead
     category: CategoryRead
     max_weight_kg: Decimal | None = None
+    is_super_heavy: bool = False
+    checkin_closed: bool = False
     status: str
     checkin: CompetitionCheckinRead | None = None
 
@@ -122,8 +125,20 @@ class CompetitionFinalCheckRead(BaseModel):
     athlete: AthleteRead
     category: CategoryRead
     checked_weight: Decimal | None = None
+    weight_display: str | None = None
     status: str
     is_overweight: bool = False
+    checkin_closed: bool = False
+
+
+class CompetitionCheckinClosureRead(BaseModel):
+    id: int
+    competition_id: int
+    category_id: int
+    category: CategoryRead
+    closed_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RegistrationOptionsRead(BaseModel):

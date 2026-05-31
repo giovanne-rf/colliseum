@@ -1044,6 +1044,24 @@ button:disabled {
   background: #b42318;
 }
 
+.bracket-check-status.prohibited {
+  position: relative;
+  border: 2px solid #ff1f1f;
+  background: transparent;
+}
+
+.bracket-check-status.prohibited::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130%;
+  height: 2px;
+  border-radius: 999px;
+  background: #ff1f1f;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .bracket-check-status.out-of-weight {
   background: #000;
 }
@@ -1056,6 +1074,11 @@ button:disabled {
 }
 
 .ibjjf-athlete-line.result-loser strong {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.ibjjf-athlete-line.status-unavailable strong {
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
@@ -1597,6 +1620,25 @@ button:disabled {
   color: #fff;
   font-size: 13px;
   font-weight: 700;
+}
+
+.checkin-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.checkin-group-actions .compact-button {
+  min-height: 34px;
+  border-color: rgba(255, 255, 255, 0.65);
+  background: #fff;
+  color: var(--blue);
+}
+
+.checkin-group-actions .compact-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .checkin-table-wrap {

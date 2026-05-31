@@ -18,6 +18,7 @@ from app.models.bracket import (
     BracketEntry,
     CompetitionSchedule,
     CompetitionCheckin,
+    CompetitionCheckinClosure,
     Competition,
     CompetitionRegistration,
     Match,
@@ -29,6 +30,7 @@ from app.models.common import Sex
 from app.models.ranking import RankingEntry
 from app.schemas.bracket import (
     CompetitionCheckinCreate,
+    CompetitionCheckinClosureRead,
     CompetitionFinalCheckRead,
     CompetitionCheckinLookupRead,
     CompetitionCheckinRead,
@@ -416,12 +418,18 @@ class CheckinService:
             cpf=cpf,
         )
         checkin = await self._get_checkin_by_registration(registration.id)
+        checkin_closed = await self._is_checkin_closed(
+            competition_id=competition_id,
+            category_id=registration.category_id,
+        )
         return CompetitionCheckinLookupRead(
             registration_id=registration.id,
             competition_id=registration.competition_id,
             athlete=registration.athlete,
             category=registration.category,
             max_weight_kg=max_weight_kg(registration.category.weight_class),
+            is_super_heavy=is_super_heavy_category(registration.category.weight_class),
+            checkin_closed=checkin_closed,
             status=checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW,
             checkin=self._to_read(checkin, registration) if checkin is not None else None,
         )
@@ -449,12 +457,19 @@ class CheckinService:
         checkins_by_registration = {
             checkin.registration_id: checkin for checkin in checkins_result.scalars().all()
         }
+        closures_result = await self.session.execute(
+            select(CompetitionCheckinClosure.category_id).where(
+                CompetitionCheckinClosure.competition_id == competition_id
+            )
+        )
+        closed_category_ids = {int(category_id) for category_id in closures_result.scalars().all()}
 
         rows: list[CompetitionFinalCheckRead] = []
         for registration in registrations:
             checkin = checkins_by_registration.get(registration.id)
             checked_weight = Decimal(str(checkin.checked_weight)) if checkin is not None else None
             max_weight = max_weight_kg(registration.category.weight_class)
+            is_super_heavy = is_super_heavy_category(registration.category.weight_class)
             rows.append(
                 CompetitionFinalCheckRead(
                     registration_id=registration.id,
@@ -462,15 +477,69 @@ class CheckinService:
                     athlete=registration.athlete,
                     category=registration.category,
                     checked_weight=checked_weight,
+                    weight_display="Pesadíssimo" if is_super_heavy and checkin is not None else None,
                     status=checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW,
                     is_overweight=(
                         checked_weight is not None
                         and max_weight is not None
                         and checked_weight > max_weight
                     ),
+                    checkin_closed=registration.category_id in closed_category_ids,
                 )
             )
         return rows
+
+    async def close_category_checkin(
+        self,
+        *,
+        competition_id: int,
+        category_id: int,
+    ) -> CompetitionCheckinClosureRead:
+        await self._ensure_competition_exists(competition_id)
+        result = await self.session.execute(
+            select(Bracket.id).where(
+                Bracket.competition_id == competition_id,
+                Bracket.category_id == category_id,
+            )
+        )
+        if result.scalar_one_or_none() is None:
+            raise ValidationError("Bracket must be generated before closing category check-in.")
+
+        category = await self.session.get(Category, category_id)
+        if category is None:
+            raise NotFoundError("Category not found.")
+
+        existing = await self._get_checkin_closure(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
+        if existing is not None:
+            return CompetitionCheckinClosureRead(
+                id=existing.id,
+                competition_id=existing.competition_id,
+                category_id=existing.category_id,
+                category=category,
+                closed_at=existing.closed_at,
+            )
+
+        closure = CompetitionCheckinClosure(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
+        self.session.add(closure)
+        await self.session.flush()
+        await BracketService(self.session).advance_status_walkovers_for_competition(
+            competition_id=competition_id,
+        )
+        await self.session.commit()
+        await self.session.refresh(closure)
+        return CompetitionCheckinClosureRead(
+            id=closure.id,
+            competition_id=closure.competition_id,
+            category_id=closure.category_id,
+            category=category,
+            closed_at=closure.closed_at,
+        )
 
     async def create_or_update(
         self,
@@ -483,6 +552,7 @@ class CheckinService:
             registration_id=payload.registration_id,
         )
         await self._ensure_bracket_generated_for_registration(registration)
+        await self._ensure_checkin_is_open(registration)
         max_weight = max_weight_kg(registration.category.weight_class)
         is_overweight = max_weight is not None and payload.checked_weight > max_weight
         if is_overweight and not payload.overweight_confirmed:
@@ -523,9 +593,22 @@ class CheckinService:
             registration_id=registration_id,
         )
         await self._ensure_bracket_generated_for_registration(registration)
+        await self._ensure_checkin_is_open(registration)
         checkin = await self._get_checkin_by_registration(registration.id)
         if checkin is None:
-            raise ValidationError("Athlete must be weighed before ready to fight.")
+            if not is_super_heavy_category(registration.category.weight_class):
+                raise ValidationError("Athlete must be weighed before ready to fight.")
+            checkin = CompetitionCheckin(
+                competition_id=competition_id,
+                registration_id=registration.id,
+                athlete_id=registration.athlete_id,
+                checked_weight=Decimal("0.00"),
+                gi=True,
+                overweight_confirmed=False,
+                status=CHECKIN_STATUS_NO_CHECKED,
+            )
+            self.session.add(checkin)
+            await self.session.flush()
 
         max_weight = max_weight_kg(registration.category.weight_class)
         checked_weight = Decimal(str(checkin.checked_weight))
@@ -559,9 +642,22 @@ class CheckinService:
             registration_id=registration_id,
         )
         await self._ensure_bracket_generated_for_registration(registration)
+        await self._ensure_checkin_is_open(registration)
         checkin = await self._get_checkin_by_registration(registration.id)
         if checkin is None:
-            raise ValidationError("Athlete must be weighed before not ready to fight.")
+            if not is_super_heavy_category(registration.category.weight_class):
+                raise ValidationError("Athlete must be weighed before not ready to fight.")
+            checkin = CompetitionCheckin(
+                competition_id=competition_id,
+                registration_id=registration.id,
+                athlete_id=registration.athlete_id,
+                checked_weight=Decimal("0.00"),
+                gi=True,
+                overweight_confirmed=False,
+                status=CHECKIN_STATUS_NO_CHECKED,
+            )
+            self.session.add(checkin)
+            await self.session.flush()
 
         max_weight = max_weight_kg(registration.category.weight_class)
         checked_weight = Decimal(str(checkin.checked_weight))
@@ -640,6 +736,33 @@ class CheckinService:
         )
         return result.scalar_one_or_none()
 
+    async def _get_checkin_closure(
+        self,
+        *,
+        competition_id: int,
+        category_id: int,
+    ) -> CompetitionCheckinClosure | None:
+        result = await self.session.execute(
+            select(CompetitionCheckinClosure).where(
+                CompetitionCheckinClosure.competition_id == competition_id,
+                CompetitionCheckinClosure.category_id == category_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def _is_checkin_closed(self, *, competition_id: int, category_id: int) -> bool:
+        return await self._get_checkin_closure(
+            competition_id=competition_id,
+            category_id=category_id,
+        ) is not None
+
+    async def _ensure_checkin_is_open(self, registration: CompetitionRegistration) -> None:
+        if await self._is_checkin_closed(
+            competition_id=registration.competition_id,
+            category_id=registration.category_id,
+        ):
+            raise ValidationError("Checkin encerrado.")
+
     async def _ensure_bracket_generated_for_registration(
         self,
         registration: CompetitionRegistration,
@@ -662,6 +785,7 @@ class CheckinService:
     ) -> CompetitionCheckinRead:
         max_weight = max_weight_kg(registration.category.weight_class)
         checked_weight = Decimal(str(checkin.checked_weight))
+        is_super_heavy = is_super_heavy_category(registration.category.weight_class)
         return CompetitionCheckinRead(
             id=checkin.id,
             competition_id=checkin.competition_id,
@@ -673,6 +797,7 @@ class CheckinService:
             status=checkin.status,
             is_overweight=max_weight is not None and checked_weight > max_weight,
             max_weight_kg=max_weight,
+            weight_display="Pesadíssimo" if is_super_heavy else None,
             athlete=registration.athlete,
             category=registration.category,
             created_at=checkin.created_at,
@@ -747,6 +872,19 @@ def max_weight_kg(weight_class: str) -> Decimal | None:
     if match is None:
         return None
     return Decimal(match.group(1))
+
+
+def is_super_heavy_category(weight_class: str) -> bool:
+    normalized = (
+        weight_class.casefold()
+        .replace("í", "i")
+        .replace("é", "e")
+        .replace("-", " ")
+    )
+    return any(
+        marker in normalized
+        for marker in ("super pesado", "super heavy", "ultra heavy", "pesadissimo")
+    )
 
 
 def _parse_start_time(value: str) -> time:
@@ -1269,9 +1407,17 @@ class BracketService:
             competition_id=bracket.competition_id,
             athlete_ids=athlete_ids,
         )
+        checkin_closed = await self._is_category_checkin_closed(
+            competition_id=bracket.competition_id,
+            category_id=bracket.category_id,
+        )
 
         for match in matches:
-            winner_id = self._walkover_winner_id(match, statuses)
+            winner_id = self._walkover_winner_id(
+                match,
+                statuses,
+                no_show_is_unavailable=checkin_closed,
+            )
             if winner_id is None:
                 continue
             match.winner_id = winner_id
@@ -1432,13 +1578,30 @@ class BracketService:
         )
         return {int(athlete_id): status for athlete_id, status in result.all()}
 
+    async def _is_category_checkin_closed(self, *, competition_id: int, category_id: int) -> bool:
+        result = await self.session.execute(
+            select(CompetitionCheckinClosure.id).where(
+                CompetitionCheckinClosure.competition_id == competition_id,
+                CompetitionCheckinClosure.category_id == category_id,
+            )
+        )
+        return result.scalar_one_or_none() is not None
+
     @staticmethod
-    def _walkover_winner_id(match: Match, statuses: dict[int, str]) -> int | None:
-        athlete_a_status = statuses.get(match.athlete_a_id)
-        athlete_b_status = statuses.get(match.athlete_b_id)
-        if athlete_a_status == CHECKIN_STATUS_CHECKED and athlete_b_status == CHECKIN_STATUS_OUT_OF_WEIGHT:
+    def _walkover_winner_id(
+        match: Match,
+        statuses: dict[int, str],
+        *,
+        no_show_is_unavailable: bool = False,
+    ) -> int | None:
+        athlete_a_status = statuses.get(match.athlete_a_id, CHECKIN_STATUS_NO_SHOW)
+        athlete_b_status = statuses.get(match.athlete_b_id, CHECKIN_STATUS_NO_SHOW)
+        unavailable_statuses = {CHECKIN_STATUS_OUT_OF_WEIGHT, CHECKIN_STATUS_NO_CHECKED}
+        if no_show_is_unavailable:
+            unavailable_statuses.add(CHECKIN_STATUS_NO_SHOW)
+        if athlete_a_status == CHECKIN_STATUS_CHECKED and athlete_b_status in unavailable_statuses:
             return match.athlete_a_id
-        if athlete_b_status == CHECKIN_STATUS_CHECKED and athlete_a_status == CHECKIN_STATUS_OUT_OF_WEIGHT:
+        if athlete_b_status == CHECKIN_STATUS_CHECKED and athlete_a_status in unavailable_statuses:
             return match.athlete_b_id
         return None
 

@@ -12,6 +12,7 @@ from app.schemas.bracket import (
     BracketGenerateAllRequest,
     BracketRead,
     CompetitionCheckinCreate,
+    CompetitionCheckinClosureRead,
     CompetitionFinalCheckRead,
     CompetitionCheckinLookupRead,
     CompetitionCheckinRead,
@@ -168,6 +169,25 @@ async def list_final_checks(
 ) -> list[CompetitionFinalCheckRead]:
     try:
         return await CheckinService(session).list_final_checks(competition_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.post(
+    "/{competition_id}/categories/{category_id}/checkin/close",
+    response_model=CompetitionCheckinClosureRead,
+    summary="Close check-in for a competition category",
+)
+async def close_category_checkin(
+    competition_id: int,
+    category_id: int,
+    session: DbSession,
+) -> CompetitionCheckinClosureRead:
+    try:
+        return await CheckinService(session).close_category_checkin(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
 

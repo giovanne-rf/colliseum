@@ -60,7 +60,7 @@
       try {
         const body = await response.json();
         detail = Array.isArray(body.detail) ? body.detail.map((item) => item.msg).join("; ") : body.detail || detail;
-      } catch (e) {
+      } catch {
         detail = response.statusText || detail;
       }
       throw new Error(detail);
@@ -71,8 +71,7 @@
     return `fjjpe-${categoryLabel(bracket.category)}${suffix ? `-${suffix}` : ""}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   }
   async function exportBracketPdf(element, bracket, suffix = "") {
-    var _a;
-    if (!window.html2canvas || !((_a = window.jspdf) == null ? void 0 : _a.jsPDF)) {
+    if (!window.html2canvas || !window.jspdf?.jsPDF) {
       throw new Error("Bibliotecas de PDF ainda nao carregaram. Tente novamente em alguns segundos.");
     }
     await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -245,10 +244,9 @@
       load(0);
     }, []);
     const filtered = athletes.filter((a) => {
-      var _a;
       if (!search) return true;
       const q = search.toLowerCase();
-      return a.name.toLowerCase().includes(q) || a.cpf.includes(q) || (((_a = a.team) == null ? void 0 : _a.name) || "").toLowerCase().includes(q);
+      return a.name.toLowerCase().includes(q) || a.cpf.includes(q) || (a.team?.name || "").toLowerCase().includes(q);
     });
     function formatDate(d) {
       if (!d) return "-";
@@ -264,10 +262,7 @@
         onChange: (e) => setSearch(e.target.value),
         style: { width: "100%" }
       }
-    )), loading && /* @__PURE__ */ React.createElement("p", { className: "message" }, "Carregando..."), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] }), !loading && /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table atletas-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Nome"), /* @__PURE__ */ React.createElement("th", null, "CPF"), /* @__PURE__ */ React.createElement("th", null, "Nascimento"), /* @__PURE__ */ React.createElement("th", null, "Faixa"), /* @__PURE__ */ React.createElement("th", null, "Academia"), /* @__PURE__ */ React.createElement("th", null))), /* @__PURE__ */ React.createElement("tbody", null, filtered.length === 0 && /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: "6", style: { textAlign: "center", color: "var(--muted)" } }, "Nenhum atleta encontrado.")), filtered.map((a) => {
-      var _a;
-      return /* @__PURE__ */ React.createElement("tr", { key: a.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Nome" }, a.name), /* @__PURE__ */ React.createElement("td", { "data-label": "CPF" }, a.cpf), /* @__PURE__ */ React.createElement("td", { "data-label": "Nascimento" }, formatDate(a.birth_date)), /* @__PURE__ */ React.createElement("td", { "data-label": "Faixa" }, beltLabels[a.belt] || a.belt), /* @__PURE__ */ React.createElement("td", { "data-label": "Academia" }, ((_a = a.team) == null ? void 0 : _a.name) || /* @__PURE__ */ React.createElement("span", { style: { color: "var(--muted)" } }, "Sem academia")), /* @__PURE__ */ React.createElement("td", { "data-label": "Editar" }, /* @__PURE__ */ React.createElement("a", { className: "atleta-edit-btn", href: `/atletas/${a.id}`, title: "Editar" }, "\u270E")));
-    })))), total > PAGE_SIZE && /* @__PURE__ */ React.createElement("div", { className: "atletas-pagination" }, /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", disabled: offset === 0, onClick: () => load(offset - PAGE_SIZE) }, "\xAB Anterior"), /* @__PURE__ */ React.createElement("span", null, Math.floor(offset / PAGE_SIZE) + 1, " / ", Math.ceil(total / PAGE_SIZE)), /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", disabled: offset + PAGE_SIZE >= total, onClick: () => load(offset + PAGE_SIZE) }, "Proxima \xBB"))));
+    )), loading && /* @__PURE__ */ React.createElement("p", { className: "message" }, "Carregando..."), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] }), !loading && /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table atletas-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Nome"), /* @__PURE__ */ React.createElement("th", null, "CPF"), /* @__PURE__ */ React.createElement("th", null, "Nascimento"), /* @__PURE__ */ React.createElement("th", null, "Faixa"), /* @__PURE__ */ React.createElement("th", null, "Academia"), /* @__PURE__ */ React.createElement("th", null))), /* @__PURE__ */ React.createElement("tbody", null, filtered.length === 0 && /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: "6", style: { textAlign: "center", color: "var(--muted)" } }, "Nenhum atleta encontrado.")), filtered.map((a) => /* @__PURE__ */ React.createElement("tr", { key: a.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Nome" }, a.name), /* @__PURE__ */ React.createElement("td", { "data-label": "CPF" }, a.cpf), /* @__PURE__ */ React.createElement("td", { "data-label": "Nascimento" }, formatDate(a.birth_date)), /* @__PURE__ */ React.createElement("td", { "data-label": "Faixa" }, beltLabels[a.belt] || a.belt), /* @__PURE__ */ React.createElement("td", { "data-label": "Academia" }, a.team?.name || /* @__PURE__ */ React.createElement("span", { style: { color: "var(--muted)" } }, "Sem academia")), /* @__PURE__ */ React.createElement("td", { "data-label": "Editar" }, /* @__PURE__ */ React.createElement("a", { className: "atleta-edit-btn", href: `/atletas/${a.id}`, title: "Editar" }, "\u270E"))))))), total > PAGE_SIZE && /* @__PURE__ */ React.createElement("div", { className: "atletas-pagination" }, /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", disabled: offset === 0, onClick: () => load(offset - PAGE_SIZE) }, "\xAB Anterior"), /* @__PURE__ */ React.createElement("span", null, Math.floor(offset / PAGE_SIZE) + 1, " / ", Math.ceil(total / PAGE_SIZE)), /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", disabled: offset + PAGE_SIZE >= total, onClick: () => load(offset + PAGE_SIZE) }, "Proxima \xBB"))));
   }
   function AtletaEditPage({ athleteId }) {
     const [form, setForm] = useState(null);
@@ -687,7 +682,7 @@
       ...teams.map((t) => [String(t.id), t.name])
     ] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria", value: form.category_id, onChange: (category_id) => setForm({ ...form, category_id }), required: true, disabled: !options, options: [
       ["", options ? "Selecione a categoria de peso" : "Aguardando validacao"],
-      ...((options == null ? void 0 : options.categories) || []).map((category) => [String(category.id), category.weight_class])
+      ...(options?.categories || []).map((category) => [String(category.id), category.weight_class])
     ] }), /* @__PURE__ */ React.createElement("div", { className: "inline-submit" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit", disabled: !options || !form.team_id }, "Inscrever atleta"))), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })));
   }
   function BracketsPage() {
@@ -835,7 +830,7 @@
     }
     const categoriesByDay = useMemo(() => {
       const grouped = /* @__PURE__ */ new Map();
-      ((schedule == null ? void 0 : schedule.categories) || []).forEach((item) => {
+      (schedule?.categories || []).forEach((item) => {
         if (!grouped.has(item.day_number)) grouped.set(item.day_number, []);
         grouped.get(item.day_number).push(item);
       });
@@ -969,7 +964,7 @@
       window.addEventListener("resize", drawConnectors);
       return () => window.removeEventListener("resize", drawConnectors);
     }, [grouped, direction]);
-    return /* @__PURE__ */ React.createElement("section", { className: `ibjjf-side ${direction}` }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header" }, /* @__PURE__ */ React.createElement("strong", null, title), /* @__PURE__ */ React.createElement("span", null, subtitle)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-rounds", ref: roundsRef }, /* @__PURE__ */ React.createElement("svg", { className: "ibjjf-connectors", "aria-hidden": "true" }, connectors.map((path, index) => /* @__PURE__ */ React.createElement("path", { d: path, key: `${path}-${index}` }))), grouped.map(([roundNumber, roundMatches]) => /* @__PURE__ */ React.createElement("section", { className: `ibjjf-round ${direction}`, key: roundNumber }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-round-title" }, /* @__PURE__ */ React.createElement("strong", null, roundLabel(roundNumber, totalRounds)), /* @__PURE__ */ React.createElement("span", null, roundMatches.length, " luta(s)")), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-list" }, roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction, key: match.id, matchNumber: matchNumbers == null ? void 0 : matchNumbers.get(match.id), matchNumbers, onOpenFight, onBlockedFight })))))));
+    return /* @__PURE__ */ React.createElement("section", { className: `ibjjf-side ${direction}` }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header" }, /* @__PURE__ */ React.createElement("strong", null, title), /* @__PURE__ */ React.createElement("span", null, subtitle)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-rounds", ref: roundsRef }, /* @__PURE__ */ React.createElement("svg", { className: "ibjjf-connectors", "aria-hidden": "true" }, connectors.map((path, index) => /* @__PURE__ */ React.createElement("path", { d: path, key: `${path}-${index}` }))), grouped.map(([roundNumber, roundMatches]) => /* @__PURE__ */ React.createElement("section", { className: `ibjjf-round ${direction}`, key: roundNumber }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-round-title" }, /* @__PURE__ */ React.createElement("strong", null, roundLabel(roundNumber, totalRounds)), /* @__PURE__ */ React.createElement("span", null, roundMatches.length, " luta(s)")), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-list" }, roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction, key: match.id, matchNumber: matchNumbers?.get(match.id), matchNumbers, onOpenFight, onBlockedFight })))))));
   }
   function buildConnectorPath(source, target, direction) {
     const sourceX = direction === "right" ? source.left : source.right;
@@ -978,7 +973,7 @@
     return `M ${sourceX} ${source.y} H ${middleX} V ${target.y} H ${targetX}`;
   }
   function FinalSection({ match, title, allMatches, matchNumbers, onOpenFight, onBlockedFight }) {
-    return /* @__PURE__ */ React.createElement("section", { className: "ibjjf-final-section" }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header final-header" }, /* @__PURE__ */ React.createElement("strong", null, title)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-final-match" }, match && /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction: "final", matchNumber: matchNumbers == null ? void 0 : matchNumbers.get(match.id), matchNumbers, onOpenFight, onBlockedFight })));
+    return /* @__PURE__ */ React.createElement("section", { className: "ibjjf-final-section" }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header final-header" }, /* @__PURE__ */ React.createElement("strong", null, title)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-final-match" }, match && /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction: "final", matchNumber: matchNumbers?.get(match.id), matchNumbers, onOpenFight, onBlockedFight })));
   }
   function roundLabel(roundNumber, totalRounds) {
     const roundsFromFinal = totalRounds - roundNumber;
@@ -997,7 +992,7 @@
   function placeholderAthlete(match, allMatches, matchNumbers, side) {
     const origin = originMatchForSlot(match, allMatches, side);
     if (origin) {
-      const originNumber = (matchNumbers == null ? void 0 : matchNumbers.get(origin.id)) || origin.match_number;
+      const originNumber = matchNumbers?.get(origin.id) || origin.match_number;
       return { name: `Vencedor da luta ${originNumber}`, team: { name: "-" }, isPlaceholder: true };
     }
     return {
@@ -1007,14 +1002,16 @@
     };
   }
   function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, onOpenFight, onBlockedFight }) {
-    var _a, _b, _c, _d;
     const left = match.athlete_a || placeholderAthlete(match, allMatches, matchNumbers, "a");
     const right = match.athlete_b || placeholderAthlete(match, allMatches, matchNumbers, "b");
     const athleteName = (athlete) => `${athlete.name}${athlete.is_ranked ? " *" : ""}`;
     const checkinClass = (athlete) => (athlete.checkin_status || "No Show").toLowerCase().replace(/\s+/g, "-");
-    const isFinalized = Boolean((_a = match.result) == null ? void 0 : _a.finalized);
-    const winnerId = (_b = match.result) == null ? void 0 : _b.winner_id;
-    const resultMethodKey = (((_c = match.result) == null ? void 0 : _c.finish_method) || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "-");
+    const isUnavailableByStatus = (athlete) => Boolean(
+      athlete.id && !athlete.isPlaceholder && ["No Show", "No checked"].includes(athlete.checkin_status || "No Show")
+    );
+    const isFinalized = Boolean(match.result?.finalized);
+    const winnerId = match.result?.winner_id;
+    const resultMethodKey = (match.result?.finish_method || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "-");
     const canOpenFight = Boolean(onOpenFight) && !isFinalized && left.id && right.id && left.checkin_status === "Checked" && right.checkin_status === "Checked";
     const canInteract = canOpenFight || isFinalized;
     const resultSide = (athlete) => {
@@ -1033,30 +1030,33 @@
         }
       );
     };
-    const athleteLine = (athlete) => /* @__PURE__ */ React.createElement("span", { className: `ibjjf-athlete-line ${resultSide(athlete)}`.trim() }, athlete.id && !athlete.isPlaceholder && /* @__PURE__ */ React.createElement("span", { className: `bracket-check-status ${checkinClass(athlete)}`, title: athlete.checkin_status || "No Show" }), /* @__PURE__ */ React.createElement("strong", null, athleteName(athlete)));
-    const teamLine = (athlete) => {
-      var _a2;
-      return /* @__PURE__ */ React.createElement("span", { className: "ibjjf-team-line" }, /* @__PURE__ */ React.createElement("small", null, ((_a2 = athlete.team) == null ? void 0 : _a2.name) || ""), resultBadge(athlete));
-    };
+    const athleteLine = (athlete) => /* @__PURE__ */ React.createElement("span", { className: `ibjjf-athlete-line ${resultSide(athlete)} ${isUnavailableByStatus(athlete) ? "status-unavailable" : ""}`.trim() }, athlete.id && !athlete.isPlaceholder && /* @__PURE__ */ React.createElement(
+      "span",
+      {
+        className: `bracket-check-status ${checkinClass(athlete)} ${isUnavailableByStatus(athlete) ? "prohibited" : ""}`.trim(),
+        title: athlete.checkin_status || "No Show"
+      }
+    ), /* @__PURE__ */ React.createElement("strong", null, athleteName(athlete)));
+    const teamLine = (athlete) => /* @__PURE__ */ React.createElement("span", { className: "ibjjf-team-line" }, /* @__PURE__ */ React.createElement("small", null, athlete.team?.name || ""), resultBadge(athlete));
     const displayedMatchNumber = matchNumber || match.match_number;
     const matchLabel = match.status === "bye" ? `FIGHT ${displayedMatchNumber} | BYE` : `FIGHT ${displayedMatchNumber}`;
     const openFight = () => {
       if (isFinalized) {
-        onBlockedFight == null ? void 0 : onBlockedFight("Luta ja finalizada. Nao e possivel reabrir ou alterar o resultado.");
+        onBlockedFight?.("Luta ja finalizada. Nao e possivel reabrir ou alterar o resultado.");
         return;
       }
-      if (canOpenFight) onOpenFight == null ? void 0 : onOpenFight(match, displayedMatchNumber);
+      if (canOpenFight) onOpenFight?.(match, displayedMatchNumber);
     };
     return /* @__PURE__ */ React.createElement("article", { className: `ibjjf-match ${direction} ${canOpenFight ? "clickable" : isFinalized ? "finalized" : "locked"}`.trim(), role: canInteract ? "button" : void 0, tabIndex: canInteract ? "0" : void 0, onClick: openFight, onKeyDown: (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         openFight();
       }
-    } }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-meta" }, /* @__PURE__ */ React.createElement("strong", null, matchLabel), /* @__PURE__ */ React.createElement("span", null, "Mat ", ((_d = match.schedule) == null ? void 0 : _d.mat_number) || "-")), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-slot winner" }, /* @__PURE__ */ React.createElement("span", { className: "ibjjf-position" }, match.position_start), /* @__PURE__ */ React.createElement("div", null, athleteLine(left), teamLine(left))), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-slot" }, /* @__PURE__ */ React.createElement("span", { className: "ibjjf-position" }, match.position_end), /* @__PURE__ */ React.createElement("div", null, athleteLine(right), teamLine(right))), match.schedule && /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-schedule" }, "Dia ", match.schedule.day_number, " | ", formatScheduleDay(match.schedule.scheduled_start), " ", formatScheduleTime(match.schedule.scheduled_start), " | MAT ", match.schedule.mat_number));
+    } }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-meta" }, /* @__PURE__ */ React.createElement("strong", null, matchLabel), /* @__PURE__ */ React.createElement("span", null, "Mat ", match.schedule?.mat_number || "-")), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-slot winner" }, /* @__PURE__ */ React.createElement("span", { className: "ibjjf-position" }, match.position_start), /* @__PURE__ */ React.createElement("div", null, athleteLine(left), teamLine(left))), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-slot" }, /* @__PURE__ */ React.createElement("span", { className: "ibjjf-position" }, match.position_end), /* @__PURE__ */ React.createElement("div", null, athleteLine(right), teamLine(right))), match.schedule && /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-schedule" }, "Dia ", match.schedule.day_number, " | ", formatScheduleDay(match.schedule.scheduled_start), " ", formatScheduleTime(match.schedule.scheduled_start), " | MAT ", match.schedule.mat_number));
   }
   function fightDurationSeconds(category) {
-    const belt = category == null ? void 0 : category.belt;
-    const ageGroup = (category == null ? void 0 : category.age_group) || "";
+    const belt = category?.belt;
+    const ageGroup = category?.age_group || "";
     if (ageGroup === "Adult") {
       return {
         white: 5,
@@ -1146,7 +1146,6 @@
       adjustScore(side, field, 1);
     }
     async function persistScores(nextScores, finish = {}) {
-      var _a, _b, _c, _d, _e, _f;
       const payload = {
         athlete_a_points: nextScores.a.points,
         athlete_a_advantages: nextScores.a.advantages,
@@ -1154,9 +1153,9 @@
         athlete_b_points: nextScores.b.points,
         athlete_b_advantages: nextScores.b.advantages,
         athlete_b_penalties: nextScores.b.penalties,
-        finalized: (_b = (_a = finish.finalized) != null ? _a : savedResult == null ? void 0 : savedResult.finalized) != null ? _b : false,
-        finish_method: (_d = (_c = finish.finish_method) != null ? _c : savedResult == null ? void 0 : savedResult.finish_method) != null ? _d : null,
-        winner_id: (_f = (_e = finish.winner_id) != null ? _e : savedResult == null ? void 0 : savedResult.winner_id) != null ? _f : null
+        finalized: finish.finalized ?? savedResult?.finalized ?? false,
+        finish_method: finish.finish_method ?? savedResult?.finish_method ?? null,
+        winner_id: finish.winner_id ?? savedResult?.winner_id ?? null
       };
       if (!payload.finalized) {
         payload.finish_method = null;
@@ -1167,16 +1166,16 @@
         body: JSON.stringify(payload)
       });
       setSavedResult(result);
-      onResultSaved == null ? void 0 : onResultSaved(result);
+      onResultSaved?.(result);
       setSaveMessage(result.finalized ? `Resultado salvo: ${result.finish_method}` : "Placar salvo");
       if (result.finalized) {
         const updatedBracket = await fetchJson(`/competitions/brackets/${bracket.id}`);
-        onBracketUpdated == null ? void 0 : onBracketUpdated(updatedBracket);
+        onBracketUpdated?.(updatedBracket);
         const updatedMatch = updatedBracket.matches.find((item) => item.id === match.id);
         if (updatedMatch) {
           setSavedResult(updatedMatch.result || result);
         }
-        onClose == null ? void 0 : onClose();
+        onClose?.();
       }
       return result;
     }
@@ -1242,8 +1241,7 @@
     } }, "Reset tempo"))), /* @__PURE__ */ React.createElement("button", { className: `fight-clock ${running ? "running" : ""}`, type: "button", onClick: () => setRunning((current) => !current) }, formatFightTime(timeLeft))), pendingFinish && /* @__PURE__ */ React.createElement("div", { className: "fight-confirm-backdrop", role: "alertdialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-confirm" }, /* @__PURE__ */ React.createElement("h2", null, pendingFinish.title), /* @__PURE__ */ React.createElement("p", null, pendingFinish.body), /* @__PURE__ */ React.createElement("strong", null, "Vencedor: ", pendingFinish.winnerName), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => setPendingFinish(null) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: confirmFinish }, "Confirmar"))))));
   }
   function FightAthleteRow({ athlete, score, active = false, onScore, onAdjust, onSubmission, onDisqualification }) {
-    var _a;
-    return /* @__PURE__ */ React.createElement("section", { className: `fight-athlete-row ${active ? "active" : ""}`.trim() }, /* @__PURE__ */ React.createElement("div", { className: "fight-athlete-info" }, /* @__PURE__ */ React.createElement("div", { className: "fight-athlete-name" }, /* @__PURE__ */ React.createElement("strong", null, athlete.name)), /* @__PURE__ */ React.createElement("span", null, ((_a = athlete.team) == null ? void 0 : _a.name) || ""), /* @__PURE__ */ React.createElement("div", { className: "fight-finish-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: onSubmission }, "Finalizacao"), /* @__PURE__ */ React.createElement("button", { className: "danger-button", type: "button", onClick: onDisqualification }, "Desclassificacao"))), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "points", label: "pontos", value: score.points, onScore: () => onScore("points"), onAdjust: (delta) => onAdjust("points", delta), athleteName: athlete.name }), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "advantages", label: "vantagens", value: score.advantages, onScore: () => onScore("advantages"), onAdjust: (delta) => onAdjust("advantages", delta), athleteName: athlete.name }), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "penalties", label: "punicoes", value: score.penalties, onScore: () => onScore("penalties"), onAdjust: (delta) => onAdjust("penalties", delta), athleteName: athlete.name }));
+    return /* @__PURE__ */ React.createElement("section", { className: `fight-athlete-row ${active ? "active" : ""}`.trim() }, /* @__PURE__ */ React.createElement("div", { className: "fight-athlete-info" }, /* @__PURE__ */ React.createElement("div", { className: "fight-athlete-name" }, /* @__PURE__ */ React.createElement("strong", null, athlete.name)), /* @__PURE__ */ React.createElement("span", null, athlete.team?.name || ""), /* @__PURE__ */ React.createElement("div", { className: "fight-finish-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: onSubmission }, "Finalizacao"), /* @__PURE__ */ React.createElement("button", { className: "danger-button", type: "button", onClick: onDisqualification }, "Desclassificacao"))), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "points", label: "pontos", value: score.points, onScore: () => onScore("points"), onAdjust: (delta) => onAdjust("points", delta), athleteName: athlete.name }), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "advantages", label: "vantagens", value: score.advantages, onScore: () => onScore("advantages"), onAdjust: (delta) => onAdjust("advantages", delta), athleteName: athlete.name }), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "penalties", label: "punicoes", value: score.penalties, onScore: () => onScore("penalties"), onAdjust: (delta) => onAdjust("penalties", delta), athleteName: athlete.name }));
   }
   function FightScoreBox({ className, label, value, onScore, onAdjust, athleteName }) {
     return /* @__PURE__ */ React.createElement("div", { className: `fight-score-box ${className}` }, /* @__PURE__ */ React.createElement("button", { className: `fight-score ${className}`, type: "button", onClick: onScore, "aria-label": `Adicionar ${label} para ${athleteName}` }, value), /* @__PURE__ */ React.createElement("div", { className: "fight-score-controls" }, /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => onAdjust(1), "aria-label": `Adicionar ${label}` }, "+"), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => onAdjust(-1), "aria-label": `Remover ${label}` }, "-")));
@@ -1318,10 +1316,7 @@
     ] }), /* @__PURE__ */ React.createElement(Field, { label: "Pontos", type: "number", min: "1", step: "1", value: form.points, onChange: (points) => setForm({ ...form, points }), required: true }), /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: form.competition_name, onChange: (competition_name) => setForm({ ...form, competition_name }), required: true, options: [
       ["", "Selecione a competicao"],
       ...competitions.map((competition) => [competition.name, competition.name])
-    ] }), /* @__PURE__ */ React.createElement("div", { className: "inline-submit" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit" }, "Lancar pontos"))), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), /* @__PURE__ */ React.createElement("section", { className: "panel ranking-panel" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Consulta de Ranking"), /* @__PURE__ */ React.createElement("span", null, standings.total_ranked, " atleta(s) ranqueado(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-groups" }, standings.groups.map((group) => /* @__PURE__ */ React.createElement("section", { className: "checkin-group", key: `${group.belt}-${group.age_group}` }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [beltLabels[group.belt] || group.belt, group.age_group].join(" | ")), /* @__PURE__ */ React.createElement("span", null, group.athletes.length, " atleta(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table ranking-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Posicao"), /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Equipe"), /* @__PURE__ */ React.createElement("th", null, "Pontos"), /* @__PURE__ */ React.createElement("th", null, "Lancamentos"))), /* @__PURE__ */ React.createElement("tbody", null, group.athletes.map((item) => {
-      var _a;
-      return /* @__PURE__ */ React.createElement("tr", { key: `${group.belt}-${group.age_group}-${item.athlete_id}` }, /* @__PURE__ */ React.createElement("td", { "data-label": "Posicao" }, "#", item.position), /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Equipe" }, (_a = item.athlete.team) == null ? void 0 : _a.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Pontos" }, item.total_points), /* @__PURE__ */ React.createElement("td", { "data-label": "Lancamentos" }, item.entry_count));
-    }))))))), !standings.groups.length && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum ponto de ranking lancado.")));
+    ] }), /* @__PURE__ */ React.createElement("div", { className: "inline-submit" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit" }, "Lancar pontos"))), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), /* @__PURE__ */ React.createElement("section", { className: "panel ranking-panel" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Consulta de Ranking"), /* @__PURE__ */ React.createElement("span", null, standings.total_ranked, " atleta(s) ranqueado(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-groups" }, standings.groups.map((group) => /* @__PURE__ */ React.createElement("section", { className: "checkin-group", key: `${group.belt}-${group.age_group}` }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [beltLabels[group.belt] || group.belt, group.age_group].join(" | ")), /* @__PURE__ */ React.createElement("span", null, group.athletes.length, " atleta(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table ranking-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Posicao"), /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Equipe"), /* @__PURE__ */ React.createElement("th", null, "Pontos"), /* @__PURE__ */ React.createElement("th", null, "Lancamentos"))), /* @__PURE__ */ React.createElement("tbody", null, group.athletes.map((item) => /* @__PURE__ */ React.createElement("tr", { key: `${group.belt}-${group.age_group}-${item.athlete_id}` }, /* @__PURE__ */ React.createElement("td", { "data-label": "Posicao" }, "#", item.position), /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Equipe" }, item.athlete.team?.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Pontos" }, item.total_points), /* @__PURE__ */ React.createElement("td", { "data-label": "Lancamentos" }, item.entry_count))))))))), !standings.groups.length && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum ponto de ranking lancado.")));
   }
   function WeighinPage() {
     const emptyForm = { competition_id: "", cpf: "", checked_weight: "" };
@@ -1334,7 +1329,6 @@
       fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
     }, []);
     async function findAthlete(nextForm = form) {
-      var _a;
       setLookup(null);
       if (!nextForm.competition_id || normalizeCpf(nextForm.cpf).length !== 11) return;
       try {
@@ -1344,7 +1338,7 @@
         setLookup(data);
         setForm({
           ...nextForm,
-          checked_weight: ((_a = data.checkin) == null ? void 0 : _a.checked_weight) ? String(data.checkin.checked_weight) : ""
+          checked_weight: data.checkin?.checked_weight ? String(data.checkin.checked_weight) : ""
         });
         setMessage(data.checkin ? ["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"] : ["Atleta localizado para pesagem.", "success"]);
       } catch (error) {
@@ -1352,11 +1346,11 @@
       }
     }
     function isOverweight() {
-      if (!(lookup == null ? void 0 : lookup.max_weight_kg) || !form.checked_weight) return false;
+      if (!lookup?.max_weight_kg || !form.checked_weight) return false;
       return Number(form.checked_weight) > Number(lookup.max_weight_kg);
     }
     function isAlreadyWeighed() {
-      return Boolean(lookup == null ? void 0 : lookup.checkin);
+      return Boolean(lookup?.checkin);
     }
     async function persistCheckin(overweightConfirmed = false) {
       const checkin = await fetchJson(`/competitions/${form.competition_id}/checkins`, {
@@ -1404,14 +1398,13 @@
         setMessage([error.message, "error"]);
       }
     }
-    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("form", { className: "registration registration-inline weighin-form", onSubmit: submit }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Pesagem"), /* @__PURE__ */ React.createElement("span", null, (lookup == null ? void 0 : lookup.checkin) ? "Atleta ja pesado nesta competicao" : lookup ? categoryLabel(lookup.category) : "Localize o atleta pelo CPF")), /* @__PURE__ */ React.createElement("div", { className: "grid weighin-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: form.competition_id, onChange: (competition_id) => {
+    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("form", { className: "registration registration-inline weighin-form", onSubmit: submit }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Pesagem"), /* @__PURE__ */ React.createElement("span", null, lookup?.checkin ? "Atleta ja pesado nesta competicao" : lookup ? categoryLabel(lookup.category) : "Localize o atleta pelo CPF")), /* @__PURE__ */ React.createElement("div", { className: "grid weighin-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: form.competition_id, onChange: (competition_id) => {
       const next = { ...form, competition_id };
       setForm(next);
       findAthlete(next);
-    }, required: true, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: form.cpf, onBlur: () => findAthlete(), onChange: (cpf) => setForm({ ...form, cpf: maskCpf(cpf) }), required: true }), /* @__PURE__ */ React.createElement(Field, { label: "Peso checado", type: "number", min: "0", step: "0.01", value: form.checked_weight, onChange: (checked_weight) => setForm({ ...form, checked_weight }), required: true, disabled: !lookup || isAlreadyWeighed() }), /* @__PURE__ */ React.createElement("div", { className: "inline-submit" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit", disabled: !lookup || isAlreadyWeighed() }, "Salvar pesagem"))), /* @__PURE__ */ React.createElement("div", { className: "grid weighin-data" }, /* @__PURE__ */ React.createElement(Field, { label: "Nome", value: (lookup == null ? void 0 : lookup.athlete.name) || "", readOnly: true, placeholder: "Atleta localizado" }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: (lookup == null ? void 0 : lookup.athlete.cpf) || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Faixa", value: lookup ? beltLabels[lookup.athlete.belt] || lookup.athlete.belt : "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de idade", value: (lookup == null ? void 0 : lookup.category.age_group) || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de peso", value: (lookup == null ? void 0 : lookup.category.weight_class) || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Limite da categoria", value: (lookup == null ? void 0 : lookup.max_weight_kg) ? `${lookup.max_weight_kg} kg` : "Sem limite superior", readOnly: true })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), warningOpen && /* @__PURE__ */ React.createElement("div", { className: "modal-backdrop", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "weight-alert" }, /* @__PURE__ */ React.createElement("h2", null, "Atleta nao bateu o peso"), /* @__PURE__ */ React.createElement("p", null, "O peso informado foi ", Number(form.checked_weight).toFixed(2), " kg e o limite da categoria e ", lookup.max_weight_kg, " kg."), /* @__PURE__ */ React.createElement("p", null, "Confirma o registro mesmo assim?"), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => setWarningOpen(false) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "primary danger", type: "button", onClick: confirmOverweight }, "Confirmar pesagem")))));
+    }, required: true, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: form.cpf, onBlur: () => findAthlete(), onChange: (cpf) => setForm({ ...form, cpf: maskCpf(cpf) }), required: true }), /* @__PURE__ */ React.createElement(Field, { label: "Peso checado", type: "number", min: "0", step: "0.01", value: form.checked_weight, onChange: (checked_weight) => setForm({ ...form, checked_weight }), required: true, disabled: !lookup || isAlreadyWeighed() }), /* @__PURE__ */ React.createElement("div", { className: "inline-submit" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit", disabled: !lookup || isAlreadyWeighed() }, "Salvar pesagem"))), /* @__PURE__ */ React.createElement("div", { className: "grid weighin-data" }, /* @__PURE__ */ React.createElement(Field, { label: "Nome", value: lookup?.athlete.name || "", readOnly: true, placeholder: "Atleta localizado" }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: lookup?.athlete.cpf || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Faixa", value: lookup ? beltLabels[lookup.athlete.belt] || lookup.athlete.belt : "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de idade", value: lookup?.category.age_group || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de peso", value: lookup?.category.weight_class || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Limite da categoria", value: lookup?.max_weight_kg ? `${lookup.max_weight_kg} kg` : "Sem limite superior", readOnly: true })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), warningOpen && /* @__PURE__ */ React.createElement("div", { className: "modal-backdrop", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "weight-alert" }, /* @__PURE__ */ React.createElement("h2", null, "Atleta nao bateu o peso"), /* @__PURE__ */ React.createElement("p", null, "O peso informado foi ", Number(form.checked_weight).toFixed(2), " kg e o limite da categoria e ", lookup.max_weight_kg, " kg."), /* @__PURE__ */ React.createElement("p", null, "Confirma o registro mesmo assim?"), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => setWarningOpen(false) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "primary danger", type: "button", onClick: confirmOverweight }, "Confirmar pesagem")))));
   }
   function CheckinPage() {
-    var _a, _b;
     const emptyForm = { competition_id: "", cpf: "" };
     const [competitions, setCompetitions] = useState([]);
     const [form, setForm] = useState(emptyForm);
@@ -1428,7 +1421,11 @@
           `/competitions/${nextForm.competition_id}/checkin-options?cpf=${encodeURIComponent(normalizeCpf(nextForm.cpf))}`
         );
         setLookup(data);
-        if (!data.checkin) {
+        if (data.checkin_closed) {
+          setMessage(["Checkin encerrado.", "error"]);
+        } else if (!data.checkin && data.is_super_heavy) {
+          setMessage(["Categoria super pesado: atleta apto para CHECKED sem pesagem.", "success"]);
+        } else if (!data.checkin) {
           setMessage(["Atleta sem pesagem registrada. Status: No Show.", "error"]);
         } else if (data.checkin.is_overweight) {
           setMessage(["Atleta nao bateu o peso. Status: Out of weight.", "error"]);
@@ -1441,19 +1438,27 @@
         setMessage([error.message, "error"]);
       }
     }
-    const canReady = (lookup == null ? void 0 : lookup.checkin) && !lookup.checkin.is_overweight && lookup.checkin.status !== "Checked";
-    const canNotReady = Boolean((lookup == null ? void 0 : lookup.checkin) && lookup.checkin.status !== "Checked");
+    const canReady = Boolean(
+      lookup && !lookup.checkin_closed && (lookup.checkin && !lookup.checkin.is_overweight && lookup.checkin.status !== "Checked" || !lookup.checkin && lookup.is_super_heavy)
+    );
+    const canNotReady = Boolean(
+      lookup && !lookup.checkin_closed && (lookup.checkin && lookup.checkin.status !== "Checked" || !lookup.checkin && lookup.is_super_heavy)
+    );
     async function setFightStatus(event, targetStatus) {
       event.preventDefault();
       if (!lookup) {
         setMessage(["Localize o atleta pelo CPF antes do checkin.", "error"]);
         return;
       }
-      if (!lookup.checkin) {
+      if (lookup.checkin_closed) {
+        setMessage(["Checkin encerrado.", "error"]);
+        return;
+      }
+      if (!lookup.checkin && !lookup.is_super_heavy) {
         setMessage(["Atleta sem pesagem registrada. Status: No Show.", "error"]);
         return;
       }
-      if (lookup.checkin.status === "Checked") {
+      if (lookup.checkin?.status === "Checked") {
         setMessage(["Atleta ja foi checado. Status: Checked.", "success"]);
         return;
       }
@@ -1469,7 +1474,7 @@
         }
         return;
       }
-      if (lookup.checkin.is_overweight) {
+      if (lookup.checkin?.is_overweight) {
         setMessage(["Atleta nao bateu o peso. Status: Out of weight.", "error"]);
         return;
       }
@@ -1483,11 +1488,11 @@
         setMessage([error.message, "error"]);
       }
     }
-    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("form", { className: "registration registration-inline weighin-form", onSubmit: (event) => setFightStatus(event, "ready") }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Checkin"), /* @__PURE__ */ React.createElement("span", null, lookup ? `Status: ${((_a = lookup.checkin) == null ? void 0 : _a.status) || lookup.status}` : "Localize o atleta pelo CPF")), /* @__PURE__ */ React.createElement("div", { className: "grid ready-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: form.competition_id, onChange: (competition_id) => {
+    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("form", { className: "registration registration-inline weighin-form", onSubmit: (event) => setFightStatus(event, "ready") }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Checkin"), /* @__PURE__ */ React.createElement("span", null, lookup ? `Status: ${lookup.checkin?.status || lookup.status}` : "Localize o atleta pelo CPF")), /* @__PURE__ */ React.createElement("div", { className: "grid ready-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: form.competition_id, onChange: (competition_id) => {
       const next = { ...form, competition_id };
       setForm(next);
       findAthlete(next);
-    }, required: true, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: form.cpf, onBlur: () => findAthlete(), onChange: (cpf) => setForm({ ...form, cpf: maskCpf(cpf) }), required: true }), /* @__PURE__ */ React.createElement("div", { className: "ready-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit", disabled: !canReady }, "CHECKED"), /* @__PURE__ */ React.createElement("button", { className: "danger-button", type: "button", disabled: !canNotReady, onClick: (event) => setFightStatus(event, "not-ready") }, "NO CHECKED"))), /* @__PURE__ */ React.createElement("div", { className: "grid weighin-data" }, /* @__PURE__ */ React.createElement(Field, { label: "Nome", value: (lookup == null ? void 0 : lookup.athlete.name) || "", readOnly: true, placeholder: "Atleta localizado" }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: (lookup == null ? void 0 : lookup.athlete.cpf) || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Faixa", value: lookup ? beltLabels[lookup.athlete.belt] || lookup.athlete.belt : "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de idade", value: (lookup == null ? void 0 : lookup.category.age_group) || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de peso", value: (lookup == null ? void 0 : lookup.category.weight_class) || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Status", value: lookup ? ((_b = lookup.checkin) == null ? void 0 : _b.status) || lookup.status : "", readOnly: true })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })));
+    }, required: true, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: form.cpf, onBlur: () => findAthlete(), onChange: (cpf) => setForm({ ...form, cpf: maskCpf(cpf) }), required: true }), /* @__PURE__ */ React.createElement("div", { className: "ready-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit", disabled: !canReady }, "CHECKED"), /* @__PURE__ */ React.createElement("button", { className: "danger-button", type: "button", disabled: !canNotReady, onClick: (event) => setFightStatus(event, "not-ready") }, "NO CHECKED"))), /* @__PURE__ */ React.createElement("div", { className: "grid weighin-data" }, /* @__PURE__ */ React.createElement(Field, { label: "Nome", value: lookup?.athlete.name || "", readOnly: true, placeholder: "Atleta localizado" }), /* @__PURE__ */ React.createElement(Field, { label: "CPF", value: lookup?.athlete.cpf || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Faixa", value: lookup ? beltLabels[lookup.athlete.belt] || lookup.athlete.belt : "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de idade", value: lookup?.category.age_group || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Categoria de peso", value: lookup?.category.weight_class || "", readOnly: true }), /* @__PURE__ */ React.createElement(Field, { label: "Status", value: lookup ? lookup.checkin?.status || lookup.status : "", readOnly: true })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })));
   }
   function FinalCheckPage() {
     const [competitions, setCompetitions] = useState([]);
@@ -1508,17 +1513,33 @@
         setMessage([error.message, "error"]);
       }
     }
+    async function closeCategory(categoryId) {
+      if (!competitionId) return;
+      const ok = window.confirm("Confirma o encerramento do checkin desta categoria?");
+      if (!ok) return;
+      try {
+        await fetchJson(`/competitions/${competitionId}/categories/${categoryId}/checkin/close`, {
+          method: "POST"
+        });
+        setMessage(["Checkin encerrado para a categoria.", "success"]);
+        setRows(await fetchJson(`/competitions/${competitionId}/final-checks`));
+      } catch (error) {
+        setMessage([error.message, "error"]);
+      }
+    }
     const groups = /* @__PURE__ */ new Map();
     rows.forEach((item) => {
       const key = [item.category.belt, item.category.age_group, item.category.weight_class].join("|");
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(item);
     });
-    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("section", { className: "registration checkin-toolbar" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Checagem Final"), /* @__PURE__ */ React.createElement("span", null, rows.length, " atleta(s) na checagem final")), /* @__PURE__ */ React.createElement("div", { className: "grid final-check-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", className: "wide", value: competitionId, onChange: load, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), /* @__PURE__ */ React.createElement("section", { className: "panel checkin-panel" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-groups" }, !competitionId && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Selecione uma competicao para consultar a checagem final."), competitionId && !rows.length && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum atleta inscrito nesta competicao."), [...groups.entries()].map(([key, items]) => /* @__PURE__ */ React.createElement(FinalCheckGroup, { groupKey: key, items, key })))));
+    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("section", { className: "registration checkin-toolbar" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Checagem Final"), /* @__PURE__ */ React.createElement("span", null, rows.length, " atleta(s) na checagem final")), /* @__PURE__ */ React.createElement("div", { className: "grid final-check-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", className: "wide", value: competitionId, onChange: load, options: [["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])] })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), /* @__PURE__ */ React.createElement("section", { className: "panel checkin-panel" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-groups" }, !competitionId && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Selecione uma competicao para consultar a checagem final."), competitionId && !rows.length && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhum atleta inscrito nesta competicao."), [...groups.entries()].map(([key, items]) => /* @__PURE__ */ React.createElement(FinalCheckGroup, { groupKey: key, items, key, onCloseCategory: closeCategory })))));
   }
-  function FinalCheckGroup({ groupKey, items }) {
+  function FinalCheckGroup({ groupKey, items, onCloseCategory }) {
     const [belt, ageGroup, weight] = groupKey.split("|");
-    return /* @__PURE__ */ React.createElement("section", { className: "checkin-group" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [beltLabels[belt] || belt, ageGroup, weight].join(" | ")), /* @__PURE__ */ React.createElement("span", null, items.length, " atleta(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table final-check-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Peso checado"), /* @__PURE__ */ React.createElement("th", null, "Status da checagem"))), /* @__PURE__ */ React.createElement("tbody", null, items.map((item) => /* @__PURE__ */ React.createElement("tr", { key: item.registration_id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Peso checado" }, item.checked_weight ? `${Number(item.checked_weight).toFixed(2)} kg` : "-"), /* @__PURE__ */ React.createElement("td", { "data-label": "Status da checagem" }, /* @__PURE__ */ React.createElement("span", { className: `check-status ${item.status.toLowerCase().replace(/\s+/g, "-")}` }, item.status))))))));
+    const closed = items.some((item) => item.checkin_closed);
+    const categoryId = items[0]?.category.id;
+    return /* @__PURE__ */ React.createElement("section", { className: "checkin-group" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [beltLabels[belt] || belt, ageGroup, weight].join(" | ")), /* @__PURE__ */ React.createElement("div", { className: "checkin-group-actions" }, /* @__PURE__ */ React.createElement("span", null, closed ? "Checkin encerrado" : `${items.length} atleta(s)`), /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", type: "button", disabled: closed, onClick: () => onCloseCategory?.(categoryId) }, "Encerrar Checkin"))), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table final-check-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Peso checado"), /* @__PURE__ */ React.createElement("th", null, "Status da checagem"))), /* @__PURE__ */ React.createElement("tbody", null, items.map((item) => /* @__PURE__ */ React.createElement("tr", { key: item.registration_id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Peso checado" }, item.weight_display || (item.checked_weight ? `${Number(item.checked_weight).toFixed(2)} kg` : "-")), /* @__PURE__ */ React.createElement("td", { "data-label": "Status da checagem" }, /* @__PURE__ */ React.createElement("span", { className: `check-status ${item.status.toLowerCase().replace(/\s+/g, "-")}` }, item.status))))))));
   }
   function AthleteListPage() {
     const [competitions, setCompetitions] = useState([]);
@@ -1551,10 +1572,7 @@
   }
   function CheckinGroup({ groupKey, items }) {
     const [sex, belt, ageGroup, weight] = groupKey.split("|");
-    return /* @__PURE__ */ React.createElement("section", { className: "checkin-group" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [sexLabels[sex] || sex, beltLabels[belt] || belt, ageGroup, weight].join(" | ")), /* @__PURE__ */ React.createElement("span", null, items.length, " atleta(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Equipe"), /* @__PURE__ */ React.createElement("th", null, "CPF"), /* @__PURE__ */ React.createElement("th", null, "Nascimento"), /* @__PURE__ */ React.createElement("th", null, "Inscricao"))), /* @__PURE__ */ React.createElement("tbody", null, items.map((item) => {
-      var _a;
-      return /* @__PURE__ */ React.createElement("tr", { key: item.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Equipe" }, (_a = item.athlete.team) == null ? void 0 : _a.name), /* @__PURE__ */ React.createElement("td", { "data-label": "CPF" }, item.athlete.cpf), /* @__PURE__ */ React.createElement("td", { "data-label": "Nascimento" }, item.athlete.birth_date), /* @__PURE__ */ React.createElement("td", { "data-label": "Inscricao" }, "#", item.id));
-    })))));
+    return /* @__PURE__ */ React.createElement("section", { className: "checkin-group" }, /* @__PURE__ */ React.createElement("div", { className: "checkin-group-heading" }, /* @__PURE__ */ React.createElement("h2", null, [sexLabels[sex] || sex, beltLabels[belt] || belt, ageGroup, weight].join(" | ")), /* @__PURE__ */ React.createElement("span", null, items.length, " atleta(s)")), /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Atleta"), /* @__PURE__ */ React.createElement("th", null, "Equipe"), /* @__PURE__ */ React.createElement("th", null, "CPF"), /* @__PURE__ */ React.createElement("th", null, "Nascimento"), /* @__PURE__ */ React.createElement("th", null, "Inscricao"))), /* @__PURE__ */ React.createElement("tbody", null, items.map((item) => /* @__PURE__ */ React.createElement("tr", { key: item.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Atleta" }, item.athlete.name), /* @__PURE__ */ React.createElement("td", { "data-label": "Equipe" }, item.athlete.team?.name), /* @__PURE__ */ React.createElement("td", { "data-label": "CPF" }, item.athlete.cpf), /* @__PURE__ */ React.createElement("td", { "data-label": "Nascimento" }, item.athlete.birth_date), /* @__PURE__ */ React.createElement("td", { "data-label": "Inscricao" }, "#", item.id)))))));
   }
   const ORDEM_REFRESH_MS = 2 * 60 * 1e3;
   const IBJJF_AGE_GROUPS = [
@@ -1752,13 +1770,12 @@
       return () => clearInterval(interval);
     }, []);
     const allMatches = useMemo(() => {
-      var _a;
       const result = [];
       for (const bracket of brackets) {
         const maxRound = Math.max(...bracket.matches.map((m) => m.round_number), 0);
         for (const match of bracket.matches) {
           if (!match.schedule) continue;
-          if ((_a = match.result) == null ? void 0 : _a.finalized) continue;
+          if (match.result?.finalized) continue;
           result.push({ match, bracket, maxRound });
         }
       }
@@ -1792,23 +1809,21 @@
       "Dia ",
       d
     ))), matColumns.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-grid" }, matColumns.map(([matNumber, items]) => /* @__PURE__ */ React.createElement("div", { key: matNumber, className: "ordem-mat-col" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-mat-label" }, "MAT ", matNumber), /* @__PURE__ */ React.createElement("span", { className: "ordem-mat-count" }, items.length, " luta", items.length !== 1 ? "s" : "")), /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-fights" }, items.map(({ match, bracket, maxRound }) => {
-      var _a, _b;
       const sched = match.schedule;
       const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       const round = roundLabel(match.round_number, maxRound);
       const cat = bracket.category;
-      const finished = (_a = match.result) == null ? void 0 : _a.finalized;
+      const finished = match.result?.finalized;
       const athleteA = match.athlete_a;
       const athleteB = match.athlete_b;
-      const winnerId = (_b = match.winner) == null ? void 0 : _b.id;
+      const winnerId = match.winner?.id;
       return /* @__PURE__ */ React.createElement("div", { key: match.id, className: `ordem-fight ${finished ? "ordem-fight--done" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-time" }, time), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-round" }, round), finished && /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-done" }, "OK")), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-cat" }, cat.age_group, " | ", beltLabels[cat.belt] || cat.belt, " | ", cat.weight_class), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-athletes" }, /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: athleteA, winnerId, side: "a" }), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-vs" }, "* * *"), /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: athleteB, winnerId, side: "b" })));
     }))))), !loading && competitionId && !matColumns.length && !message[0] && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhuma luta agendada. Gere as chaves e o cronograma primeiro."));
   }
   function OrdemAthlete({ athlete, winnerId, side }) {
-    var _a;
     const isWinner = athlete && winnerId === athlete.id;
     const isLoser = winnerId && athlete && winnerId !== athlete.id;
-    return /* @__PURE__ */ React.createElement("div", { className: `ordem-athlete ${isWinner ? "ordem-athlete--winner" : ""} ${isLoser ? "ordem-athlete--loser" : ""}` }, athlete ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-name" }, athlete.name), /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-team" }, ((_a = athlete.team) == null ? void 0 : _a.name) || "-")) : /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-tbd" }, "A definir"));
+    return /* @__PURE__ */ React.createElement("div", { className: `ordem-athlete ${isWinner ? "ordem-athlete--winner" : ""} ${isLoser ? "ordem-athlete--loser" : ""}` }, athlete ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-name" }, athlete.name), /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-team" }, athlete.team?.name || "-")) : /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-tbd" }, "A definir"));
   }
   const SEX_LABELS = { male: "Masculino", female: "Feminino" };
   const BELT_ORDER = ["white", "gray", "gray_white", "gray_black", "yellow", "yellow_white", "yellow_black", "orange", "orange_white", "orange_black", "green", "green_white", "green_black", "blue", "purple", "brown", "black", "red_black", "red_white", "red"];
@@ -1957,7 +1972,7 @@
     }))));
   }
   function Field({ label, value, onChange, className = "", ...props }) {
-    return /* @__PURE__ */ React.createElement("label", { className: `field ${className}`.trim() }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("input", { value, onChange: (event) => onChange == null ? void 0 : onChange(event.target.value), ...props }));
+    return /* @__PURE__ */ React.createElement("label", { className: `field ${className}`.trim() }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("input", { value, onChange: (event) => onChange?.(event.target.value), ...props }));
   }
   function Select({ label, value, onChange, options, className = "", ...props }) {
     return /* @__PURE__ */ React.createElement("label", { className: `field ${className}`.trim() }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("select", { value, onChange: (event) => onChange(event.target.value), ...props }, options.map(([optionValue, labelText]) => /* @__PURE__ */ React.createElement("option", { value: optionValue, key: `${optionValue}-${labelText}` }, labelText))));
