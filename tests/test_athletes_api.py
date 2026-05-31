@@ -317,6 +317,8 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "FINALS" in react_app_response.text
     assert "function buildConnectorPath" in react_app_response.text
     assert "ibjjf-connectors" in react_app_response.text
+    assert "Classificacao Final" in react_app_response.text
+    assert "function bracketPodiumItems" in react_app_response.text
     assert "bracket-check-status" in react_app_response.text
     assert "fight-clock" in react_app_response.text
     assert "width: 100vw" in styles_response.text

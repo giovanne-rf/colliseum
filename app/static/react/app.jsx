@@ -1499,6 +1499,7 @@ function BracketSheet({ bracket, onOpenFight, onBlockedFight, showDirectLink = f
         <div className="ibjjf-board">
           <CompactBracket bracket={bracket} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
+        <BracketPodium bracket={bracket} />
       </section>
       <div className="ibjjf-sheet-actions">
         {showDirectLink && <a className="secondary button-link" href={`/chaves/${bracket.id}`}>URL da chave</a>}
@@ -1509,6 +1510,55 @@ function BracketSheet({ bracket, onOpenFight, onBlockedFight, showDirectLink = f
       </div>
     </section>
   );
+}
+
+function BracketPodium({ bracket }) {
+  const items = bracketPodiumItems(bracket);
+  return (
+    <section className="bracket-podium" aria-label="Classificacao final">
+      <h2>Classificacao Final</h2>
+      <div className="bracket-podium-list">
+        {items.map((item, index) => (
+          <div className={`bracket-podium-item position-${item.position}`} key={`${item.position}-${index}`}>
+            <div className="bracket-podium-rank">
+              <strong>{item.position}</strong>
+              <span aria-hidden="true">🏆</span>
+            </div>
+            <div className="bracket-podium-athlete">
+              <strong>{item.athlete?.name || "A definir"}</strong>
+              <span>{item.athlete?.team?.name || "-"}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function bracketPodiumItems(bracket) {
+  const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+  const semifinalMatches = bracket.matches
+    .filter((match) => match.round_number === bracket.rounds - 1)
+    .sort((left, right) => left.match_number - right.match_number);
+  return [
+    { position: 1, athlete: matchWinner(finalMatch) },
+    { position: 2, athlete: matchLoser(finalMatch) },
+    ...semifinalMatches.slice(0, 2).map((match) => ({ position: 3, athlete: matchLoser(match) })),
+  ];
+}
+
+function matchWinner(match) {
+  if (!match) return null;
+  const winnerId = match.result?.winner_id || match.winner?.id;
+  if (!winnerId) return null;
+  return [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId) || null;
+}
+
+function matchLoser(match) {
+  if (!match) return null;
+  const winnerId = match.result?.winner_id || match.winner?.id;
+  if (!winnerId || !match.athlete_a || !match.athlete_b) return null;
+  return match.athlete_a.id === winnerId ? match.athlete_b : match.athlete_a;
 }
 
 function CompactBracket({ bracket, onOpenFight, onBlockedFight }) {

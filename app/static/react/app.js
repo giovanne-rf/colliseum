@@ -886,7 +886,32 @@
         setExporting(false);
       }
     }
-    return /* @__PURE__ */ React.createElement("section", { className: "ibjjf-sheet-wrap" }, /* @__PURE__ */ React.createElement("section", { className: "ibjjf-sheet", ref: sheetRef }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-sheet-header" }, /* @__PURE__ */ React.createElement("p", { className: "ibjjf-kicker" }, "FJJPE"), /* @__PURE__ */ React.createElement("h2", null, categoryLabel(bracket.category)), /* @__PURE__ */ React.createElement("span", null, "ID ", bracket.id, " | ", summary)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-board" }, /* @__PURE__ */ React.createElement(CompactBracket, { bracket, onOpenFight, onBlockedFight }))), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-sheet-actions" }, showDirectLink && /* @__PURE__ */ React.createElement("a", { className: "secondary button-link", href: `/chaves/${bracket.id}` }, "URL da chave"), /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: exportPdf, disabled: exporting }, exporting ? "Exportando PDF" : "Exportar PDF"), exportError && /* @__PURE__ */ React.createElement("span", { className: "pdf-error" }, exportError)));
+    return /* @__PURE__ */ React.createElement("section", { className: "ibjjf-sheet-wrap" }, /* @__PURE__ */ React.createElement("section", { className: "ibjjf-sheet", ref: sheetRef }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-sheet-header" }, /* @__PURE__ */ React.createElement("p", { className: "ibjjf-kicker" }, "FJJPE"), /* @__PURE__ */ React.createElement("h2", null, categoryLabel(bracket.category)), /* @__PURE__ */ React.createElement("span", null, "ID ", bracket.id, " | ", summary)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-board" }, /* @__PURE__ */ React.createElement(CompactBracket, { bracket, onOpenFight, onBlockedFight })), /* @__PURE__ */ React.createElement(BracketPodium, { bracket })), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-sheet-actions" }, showDirectLink && /* @__PURE__ */ React.createElement("a", { className: "secondary button-link", href: `/chaves/${bracket.id}` }, "URL da chave"), /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: exportPdf, disabled: exporting }, exporting ? "Exportando PDF" : "Exportar PDF"), exportError && /* @__PURE__ */ React.createElement("span", { className: "pdf-error" }, exportError)));
+  }
+  function BracketPodium({ bracket }) {
+    const items = bracketPodiumItems(bracket);
+    return /* @__PURE__ */ React.createElement("section", { className: "bracket-podium", "aria-label": "Classificacao final" }, /* @__PURE__ */ React.createElement("h2", null, "Classificacao Final"), /* @__PURE__ */ React.createElement("div", { className: "bracket-podium-list" }, items.map((item, index) => /* @__PURE__ */ React.createElement("div", { className: `bracket-podium-item position-${item.position}`, key: `${item.position}-${index}` }, /* @__PURE__ */ React.createElement("div", { className: "bracket-podium-rank" }, /* @__PURE__ */ React.createElement("strong", null, item.position), /* @__PURE__ */ React.createElement("span", { "aria-hidden": "true" }, "\u{1F3C6}")), /* @__PURE__ */ React.createElement("div", { className: "bracket-podium-athlete" }, /* @__PURE__ */ React.createElement("strong", null, item.athlete?.name || "A definir"), /* @__PURE__ */ React.createElement("span", null, item.athlete?.team?.name || "-"))))));
+  }
+  function bracketPodiumItems(bracket) {
+    const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+    const semifinalMatches = bracket.matches.filter((match) => match.round_number === bracket.rounds - 1).sort((left, right) => left.match_number - right.match_number);
+    return [
+      { position: 1, athlete: matchWinner(finalMatch) },
+      { position: 2, athlete: matchLoser(finalMatch) },
+      ...semifinalMatches.slice(0, 2).map((match) => ({ position: 3, athlete: matchLoser(match) }))
+    ];
+  }
+  function matchWinner(match) {
+    if (!match) return null;
+    const winnerId = match.result?.winner_id || match.winner?.id;
+    if (!winnerId) return null;
+    return [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId) || null;
+  }
+  function matchLoser(match) {
+    if (!match) return null;
+    const winnerId = match.result?.winner_id || match.winner?.id;
+    if (!winnerId || !match.athlete_a || !match.athlete_b) return null;
+    return match.athlete_a.id === winnerId ? match.athlete_b : match.athlete_a;
   }
   function CompactBracket({ bracket, onOpenFight, onBlockedFight }) {
     const halfSize = bracket.bracket_size / 2;

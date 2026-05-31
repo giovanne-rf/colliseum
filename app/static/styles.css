@@ -783,6 +783,88 @@ button:disabled {
   gap: 46px;
 }
 
+.bracket-podium {
+  display: grid;
+  gap: 14px;
+  width: min(760px, 100%);
+  margin: 46px auto 0;
+}
+
+.bracket-podium h2 {
+  margin: 0;
+  color: #222;
+  font-size: 22px;
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.bracket-podium-list {
+  display: grid;
+  gap: 8px;
+}
+
+.bracket-podium-item {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  align-items: center;
+  min-height: 58px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(17, 17, 17, 0.1);
+}
+
+.bracket-podium-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.bracket-podium-rank span {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.bracket-podium-athlete {
+  min-width: 0;
+  padding: 8px 14px;
+}
+
+.bracket-podium-athlete strong,
+.bracket-podium-athlete span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.bracket-podium-athlete strong {
+  color: #111;
+  font-size: 18px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.bracket-podium-athlete span {
+  margin-top: 2px;
+  color: #111;
+  font-size: 13px;
+}
+
+.bracket-podium-item.position-1 .bracket-podium-rank {
+  color: #f2b400;
+}
+
+.bracket-podium-item.position-2 .bracket-podium-rank {
+  color: #9d9d9d;
+}
+
+.bracket-podium-item.position-3 .bracket-podium-rank {
+  color: #9a5a00;
+}
+
 .ibjjf-compact-board {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(230px, 18vw, 330px) minmax(0, 1fr);
@@ -2327,6 +2409,22 @@ button:disabled {
     font-size: 20px;
   }
 
+  .bracket-podium {
+    margin-top: 30px;
+  }
+
+  .bracket-podium-item {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .bracket-podium-rank {
+    font-size: 28px;
+  }
+
+  .bracket-podium-rank span {
+    font-size: 26px;
+  }
+
   .fight-athlete-row {
     grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(100px, 0.42fr));
     gap: 12px;
@@ -2464,6 +2562,28 @@ button:disabled {
   .check-status {
     min-width: 0;
     width: fit-content;
+  }
+
+  .bracket-podium-item {
+    grid-template-columns: 72px minmax(0, 1fr);
+    min-height: 54px;
+  }
+
+  .bracket-podium-rank {
+    gap: 5px;
+    font-size: 24px;
+  }
+
+  .bracket-podium-rank span {
+    font-size: 22px;
+  }
+
+  .bracket-podium-athlete {
+    padding: 7px 10px;
+  }
+
+  .bracket-podium-athlete strong {
+    font-size: 14px;
   }
 
   .fight-athlete-row {
