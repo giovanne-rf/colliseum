@@ -396,7 +396,7 @@ function AtletaEditPage({ athleteId }) {
   useEffect(() => {
     Promise.all([
       fetchJson(`/athletes/${athleteId}`),
-      fetchJson("/teams?limit=200&offset=0"),
+      fetchJson("/teams?limit=100&offset=0"),
     ]).then(([athlete, teamsPage]) => {
       setForm({
         name: athlete.name,
@@ -767,7 +767,7 @@ function RegistrationsPage() {
 
   useEffect(() => {
     fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
-    fetchJson("/teams?limit=200&offset=0").then((page) => setTeams(page.items)).catch(() => {});
+    fetchJson("/teams?limit=100&offset=0").then((page) => setTeams(page.items)).catch(() => {});
   }, []);
 
   async function verify(nextForm = form) {
