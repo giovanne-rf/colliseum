@@ -1,10 +1,14 @@
 const { useEffect, useLayoutEffect, useMemo, useRef, useState } = React;
 
+// nav: flat items are [path, label], dropdown items are {label, items: [[path, label], ...]}
 const routes = [
+  { label: "ATLETAS", items: [
+    ["/atletas", "Listagem"],
+    ["/cadastros", "Cadastro"],
+  ]},
   ["/categorias", "CATEGORIAS"],
   ["/config-categorias", "CONFIG. CATEGORIAS"],
   ["/ordem", "ORDEM DE LUTAS"],
-  ["/cadastros", "ATHLETES"],
   ["/equipes", "ACADEMIES"],
   ["/competicoes", "CHAMPIONSHIPS"],
   ["/inscricoes", "REGISTRATION"],
@@ -183,24 +187,60 @@ function App() {
     fetchJson("/health").then(() => setApiOk(true)).catch(() => setApiOk(false));
   }, []);
 
-  const title = bracketRouteId ? `CHAVE #${bracketRouteId}` : routes.find(([route]) => route === path)?.[1] || "ATHLETES";
+  const athleteEditMatch = path.match(/^\/atletas\/(\d+)$/);
+  const athleteEditId = athleteEditMatch ? Number(athleteEditMatch[1]) : null;
+
+  function findRouteLabel(p) {
+    for (const r of routes) {
+      if (Array.isArray(r) && r[0] === p) return r[1];
+      if (r.items) { const found = r.items.find(([rp]) => rp === p); if (found) return found[1]; }
+    }
+    return null;
+  }
+
+  const title = bracketRouteId
+    ? `CHAVE #${bracketRouteId}`
+    : athleteEditId
+      ? `EDITAR ATLETA #${athleteEditId}`
+      : (findRouteLabel(path) || "ATHLETES");
+
   const isBracket = path === "/chaves" || path === "/chaves/salvas" || Boolean(bracketRouteId);
   const isCategorias = path === "/categorias";
   const isOrdem = path === "/ordem";
 
+  const knownPaths = [
+    "/atletas", "/cadastros", "/categorias", "/config-categorias", "/ordem",
+    "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas",
+    "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking",
+  ];
+
   return (
     <>
       <header className="ibjjf-mainbar">
-        <a className="brand" href="/cadastros" aria-label="FJJPE">
+        <a className="brand" href="/atletas" aria-label="FJJPE">
           <img className="brand-logo" src="/static/fjjpe-logo.png" alt="FJJPE" />
           <strong>FJJPE</strong>
         </a>
         <nav className="site-nav" aria-label="Principal">
-          {routes.map(([route, label]) => (
-            <a className={route === path ? "active" : ""} href={route} key={route}>
-              {label}
-            </a>
-          ))}
+          {routes.map((r) => {
+            if (Array.isArray(r)) {
+              return (
+                <a className={r[0] === path ? "active" : ""} href={r[0]} key={r[0]}>{r[1]}</a>
+              );
+            }
+            // dropdown
+            const isActive = r.items.some(([rp]) => rp === path || (rp === "/atletas" && Boolean(athleteEditId)));
+            return (
+              <div className={`nav-dropdown ${isActive ? "active" : ""}`} key={r.label}>
+                <span className="nav-dropdown-trigger">{r.label} ▾</span>
+                <div className="nav-dropdown-menu">
+                  {r.items.map(([rp, rl]) => (
+                    <a key={rp} href={rp} className={rp === path ? "active" : ""}>{rl}</a>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </nav>
         <div className={`status top-status ${apiOk ? "ok" : ""}`}>{apiOk ? "Online" : "Conectando"}</div>
       </header>
@@ -208,6 +248,8 @@ function App() {
         <h1>{title}</h1>
       </section>
       <main className={`shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""} ${isOrdem ? "ordem-shell" : ""}`.trim()}>
+        {path === "/atletas" && <AtletasListPage />}
+        {athleteEditId && <AtletaEditPage athleteId={athleteEditId} />}
         {path === "/categorias" && <CategoriasPage />}
         {path === "/config-categorias" && <ConfigCategoriasPage />}
         {path === "/ordem" && <OrdemPage />}
@@ -223,11 +265,212 @@ function App() {
         {path === "/checkin" && <CheckinPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
-        {!bracketRouteId && !["/categorias", "/config-categorias", "/ordem", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas", "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking"].includes(path) && (
-          <AthletesPage />
-        )}
+        {!bracketRouteId && !athleteEditId && ![...knownPaths].includes(path) && <AthletesPage />}
       </main>
     </>
+  );
+}
+
+function AtletasListPage() {
+  const [athletes, setAthletes] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(["", ""]);
+  const PAGE_SIZE = 50;
+  const [offset, setOffset] = useState(0);
+
+  async function load(off = 0, q = search) {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: PAGE_SIZE, offset: off });
+      const data = await fetchJson(`/athletes?${params}`);
+      setAthletes(data.items);
+      setTotal(data.total);
+      setOffset(off);
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(0); }, []);
+
+  const filtered = athletes.filter((a) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      a.name.toLowerCase().includes(q) ||
+      a.cpf.includes(q) ||
+      (a.team?.name || "").toLowerCase().includes(q)
+    );
+  });
+
+  function formatDate(d) {
+    if (!d) return "—";
+    const [y, m, day] = d.split("-");
+    return `${day}/${m}/${y}`;
+  }
+
+  return (
+    <section className="workspace stack">
+      <section className="panel atletas-list-panel">
+        <div className="section-heading">
+          <h2>Atletas Cadastrados</h2>
+          <span>{total} atleta(s) no total</span>
+        </div>
+        <div className="filters single" style={{marginBottom: "14px"}}>
+          <input
+            type="search"
+            placeholder="Buscar por nome, CPF ou academia..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{width:"100%"}}
+          />
+        </div>
+        {loading && <p className="message">Carregando...</p>}
+        <Message text={message[0]} type={message[1]} />
+        {!loading && (
+          <div className="checkin-table-wrap">
+            <table className="checkin-table atletas-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>Nascimento</th>
+                  <th>Faixa</th>
+                  <th>Academia</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr><td colSpan="6" style={{textAlign:"center",color:"var(--muted)"}}>Nenhum atleta encontrado.</td></tr>
+                )}
+                {filtered.map((a) => (
+                  <tr key={a.id}>
+                    <td data-label="Nome">{a.name}</td>
+                    <td data-label="CPF">{a.cpf}</td>
+                    <td data-label="Nascimento">{formatDate(a.birth_date)}</td>
+                    <td data-label="Faixa">{beltLabels[a.belt] || a.belt}</td>
+                    <td data-label="Academia">{a.team?.name || <span style={{color:"var(--muted)"}}>Sem academia</span>}</td>
+                    <td data-label="Editar">
+                      <a className="atleta-edit-btn" href={`/atletas/${a.id}`} title="Editar">✏</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {total > PAGE_SIZE && (
+          <div className="atletas-pagination">
+            <button className="secondary compact-button" disabled={offset === 0} onClick={() => load(offset - PAGE_SIZE)}>← Anterior</button>
+            <span>{Math.floor(offset / PAGE_SIZE) + 1} / {Math.ceil(total / PAGE_SIZE)}</span>
+            <button className="secondary compact-button" disabled={offset + PAGE_SIZE >= total} onClick={() => load(offset + PAGE_SIZE)}>Próxima →</button>
+          </div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function AtletaEditPage({ athleteId }) {
+  const [form, setForm] = useState(null);
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    Promise.all([
+      fetchJson(`/athletes/${athleteId}`),
+      fetchJson("/teams?limit=200&offset=0"),
+    ]).then(([athlete, teamsPage]) => {
+      setForm({
+        name: athlete.name,
+        cpf: athlete.cpf,
+        email: athlete.email,
+        phone: athlete.phone,
+        sex: athlete.sex,
+        team_id: athlete.team_id ? String(athlete.team_id) : "",
+        belt: athlete.belt,
+        graduation_date: athlete.graduation_date,
+        birth_date: athlete.birth_date,
+      });
+      setTeams(teamsPage.items);
+      setLoading(false);
+    }).catch((err) => {
+      setMessage([err.message, "error"]);
+      setLoading(false);
+    });
+  }, [athleteId]);
+
+  async function submit(e) {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(["", ""]);
+    try {
+      const payload = {
+        ...form,
+        team_id: form.team_id ? Number(form.team_id) : null,
+      };
+      await fetchJson(`/athletes/${athleteId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      setMessage(["Cadastro atualizado com sucesso.", "success"]);
+    } catch (err) {
+      setMessage([err.message, "error"]);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <p className="message" style={{padding:"24px"}}>Carregando atleta...</p>;
+  if (!form) return <Message text={message[0]} type={message[1]} />;
+
+  return (
+    <section className="workspace stack">
+      <form className="registration" onSubmit={submit}>
+        <div className="section-heading">
+          <h2>Editar Atleta</h2>
+          <a href="/atletas" className="button-link secondary" style={{fontSize:"13px"}}>← Voltar à listagem</a>
+        </div>
+        <div className="grid">
+          <Field label="Nome" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
+          <label className="field">
+            <span>CPF</span>
+            <input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: maskCpf(e.target.value) })} required />
+          </label>
+          <Field label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} required />
+          <Field label="Telefone" value={form.phone} onChange={(phone) => setForm({ ...form, phone: maskAthletePhone(phone) })} required />
+          <Select label="Sexo" value={form.sex} onChange={(sex) => setForm({ ...form, sex })} required options={[
+            ["", "Selecione"],
+            ["male", "Masculino"],
+            ["female", "Feminino"],
+          ]} />
+          <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} options={[
+            ["", "Sem academia"],
+            ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((t) => [String(t.id), t.name]),
+          ]} />
+          <Select label="Faixa" value={form.belt} onChange={(belt) => setForm({ ...form, belt })} required options={[
+            ["", "Selecione"],
+            ...beltOptions,
+          ]} />
+          <Field label="Data da graduação" type="date" value={form.graduation_date} onChange={(graduation_date) => setForm({ ...form, graduation_date })} required />
+          <Field label="Data de nascimento" type="date" value={form.birth_date} onChange={(birth_date) => setForm({ ...form, birth_date })} required />
+        </div>
+        <div className="actions">
+          <a href="/atletas" className="button-link secondary">Cancelar</a>
+          <button className="primary" type="submit" disabled={saving}>
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </button>
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </form>
+    </section>
   );
 }
 

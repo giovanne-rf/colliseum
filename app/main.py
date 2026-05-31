@@ -41,6 +41,16 @@ async def frontend() -> RedirectResponse:
     return RedirectResponse(url="/cadastros")
 
 
+@app.get("/atletas", include_in_schema=False)
+async def atletas_list_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
+@app.get("/atletas/{athlete_id}", include_in_schema=False)
+async def atleta_edit_frontend(athlete_id: int) -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/categorias", include_in_schema=False)
 async def categorias_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")

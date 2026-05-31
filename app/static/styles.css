@@ -134,6 +134,103 @@ select {
   background: var(--blue-dark);
 }
 
+/* ── Nav dropdown ──────────────────────────────────────────────────── */
+
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.nav-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: 62px;
+  padding: 0 18px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  gap: 5px;
+}
+
+.nav-dropdown.active .nav-dropdown-trigger,
+.nav-dropdown:hover .nav-dropdown-trigger {
+  background: var(--blue-dark);
+}
+
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 160px;
+  background: var(--blue-dark);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  flex-direction: column;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: flex;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 11px 18px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  min-height: 0;
+}
+
+.nav-dropdown-menu a:last-child { border-bottom: 0; }
+
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a.active {
+  background: rgba(255,255,255,0.12);
+}
+
+/* ── Atletas list & edit ───────────────────────────────────────────── */
+
+.atletas-table { min-width: 700px; }
+
+.atleta-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--blue);
+  font-size: 16px;
+  text-decoration: none;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.atleta-edit-btn:hover {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.atletas-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
 .top-status {
   min-width: auto;
   border: 0;
