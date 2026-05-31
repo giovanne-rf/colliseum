@@ -361,7 +361,45 @@ class RegistrationService:
             )
             .order_by(Category.weight_class)
         )
-        return list(result.scalars().all())
+        categories = list(result.scalars().all())
+        if categories:
+            return categories
+        return await self._create_default_eligible_categories(
+            athlete=athlete,
+            age_group=age_group,
+            sex_prefix=sex_prefix,
+        )
+
+    async def _create_default_eligible_categories(
+        self,
+        *,
+        athlete: Athlete,
+        age_group: str,
+        sex_prefix: str,
+    ) -> list[Category]:
+        categories = [
+            Category(weight_class=weight_class, belt=athlete.belt, age_group=age_group)
+            for weight_class in _ibjjf_weight_classes(sex_prefix)
+        ]
+        self.session.add_all(categories)
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            result = await self.session.execute(
+                select(Category)
+                .where(
+                    Category.belt == athlete.belt,
+                    Category.age_group == age_group,
+                    Category.weight_class.ilike(f"{sex_prefix} -%"),
+                )
+                .order_by(Category.weight_class)
+            )
+            return list(result.scalars().all())
+
+        for category in categories:
+            await self.session.refresh(category)
+        return categories
 
 
 class CheckinService:
@@ -660,6 +698,31 @@ def ibjjf_age_group(age: int) -> str:
     if age >= 61:
         return "Master 7"
     raise ValidationError("Athlete is too young for IBJJF competition categories.")
+
+
+def _ibjjf_weight_classes(sex_prefix: str) -> list[str]:
+    if sex_prefix == "Female":
+        return [
+            "Female - Rooster (-48.5 kg)",
+            "Female - Light Feather (-53.5 kg)",
+            "Female - Feather (-58.5 kg)",
+            "Female - Light (-64.0 kg)",
+            "Female - Middle (-69.0 kg)",
+            "Female - Medium Heavy (-74.0 kg)",
+            "Female - Heavy (-79.3 kg)",
+            "Female - Super Heavy (+79.3 kg)",
+        ]
+    return [
+        "Male - Rooster (-57.5 kg)",
+        "Male - Light Feather (-64.0 kg)",
+        "Male - Feather (-70.0 kg)",
+        "Male - Light (-76.0 kg)",
+        "Male - Middle (-82.3 kg)",
+        "Male - Medium Heavy (-88.3 kg)",
+        "Male - Heavy (-94.3 kg)",
+        "Male - Super Heavy (-100.5 kg)",
+        "Male - Ultra Heavy (+100.5 kg)",
+    ]
 
 
 def max_weight_kg(weight_class: str) -> Decimal | None:

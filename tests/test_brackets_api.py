@@ -493,6 +493,30 @@ async def test_registration_options_validate_cpf_birth_date_and_filter_categorie
     assert invalid_response.status_code == 422
 
 
+async def test_registration_options_create_ibjjf_categories_when_missing(
+    client: AsyncClient,
+):
+    team_id = await create_team(client, "Equipe Categoria Automatica")
+    competition_id = await create_competition(client)
+    await create_athlete(client, 1, team_id)
+
+    options_response = await client.get(
+        f"/competitions/{competition_id}/registration-options",
+        params={"cpf": "529.982.247-25", "birth_date": "2002-05-14"},
+    )
+
+    assert options_response.status_code == 200
+    options = options_response.json()
+    weight_classes = [category["weight_class"] for category in options["categories"]]
+    assert len(weight_classes) == 9
+    assert "Male - Light (-76.0 kg)" in weight_classes
+    assert all(category["id"] for category in options["categories"])
+
+    categories_response = await client.get("/categories")
+    assert categories_response.status_code == 200
+    assert len(categories_response.json()) == 9
+
+
 async def test_checkin_lookup_and_confirm_overweight(client: AsyncClient):
     team_id = await create_team(client, "Equipe Pesagem")
     category_id = await create_category(client)
