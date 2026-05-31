@@ -1832,7 +1832,7 @@ function FightAthleteRow({ athlete, score, active = false, onScore, onAdjust, on
   return (
     <section className={`fight-athlete-row ${active ? "active" : ""}`.trim()}>
       <div className="fight-athlete-info">
-        <div className="fight-athlete-name"><span className="fight-flag" aria-label="Brasil">🇧🇷</span><strong>{athlete.name}</strong></div>
+        <div className="fight-athlete-name"><strong>{athlete.name}</strong></div>
         <span>{athlete.team?.name || ""}</span>
         <div className="fight-finish-actions">
           <button className="primary" type="button" onClick={onSubmission}>Finalizacao</button>
@@ -2410,7 +2410,7 @@ function CheckinGroup({ groupKey, items }) {
 
 const ORDEM_REFRESH_MS = 2 * 60 * 1000;
 
-// ── IBJJF category rules ────────────────────────────────────────────────────
+// -- IBJJF category rules --
 const IBJJF_AGE_GROUPS = [
   "Infantil 1", "Infantil 2", "Infantil 3", "Infantil 4", "Infantil 5",
   "Juvenil 1", "Juvenil 2",
@@ -2777,14 +2777,14 @@ function OrdemPage() {
                       <div className="ordem-fight-header">
                         <span className="ordem-fight-time">{time}</span>
                         <span className="ordem-fight-round">{round}</span>
-                        {finished && <span className="ordem-fight-done">✓</span>}
+                        {finished && <span className="ordem-fight-done">OK</span>}
                       </div>
                       <div className="ordem-fight-cat">
-                        {cat.age_group} · {beltLabels[cat.belt] || cat.belt} · {cat.weight_class}
+                        {cat.age_group} | {beltLabels[cat.belt] || cat.belt} | {cat.weight_class}
                       </div>
                       <div className="ordem-fight-athletes">
                         <OrdemAthlete athlete={athleteA} winnerId={winnerId} side="a" />
-                        <div className="ordem-fight-vs">✦ ✦ ✦</div>
+                        <div className="ordem-fight-vs">* * *</div>
                         <OrdemAthlete athlete={athleteB} winnerId={winnerId} side="b" />
                       </div>
                     </div>
@@ -2811,7 +2811,7 @@ function OrdemAthlete({ athlete, winnerId, side }) {
       {athlete ? (
         <>
           <span className="ordem-athlete-name">{athlete.name}</span>
-          <span className="ordem-athlete-team">{athlete.team?.name || "—"}</span>
+          <span className="ordem-athlete-team">{athlete.team?.name || "-"}</span>
         </>
       ) : (
         <span className="ordem-athlete-tbd">A definir</span>
@@ -3001,7 +3001,7 @@ function CategoriasPage() {
                         )}
                       </div>
                     </div>
-                    <div className="cat-card-arrow">›</div>
+                    <div className="cat-card-arrow">&rsaquo;</div>
                   </a>
                 );
               })}
