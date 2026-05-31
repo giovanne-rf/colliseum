@@ -6,6 +6,7 @@ from sqlalchemy import Select, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.athlete import Athlete
 from app.models.team import Team
 from app.schemas.team import TeamCreate, TeamUpdate
 from app.services.exceptions import ConflictError, NotFoundError
@@ -35,6 +36,7 @@ class TeamService:
             raise ConflictError("Team with the same name already exists.") from exc
 
         await self.session.refresh(team)
+        await self._assign_responsible_athlete_to_team(team)
         return team
 
     async def create_many(self, payloads: list[TeamCreate]) -> list[Team]:
@@ -51,6 +53,7 @@ class TeamService:
 
         for team in teams:
             await self.session.refresh(team)
+            await self._assign_responsible_athlete_to_team(team)
         return teams
 
     async def list(
@@ -101,6 +104,7 @@ class TeamService:
             raise ConflictError("Team with the same name already exists.") from exc
 
         await self.session.refresh(team)
+        await self._assign_responsible_athlete_to_team(team)
         return team
 
     async def delete(self, team_id: int) -> None:
@@ -133,3 +137,20 @@ class TeamService:
         result = await self.session.execute(stmt)
         if result.scalar_one_or_none() is not None:
             raise ConflictError("Team with the same name already exists.")
+
+    async def _assign_responsible_athlete_to_team(self, team: Team) -> None:
+        if not team.responsible:
+            return
+
+        result = await self.session.execute(
+            select(Athlete).where(func.lower(Athlete.name) == team.responsible.lower())
+        )
+        athletes = list(result.scalars().all())
+        if not athletes:
+            return
+
+        for athlete in athletes:
+            athlete.team_id = team.id
+
+        await self.session.commit()
+        await self.session.refresh(team)

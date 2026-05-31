@@ -43,6 +43,22 @@ def team_payload(**overrides):
     return payload
 
 
+def athlete_payload(**overrides):
+    payload = {
+        "name": "Carlos Gracie Jr.",
+        "cpf": "529.982.247-25",
+        "email": "carlos.gracie@example.com",
+        "phone": "11-98888.1234",
+        "sex": "male",
+        "team_id": None,
+        "belt": "black",
+        "graduation_date": "2024-01-01",
+        "birth_date": "1990-01-01",
+    }
+    payload.update(overrides)
+    return payload
+
+
 async def test_create_list_get_update_and_delete_team(client: AsyncClient):
     create_response = await client.post("/teams", json=team_payload())
 
@@ -71,6 +87,43 @@ async def test_create_list_get_update_and_delete_team(client: AsyncClient):
 
     missing_response = await client.get(f"/teams/{team['id']}")
     assert missing_response.status_code == 404
+
+
+async def test_create_team_assigns_responsible_athlete_to_team(client: AsyncClient):
+    athlete_response = await client.post("/athletes", json=athlete_payload())
+    assert athlete_response.status_code == 201
+    assert athlete_response.json()["team_id"] is None
+
+    team_response = await client.post("/teams", json=team_payload())
+    assert team_response.status_code == 201
+    team = team_response.json()
+
+    updated_athlete_response = await client.get(f"/athletes/{athlete_response.json()['id']}")
+    assert updated_athlete_response.status_code == 200
+    assert updated_athlete_response.json()["team_id"] == team["id"]
+    assert updated_athlete_response.json()["team"]["name"] == "Gracie Barra"
+
+
+async def test_update_team_assigns_new_responsible_athlete_to_team(client: AsyncClient):
+    athlete_response = await client.post(
+        "/athletes",
+        json=athlete_payload(
+            name="Marcio Feitosa",
+            cpf="390.533.447-05",
+            email="marcio@example.com",
+        ),
+    )
+    team_response = await client.post("/teams", json=team_payload(responsible="Carlos Gracie Jr."))
+    team = team_response.json()
+
+    update_response = await client.put(
+        f"/teams/{team['id']}",
+        json={"responsible": "Marcio Feitosa"},
+    )
+
+    assert update_response.status_code == 200
+    updated_athlete_response = await client.get(f"/athletes/{athlete_response.json()['id']}")
+    assert updated_athlete_response.json()["team_id"] == team["id"]
 
 
 async def test_prevent_duplicate_team_name(client: AsyncClient):
