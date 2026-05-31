@@ -956,8 +956,22 @@ function RegistrationsPage() {
 
   useEffect(() => {
     fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
-    fetchJson("/teams?limit=100&offset=0").then((page) => setTeams(page.items)).catch(() => {});
+    loadAllTeams().then(setTeams).catch(() => {});
   }, []);
+
+  async function loadAllTeams() {
+    const limit = 100;
+    let offset = 0;
+    let items = [];
+    let total = 0;
+    do {
+      const page = await fetchJson(`/teams?limit=${limit}&offset=${offset}`);
+      items = [...items, ...page.items];
+      total = page.total;
+      offset += limit;
+    } while (items.length < total);
+    return items.sort((a, b) => a.name.localeCompare(b.name));
+  }
 
   async function verify(nextForm = form) {
     setOptions(null);
@@ -970,9 +984,8 @@ function RegistrationsPage() {
         `/competitions/${nextForm.competition_id}/registration-options?cpf=${encodeURIComponent(normalizeCpf(nextForm.cpf))}&birth_date=${nextForm.birth_date}`,
       );
       setOptions(data);
-      setStatus(`${data.age_group} | ${data.age} anos`);
-      // pre-fill team from athlete if already set
-      setForm((f) => ({ ...f, team_id: data.athlete.team_id ? String(data.athlete.team_id) : "" }));
+      setStatus(`${data.age_group} | ${beltLabels[data.athlete.belt] || data.athlete.belt} | ${data.age} anos`);
+      setForm((f) => ({ ...f, team_id: "", category_id: "" }));
       setMessage(["", ""]);
     } catch (error) {
       setStatus("Dados nao conferem");
@@ -1033,11 +1046,11 @@ function RegistrationsPage() {
           <Field label="Atleta confirmado" value={athleteLabel} readOnly placeholder="Confirmado apos validacao" />
           <Select label="Academia" value={form.team_id} onChange={(team_id) => setForm({ ...form, team_id })} required disabled={!options} options={[
             ["", options ? "Selecione a academia" : "Aguardando validacao"],
-            ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((t) => [String(t.id), t.name]),
+            ...teams.map((t) => [String(t.id), t.name]),
           ]} />
           <Select label="Categoria" value={form.category_id} onChange={(category_id) => setForm({ ...form, category_id })} required disabled={!options} options={[
-            ["", options ? "Selecione a categoria" : "Aguardando validacao"],
-            ...(options?.categories || []).map((category) => [String(category.id), categoryLabel(category)]),
+            ["", options ? "Selecione a categoria de peso" : "Aguardando validacao"],
+            ...(options?.categories || []).map((category) => [String(category.id), category.weight_class]),
           ]} />
           <div className="inline-submit">
             <button className="primary" type="submit" disabled={!options || !form.team_id}>Inscrever atleta</button>

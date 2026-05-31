@@ -599,9 +599,22 @@
     const [message, setMessage] = useState(["", ""]);
     useEffect(() => {
       fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
-      fetchJson("/teams?limit=100&offset=0").then((page) => setTeams(page.items)).catch(() => {
+      loadAllTeams().then(setTeams).catch(() => {
       });
     }, []);
+    async function loadAllTeams() {
+      const limit = 100;
+      let offset = 0;
+      let items = [];
+      let total = 0;
+      do {
+        const page = await fetchJson(`/teams?limit=${limit}&offset=${offset}`);
+        items = [...items, ...page.items];
+        total = page.total;
+        offset += limit;
+      } while (items.length < total);
+      return items.sort((a, b) => a.name.localeCompare(b.name));
+    }
     async function verify(nextForm = form) {
       setOptions(null);
       if (!nextForm.competition_id || normalizeCpf(nextForm.cpf).length !== 11 || !nextForm.birth_date) {
@@ -613,8 +626,8 @@
           `/competitions/${nextForm.competition_id}/registration-options?cpf=${encodeURIComponent(normalizeCpf(nextForm.cpf))}&birth_date=${nextForm.birth_date}`
         );
         setOptions(data);
-        setStatus(`${data.age_group} | ${data.age} anos`);
-        setForm((f) => ({ ...f, team_id: data.athlete.team_id ? String(data.athlete.team_id) : "" }));
+        setStatus(`${data.age_group} | ${beltLabels[data.athlete.belt] || data.athlete.belt} | ${data.age} anos`);
+        setForm((f) => ({ ...f, team_id: "", category_id: "" }));
         setMessage(["", ""]);
       } catch (error) {
         setStatus("Dados nao conferem");
@@ -660,10 +673,10 @@
       verify(next);
     }, required: true }), /* @__PURE__ */ React.createElement(Field, { label: "Atleta confirmado", value: athleteLabel, readOnly: true, placeholder: "Confirmado apos validacao" }), /* @__PURE__ */ React.createElement(Select, { label: "Academia", value: form.team_id, onChange: (team_id) => setForm({ ...form, team_id }), required: true, disabled: !options, options: [
       ["", options ? "Selecione a academia" : "Aguardando validacao"],
-      ...teams.sort((a, b) => a.name.localeCompare(b.name)).map((t) => [String(t.id), t.name])
+      ...teams.map((t) => [String(t.id), t.name])
     ] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria", value: form.category_id, onChange: (category_id) => setForm({ ...form, category_id }), required: true, disabled: !options, options: [
-      ["", options ? "Selecione a categoria" : "Aguardando validacao"],
-      ...((options == null ? void 0 : options.categories) || []).map((category) => [String(category.id), categoryLabel(category)])
+      ["", options ? "Selecione a categoria de peso" : "Aguardando validacao"],
+      ...((options == null ? void 0 : options.categories) || []).map((category) => [String(category.id), category.weight_class])
     ] }), /* @__PURE__ */ React.createElement("div", { className: "inline-submit" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "submit", disabled: !options || !form.team_id }, "Inscrever atleta"))), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })));
   }
   function BracketsPage() {
