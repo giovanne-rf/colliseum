@@ -235,6 +235,7 @@ class BracketRead(BaseModel):
     bye_count: int
     rounds: int
     same_team_conflicts: int
+    checkin_closed: bool = False
     category: CategoryRead
     entries: list[BracketEntryRead]
     matches: list[MatchRead]

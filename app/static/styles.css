@@ -1070,6 +1070,10 @@ button:disabled {
   background: #000;
 }
 
+.bracket-check-status.out-of-weight.prohibited {
+  background: transparent;
+}
+
 .ibjjf-slot strong,
 .ibjjf-slot small,
 .ibjjf-team-line {

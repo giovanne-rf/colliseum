@@ -1543,6 +1543,7 @@ function MobileBracket({ bracket, onOpenFight, onBlockedFight }) {
                   key={match.id}
                   matchNumber={matchNumbers.get(match.id)}
                   matchNumbers={matchNumbers}
+                  checkinClosed={bracket.checkin_closed}
                   onOpenFight={onOpenFight}
                   onBlockedFight={onBlockedFight}
                 />
@@ -1560,6 +1561,7 @@ function MobileBracket({ bracket, onOpenFight, onBlockedFight }) {
             direction="mobile"
             matchNumber={matchNumbers.get(finalMatch.id)}
             matchNumbers={matchNumbers}
+            checkinClosed={bracket.checkin_closed}
             onOpenFight={onOpenFight}
             onBlockedFight={onBlockedFight}
           />
@@ -1577,9 +1579,9 @@ function CompactBracket({ bracket, onOpenFight, onBlockedFight }) {
   const matchNumbers = bracketMatchNumbers(sideA, sideB, finalMatch);
   return (
     <div className="ibjjf-compact-board">
-      <BracketSide title="Lado A" subtitle={`Posicoes 1-${halfSize}`} matches={sideA} allMatches={bracket.matches} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
-      <FinalSection match={finalMatch} title="Final" allMatches={bracket.matches} matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
-      <BracketSide title="Lado B" subtitle={`Posicoes ${halfSize + 1}-${bracket.bracket_size}`} matches={sideB} allMatches={bracket.matches} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+      <BracketSide title="Lado A" subtitle={`Posicoes 1-${halfSize}`} matches={sideA} allMatches={bracket.matches} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+      <FinalSection match={finalMatch} title="Final" allMatches={bracket.matches} matchNumbers={matchNumbers} checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+      <BracketSide title="Lado B" subtitle={`Posicoes ${halfSize + 1}-${bracket.bracket_size}`} matches={sideB} allMatches={bracket.matches} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
     </div>
   );
 }
@@ -1592,7 +1594,7 @@ function SplitBracket({ bracket, onOpenFight, onBlockedFight }) {
       <section className="ibjjf-finals-block">
         <div className="ibjjf-bracket-block-title">FINALS</div>
         <div className="ibjjf-finals-center">
-          <FinalSection match={bracket.matches.find((match) => match.round_number === bracket.rounds)} title="Final" onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+          <FinalSection match={bracket.matches.find((match) => match.round_number === bracket.rounds)} title="Final" checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
       </section>
     </>
@@ -1628,9 +1630,9 @@ function BracketHalf({ bracket, index, start, end, onOpenFight, onBlockedFight }
       <section className="ibjjf-bracket-block" ref={blockRef}>
         <div className="ibjjf-bracket-block-title">BRACKET {index}/2</div>
         <div className="ibjjf-compact-board">
-          <BracketSide title={`Lado ${index}A`} subtitle={`Posicoes ${start}-${middle}`} matches={left} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
-          <FinalSection match={finalMatch} title="Final do bracket" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
-          <BracketSide title={`Lado ${index}B`} subtitle={`Posicoes ${middle + 1}-${end}`} matches={right} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+          <BracketSide title={`Lado ${index}A`} subtitle={`Posicoes ${start}-${middle}`} matches={left} totalRounds={bracket.rounds} direction="left" matchNumbers={matchNumbers} checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+          <FinalSection match={finalMatch} title="Final do bracket" matchNumbers={matchNumbers} checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+          <BracketSide title={`Lado ${index}B`} subtitle={`Posicoes ${middle + 1}-${end}`} matches={right} totalRounds={bracket.rounds} direction="right" matchNumbers={matchNumbers} checkinClosed={bracket.checkin_closed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
         </div>
       </section>
       <div className="ibjjf-sheet-actions bracket-block-actions">
@@ -1664,7 +1666,7 @@ function orderedBracketMatches(matches) {
   });
 }
 
-function BracketSide({ title, subtitle, matches, allMatches, totalRounds, direction, matchNumbers, onOpenFight, onBlockedFight }) {
+function BracketSide({ title, subtitle, matches, allMatches, totalRounds, direction, matchNumbers, checkinClosed = false, onOpenFight, onBlockedFight }) {
   const roundsRef = useRef(null);
   const [connectors, setConnectors] = useState([]);
   const grouped = useMemo(() => {
@@ -1735,7 +1737,7 @@ function BracketSide({ title, subtitle, matches, allMatches, totalRounds, direct
             </div>
             <div className="ibjjf-match-list">
               {roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => (
-                <MatchCard match={match} allMatches={allMatches} direction={direction} key={match.id} matchNumber={matchNumbers?.get(match.id)} matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
+                <MatchCard match={match} allMatches={allMatches} direction={direction} key={match.id} matchNumber={matchNumbers?.get(match.id)} matchNumbers={matchNumbers} checkinClosed={checkinClosed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />
               ))}
             </div>
           </section>
@@ -1752,11 +1754,11 @@ function buildConnectorPath(source, target, direction) {
   return `M ${sourceX} ${source.y} H ${middleX} V ${target.y} H ${targetX}`;
 }
 
-function FinalSection({ match, title, allMatches, matchNumbers, onOpenFight, onBlockedFight }) {
+function FinalSection({ match, title, allMatches, matchNumbers, checkinClosed = false, onOpenFight, onBlockedFight }) {
   return (
     <section className="ibjjf-final-section">
       <div className="ibjjf-side-header final-header"><strong>{title}</strong></div>
-      <div className="ibjjf-final-match">{match && <MatchCard match={match} allMatches={allMatches} direction="final" matchNumber={matchNumbers?.get(match.id)} matchNumbers={matchNumbers} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />}</div>
+      <div className="ibjjf-final-match">{match && <MatchCard match={match} allMatches={allMatches} direction="final" matchNumber={matchNumbers?.get(match.id)} matchNumbers={matchNumbers} checkinClosed={checkinClosed} onOpenFight={onOpenFight} onBlockedFight={onBlockedFight} />}</div>
     </section>
   );
 }
@@ -1794,14 +1796,17 @@ function placeholderAthlete(match, allMatches, matchNumbers, side) {
   };
 }
 
-function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, onOpenFight, onBlockedFight }) {
+function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, checkinClosed = false, onOpenFight, onBlockedFight }) {
   const left = match.athlete_a || placeholderAthlete(match, allMatches, matchNumbers, "a");
   const right = match.athlete_b || placeholderAthlete(match, allMatches, matchNumbers, "b");
   const athleteName = (athlete) => `${athlete.name}${athlete.is_ranked ? " *" : ""}`;
   const checkinClass = (athlete) => (athlete.checkin_status || "No Show").toLowerCase().replace(/\s+/g, "-");
-  const isUnavailableByStatus = (athlete) => Boolean(
-    athlete.id && !athlete.isPlaceholder && ["No Show", "No checked"].includes(athlete.checkin_status || "No Show")
-  );
+  const isUnavailableByStatus = (athlete) => {
+    if (!athlete.id || athlete.isPlaceholder) return false;
+    const status = athlete.checkin_status || "No Show";
+    if (status === "Out of weight") return true;
+    return checkinClosed && status !== "Checked";
+  };
   const isFinalized = Boolean(match.result?.finalized);
   const winnerId = match.result?.winner_id;
   const resultMethodKey = (match.result?.finish_method || "")

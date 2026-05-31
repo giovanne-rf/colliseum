@@ -909,6 +909,7 @@
           key: match.id,
           matchNumber: matchNumbers.get(match.id),
           matchNumbers,
+          checkinClosed: bracket.checkin_closed,
           onOpenFight,
           onBlockedFight
         }
@@ -921,6 +922,7 @@
         direction: "mobile",
         matchNumber: matchNumbers.get(finalMatch.id),
         matchNumbers,
+        checkinClosed: bracket.checkin_closed,
         onOpenFight,
         onBlockedFight
       }
@@ -932,7 +934,7 @@
     const sideB = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_start > halfSize);
     const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
     const matchNumbers = bracketMatchNumbers(sideA, sideB, finalMatch);
-    return /* @__PURE__ */ React.createElement("div", { className: "ibjjf-compact-board" }, /* @__PURE__ */ React.createElement(BracketSide, { title: "Lado A", subtitle: `Posicoes 1-${halfSize}`, matches: sideA, allMatches: bracket.matches, totalRounds: bracket.rounds, direction: "left", matchNumbers, onOpenFight, onBlockedFight }), /* @__PURE__ */ React.createElement(FinalSection, { match: finalMatch, title: "Final", allMatches: bracket.matches, matchNumbers, onOpenFight, onBlockedFight }), /* @__PURE__ */ React.createElement(BracketSide, { title: "Lado B", subtitle: `Posicoes ${halfSize + 1}-${bracket.bracket_size}`, matches: sideB, allMatches: bracket.matches, totalRounds: bracket.rounds, direction: "right", matchNumbers, onOpenFight, onBlockedFight }));
+    return /* @__PURE__ */ React.createElement("div", { className: "ibjjf-compact-board" }, /* @__PURE__ */ React.createElement(BracketSide, { title: "Lado A", subtitle: `Posicoes 1-${halfSize}`, matches: sideA, allMatches: bracket.matches, totalRounds: bracket.rounds, direction: "left", matchNumbers, checkinClosed: bracket.checkin_closed, onOpenFight, onBlockedFight }), /* @__PURE__ */ React.createElement(FinalSection, { match: finalMatch, title: "Final", allMatches: bracket.matches, matchNumbers, checkinClosed: bracket.checkin_closed, onOpenFight, onBlockedFight }), /* @__PURE__ */ React.createElement(BracketSide, { title: "Lado B", subtitle: `Posicoes ${halfSize + 1}-${bracket.bracket_size}`, matches: sideB, allMatches: bracket.matches, totalRounds: bracket.rounds, direction: "right", matchNumbers, checkinClosed: bracket.checkin_closed, onOpenFight, onBlockedFight }));
   }
   function bracketMatchNumbers(leftMatches, rightMatches, finalMatch) {
     const numbers = /* @__PURE__ */ new Map();
@@ -953,7 +955,7 @@
       return left.match_number - right.match_number;
     });
   }
-  function BracketSide({ title, subtitle, matches, allMatches, totalRounds, direction, matchNumbers, onOpenFight, onBlockedFight }) {
+  function BracketSide({ title, subtitle, matches, allMatches, totalRounds, direction, matchNumbers, checkinClosed = false, onOpenFight, onBlockedFight }) {
     const roundsRef = useRef(null);
     const [connectors, setConnectors] = useState([]);
     const grouped = useMemo(() => {
@@ -1002,7 +1004,7 @@
       window.addEventListener("resize", drawConnectors);
       return () => window.removeEventListener("resize", drawConnectors);
     }, [grouped, direction]);
-    return /* @__PURE__ */ React.createElement("section", { className: `ibjjf-side ${direction}` }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header" }, /* @__PURE__ */ React.createElement("strong", null, title), /* @__PURE__ */ React.createElement("span", null, subtitle)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-rounds", ref: roundsRef }, /* @__PURE__ */ React.createElement("svg", { className: "ibjjf-connectors", "aria-hidden": "true" }, connectors.map((path, index) => /* @__PURE__ */ React.createElement("path", { d: path, key: `${path}-${index}` }))), grouped.map(([roundNumber, roundMatches]) => /* @__PURE__ */ React.createElement("section", { className: `ibjjf-round ${direction}`, key: roundNumber }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-round-title" }, /* @__PURE__ */ React.createElement("strong", null, roundLabel(roundNumber, totalRounds)), /* @__PURE__ */ React.createElement("span", null, roundMatches.length, " luta(s)")), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-list" }, roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction, key: match.id, matchNumber: matchNumbers?.get(match.id), matchNumbers, onOpenFight, onBlockedFight })))))));
+    return /* @__PURE__ */ React.createElement("section", { className: `ibjjf-side ${direction}` }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header" }, /* @__PURE__ */ React.createElement("strong", null, title), /* @__PURE__ */ React.createElement("span", null, subtitle)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-rounds", ref: roundsRef }, /* @__PURE__ */ React.createElement("svg", { className: "ibjjf-connectors", "aria-hidden": "true" }, connectors.map((path, index) => /* @__PURE__ */ React.createElement("path", { d: path, key: `${path}-${index}` }))), grouped.map(([roundNumber, roundMatches]) => /* @__PURE__ */ React.createElement("section", { className: `ibjjf-round ${direction}`, key: roundNumber }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-round-title" }, /* @__PURE__ */ React.createElement("strong", null, roundLabel(roundNumber, totalRounds)), /* @__PURE__ */ React.createElement("span", null, roundMatches.length, " luta(s)")), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-match-list" }, roundMatches.sort((a, b) => a.match_number - b.match_number).map((match) => /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction, key: match.id, matchNumber: matchNumbers?.get(match.id), matchNumbers, checkinClosed, onOpenFight, onBlockedFight })))))));
   }
   function buildConnectorPath(source, target, direction) {
     const sourceX = direction === "right" ? source.left : source.right;
@@ -1010,8 +1012,8 @@
     const middleX = sourceX + (targetX - sourceX) / 2;
     return `M ${sourceX} ${source.y} H ${middleX} V ${target.y} H ${targetX}`;
   }
-  function FinalSection({ match, title, allMatches, matchNumbers, onOpenFight, onBlockedFight }) {
-    return /* @__PURE__ */ React.createElement("section", { className: "ibjjf-final-section" }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header final-header" }, /* @__PURE__ */ React.createElement("strong", null, title)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-final-match" }, match && /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction: "final", matchNumber: matchNumbers?.get(match.id), matchNumbers, onOpenFight, onBlockedFight })));
+  function FinalSection({ match, title, allMatches, matchNumbers, checkinClosed = false, onOpenFight, onBlockedFight }) {
+    return /* @__PURE__ */ React.createElement("section", { className: "ibjjf-final-section" }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-side-header final-header" }, /* @__PURE__ */ React.createElement("strong", null, title)), /* @__PURE__ */ React.createElement("div", { className: "ibjjf-final-match" }, match && /* @__PURE__ */ React.createElement(MatchCard, { match, allMatches, direction: "final", matchNumber: matchNumbers?.get(match.id), matchNumbers, checkinClosed, onOpenFight, onBlockedFight })));
   }
   function roundLabel(roundNumber, totalRounds) {
     const roundsFromFinal = totalRounds - roundNumber;
@@ -1039,14 +1041,17 @@
       isPlaceholder: true
     };
   }
-  function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, onOpenFight, onBlockedFight }) {
+  function MatchCard({ match, allMatches, direction, matchNumber, matchNumbers, checkinClosed = false, onOpenFight, onBlockedFight }) {
     const left = match.athlete_a || placeholderAthlete(match, allMatches, matchNumbers, "a");
     const right = match.athlete_b || placeholderAthlete(match, allMatches, matchNumbers, "b");
     const athleteName = (athlete) => `${athlete.name}${athlete.is_ranked ? " *" : ""}`;
     const checkinClass = (athlete) => (athlete.checkin_status || "No Show").toLowerCase().replace(/\s+/g, "-");
-    const isUnavailableByStatus = (athlete) => Boolean(
-      athlete.id && !athlete.isPlaceholder && ["No Show", "No checked"].includes(athlete.checkin_status || "No Show")
-    );
+    const isUnavailableByStatus = (athlete) => {
+      if (!athlete.id || athlete.isPlaceholder) return false;
+      const status = athlete.checkin_status || "No Show";
+      if (status === "Out of weight") return true;
+      return checkinClosed && status !== "Checked";
+    };
     const isFinalized = Boolean(match.result?.finalized);
     const winnerId = match.result?.winner_id;
     const resultMethodKey = (match.result?.finish_method || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "-");

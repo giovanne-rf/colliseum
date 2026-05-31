@@ -1621,6 +1621,10 @@ class BracketService:
             athlete.is_ranked = athlete_id in ranked_athlete_ids
 
     async def _mark_checkin_statuses(self, bracket: Bracket) -> None:
+        bracket.checkin_closed = await self._is_category_checkin_closed(
+            competition_id=bracket.competition_id,
+            category_id=bracket.category_id,
+        )
         athletes = []
         for entry in bracket.entries:
             if entry.athlete is not None:

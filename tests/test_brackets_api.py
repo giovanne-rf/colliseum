@@ -751,6 +751,7 @@ async def test_close_category_checkin_blocks_new_checkin_and_advances_checked_at
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
+    assert bracket_response.json()["checkin_closed"] is False
     bracket_id = bracket_response.json()["id"]
 
     checkin_response = await client.post(
@@ -788,7 +789,9 @@ async def test_close_category_checkin_blocks_new_checkin_and_advances_checked_at
 
     saved_bracket_response = await client.get(f"/competitions/brackets/{bracket_id}")
     assert saved_bracket_response.status_code == 200
-    match = saved_bracket_response.json()["matches"][0]
+    saved_bracket = saved_bracket_response.json()
+    assert saved_bracket["checkin_closed"] is True
+    match = saved_bracket["matches"][0]
     assert match["winner"]["id"] == athlete_ids[0]
     assert match["status"] == "completed"
 
