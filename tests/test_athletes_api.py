@@ -155,42 +155,42 @@ async def test_frontend_is_served(client: AsyncClient):
     assert response.status_code == 200
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
-    assert "/static/react/app.jsx" in response.text
-    assert "nav-dropdown-fix-20260531" in response.text
+    assert "/static/react/app.js" in response.text
+    assert "compiled-react-20260531" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
     assert "/inscricoes" in response.text
     assert "/chaves" in response.text
     assert "/checagem" in response.text
     assert teams_response.status_code == 200
-    assert "/static/react/app.jsx" in teams_response.text
+    assert "/static/react/app.js" in teams_response.text
     assert "/cadastros" in teams_response.text
     assert "/competicoes" in teams_response.text
     assert "/inscricoes" in teams_response.text
     assert "/chaves" in teams_response.text
     assert "/checagem" in teams_response.text
     assert competitions_response.status_code == 200
-    assert "/static/react/app.jsx" in competitions_response.text
+    assert "/static/react/app.js" in competitions_response.text
     assert "/cadastros" in competitions_response.text
     assert registrations_response.status_code == 200
-    assert "/static/react/app.jsx" in registrations_response.text
+    assert "/static/react/app.js" in registrations_response.text
     assert brackets_response.status_code == 200
     assert "Chaves em formato paisagem" in brackets_response.text
-    assert "/static/react/app.jsx" in brackets_response.text
+    assert "/static/react/app.js" in brackets_response.text
     assert saved_brackets_response.status_code == 200
-    assert "/static/react/app.jsx" in saved_brackets_response.text
+    assert "/static/react/app.js" in saved_brackets_response.text
     assert bracket_by_id_response.status_code == 200
-    assert "/static/react/app.jsx" in bracket_by_id_response.text
+    assert "/static/react/app.js" in bracket_by_id_response.text
     assert schedule_response.status_code == 200
-    assert "/static/react/app.jsx" in schedule_response.text
+    assert "/static/react/app.js" in schedule_response.text
     assert checkin_response.status_code == 200
-    assert "/static/react/app.jsx" in checkin_response.text
+    assert "/static/react/app.js" in checkin_response.text
     assert weighin_response.status_code == 200
-    assert "/static/react/app.jsx" in weighin_response.text
+    assert "/static/react/app.js" in weighin_response.text
     assert ready_checkin_response.status_code == 200
-    assert "/static/react/app.jsx" in ready_checkin_response.text
+    assert "/static/react/app.js" in ready_checkin_response.text
     assert final_check_response.status_code == 200
-    assert "/static/react/app.jsx" in final_check_response.text
+    assert "/static/react/app.js" in final_check_response.text
 
 
 async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combobox(
@@ -199,14 +199,19 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     styles_response = await client.get("/static/styles.css")
     react_shell_response = await client.get("/static/react.html")
     react_app_response = await client.get("/static/react/app.jsx")
+    react_bundle_response = await client.get("/static/react/app.js")
 
     assert styles_response.status_code == 200
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.jsx?v=nav-dropdown-fix-20260531" in react_shell_response.text
+    assert "/static/react/app.js?v=compiled-react-20260531" in react_shell_response.text
+    assert "@babel/standalone" not in react_shell_response.text
+    assert 'type="text/babel"' not in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
     assert react_app_response.status_code == 200
+    assert react_bundle_response.status_code == 200
+    assert "React.createElement" in react_bundle_response.text
     assert "FJJPE" in react_app_response.text
     assert "fjjpe-logo.png" in react_app_response.text
     assert "site-nav" in react_app_response.text
