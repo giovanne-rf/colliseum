@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 import re
 
@@ -57,6 +57,7 @@ BETWEEN_MATCHES_MINUTES = 3
 
 _INVALID_FINISH_METHOD = object()
 SAME_ATHLETE_REST_MINUTES = 20
+_MIN_SCHEDULE_DATETIME = datetime.min.replace(tzinfo=UTC)
 
 
 @dataclass(frozen=True)
@@ -753,6 +754,12 @@ def _parse_start_time(value: str) -> time:
     return time(hour=int(hour), minute=int(minute))
 
 
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
 def _category_sex(weight_class: str) -> str:
     normalized = weight_class.lower()
     if "female" in normalized or "feminino" in normalized:
@@ -978,7 +985,7 @@ class BracketService:
         result.finalized = payload.finalized
         result.finish_method = finish_method if payload.finalized else None
         result.winner_id = winner_id if payload.finalized else None
-        result.finished_at = datetime.now() if payload.finalized else None
+        result.finished_at = datetime.now(UTC) if payload.finalized else None
 
         if payload.finalized:
             match.winner_id = winner_id
@@ -1043,7 +1050,7 @@ class BracketService:
             day_date = getattr(competition, f"dia_{day_number}") or (
                 competition.event_date + timedelta(days=day_number - 1)
             )
-            start_at = datetime.combine(day_date, start_clock)
+            start_at = _as_utc(datetime.combine(day_date, start_clock))
             for mat_number in range(1, competition.mat_count + 1):
                 mat_states[(day_number, mat_number)] = {"count": 0, "next": start_at}
 
@@ -1055,7 +1062,7 @@ class BracketService:
             if state is None:
                 continue
             state["count"] = int(state["count"]) + 1
-            row_next = row.scheduled_start + timedelta(
+            row_next = _as_utc(row.scheduled_start) + timedelta(
                 minutes=row.estimated_minutes + BETWEEN_MATCHES_MINUTES
             )
             if row_next > state["next"]:
@@ -1083,15 +1090,18 @@ class BracketService:
                 if athlete_id is not None
             ]
             rest_ready_at = max(
-                [athlete_available.get(athlete_id, datetime.min) for athlete_id in athlete_ids],
-                default=datetime.min,
+                [
+                    athlete_available.get(athlete_id, _MIN_SCHEDULE_DATETIME)
+                    for athlete_id in athlete_ids
+                ],
+                default=_MIN_SCHEDULE_DATETIME,
             )
             candidates = []
             for key in mat_options:
                 state = mat_states[key]
                 if int(state["count"]) >= MAX_MATCHES_PER_MAT_DAY:
                     continue
-                candidates.append((max(state["next"], rest_ready_at), int(state["count"]), key))
+                candidates.append((_as_utc(max(state["next"], rest_ready_at)), int(state["count"]), key))
             if not candidates:
                 raise ValidationError("Competition schedule has no available MAT slots.")
 
@@ -1131,6 +1141,7 @@ class BracketService:
     ) -> None:
         if finished_at is None:
             return
+        finished_at = _as_utc(finished_at)
 
         current_result = await self.session.execute(
             select(CompetitionSchedule)
@@ -1174,8 +1185,9 @@ class BracketService:
             match = row.match
             match_result = match.result
             if match_result is not None and match_result.finalized:
-                actual_finish = match_result.finished_at or (
-                    row.scheduled_start + timedelta(minutes=row.estimated_minutes)
+                actual_finish = _as_utc(
+                    match_result.finished_at
+                    or (row.scheduled_start + timedelta(minutes=row.estimated_minutes))
                 )
                 next_start = max(
                     next_start,
@@ -1194,8 +1206,11 @@ class BracketService:
                 if athlete_id is not None
             ]
             rest_ready_at = max(
-                [athlete_available.get(athlete_id, datetime.min) for athlete_id in athlete_ids],
-                default=datetime.min,
+                [
+                    athlete_available.get(athlete_id, _MIN_SCHEDULE_DATETIME)
+                    for athlete_id in athlete_ids
+                ],
+                default=_MIN_SCHEDULE_DATETIME,
             )
             row.scheduled_start = max(next_start, rest_ready_at)
             estimated_finish = row.scheduled_start + timedelta(minutes=row.estimated_minutes)
