@@ -258,6 +258,7 @@ function App() {
       </section>
       <main className={`shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""} ${isOrdem ? "ordem-shell" : ""}`.trim()}>
         {path === "/atletas" && <AtletasListPage />}
+        {path === "/cadastros" && <AthletesPage />}
         {athleteEditId && <AtletaEditPage athleteId={athleteEditId} />}
         {path === "/categorias" && <CategoriasPage />}
         {path === "/config-categorias" && <ConfigCategoriasPage />}

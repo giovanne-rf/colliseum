@@ -216,6 +216,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "fjjpe-logo.png" in react_app_response.text
     assert "site-nav" in react_app_response.text
     assert "function AthletesPage" in react_app_response.text
+    assert '{path === "/cadastros" && <AthletesPage />}' in react_app_response.text
     assert "function TeamsPage" in react_app_response.text
     assert "function CompetitionsPage" in react_app_response.text
     assert "function RegistrationsPage" in react_app_response.text
