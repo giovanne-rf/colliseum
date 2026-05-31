@@ -66,6 +66,25 @@ async def create_athlete(client: AsyncClient, team_id: int, index: int = 1) -> i
     return int(response.json()["id"])
 
 
+async def create_black_belt_without_team(client: AsyncClient) -> int:
+    response = await client.post(
+        "/athletes",
+        json={
+            "name": "Professor Sem Academia",
+            "cpf": "935.411.347-80",
+            "email": "professor.sem.academia@example.com",
+            "phone": "11-98888.1234",
+            "sex": "male",
+            "team_id": None,
+            "belt": "black",
+            "graduation_date": "2000-12-10",
+            "birth_date": "1982-05-14",
+        },
+    )
+    assert response.status_code == 201
+    return int(response.json()["id"])
+
+
 async def create_category(client: AsyncClient) -> int:
     response = await client.post(
         "/categories/bulk",
@@ -142,6 +161,17 @@ async def test_create_and_list_ranking_entry(client: AsyncClient):
     page = list_response.json()
     assert page["total"] == 1
     assert page["items"][0]["competition_name"] == "Copa Bandido"
+
+
+async def test_ranking_options_allow_black_belt_without_team(client: AsyncClient):
+    athlete_id = await create_black_belt_without_team(client)
+
+    response = await client.get("/ranking/options?belt=black&age_group=Master 3")
+
+    assert response.status_code == 200
+    options = response.json()
+    assert options["athletes"][0]["id"] == athlete_id
+    assert options["athletes"][0]["team_name"] == "Sem academia"
 
 
 async def test_ranking_standings_group_by_belt_age_and_order_by_points(client: AsyncClient):

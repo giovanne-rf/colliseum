@@ -193,7 +193,7 @@ class RankingService:
                 RankingAthleteOption(
                     id=athlete.id,
                     name=athlete.name,
-                    team_name=athlete.team.name,
+                    team_name=athlete.team.name if athlete.team is not None else "Sem academia",
                     belt=athlete.belt,
                     age_group=athlete_age_group,
                 )
