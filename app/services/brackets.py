@@ -471,15 +471,18 @@ class CheckinService:
         )
         closed_category_ids = {int(category_id) for category_id in closures_result.scalars().all()}
         controls_result = await self.session.execute(
-            select(CompetitionCheckinControl.category_id).where(
+            select(CompetitionCheckinControl).where(
                 CompetitionCheckinControl.competition_id == competition_id
             )
         )
-        started_category_ids = {int(category_id) for category_id in controls_result.scalars().all()}
+        controls_by_category = {
+            int(control.category_id): control for control in controls_result.scalars().all()
+        }
 
         rows: list[CompetitionFinalCheckRead] = []
         for registration in registrations:
             checkin = checkins_by_registration.get(registration.id)
+            control = controls_by_category.get(registration.category_id)
             checked_weight = Decimal(str(checkin.checked_weight)) if checkin is not None else None
             max_weight = max_weight_kg(registration.category.weight_class)
             is_super_heavy = is_super_heavy_category(registration.category.weight_class)
@@ -503,8 +506,10 @@ class CheckinService:
                         and max_weight is not None
                         and checked_weight > max_weight
                     ),
-                    checkin_started=registration.category_id in started_category_ids,
+                    checkin_started=control is not None,
+                    checkin_started_at=control.started_at if control is not None else None,
                     checkin_closed=registration.category_id in closed_category_ids,
+                    checkin_closed_at=control.closed_at if control is not None else None,
                 )
             )
         return rows

@@ -151,6 +151,7 @@ async def test_frontend_is_served(client: AsyncClient):
     weighin_response = await client.get("/checkin/pesagem")
     ready_checkin_response = await client.get("/checkin")
     final_check_response = await client.get("/checagem-final")
+    check_panel_response = await client.get("/checagem/painel")
 
     assert root_response.status_code == 307
     assert root_response.headers["location"] == "/cadastros"
@@ -158,7 +159,7 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "FJJPE" in response.text
     assert "react.production.min.js" in response.text
     assert "/static/react/app.js" in response.text
-    assert "checkin-control-20260601" in response.text
+    assert "check-panel-20260601" in response.text
     assert "/academias" in response.text
     assert "/equipes" in response.text
     assert "/competicoes" in response.text
@@ -198,6 +199,8 @@ async def test_frontend_is_served(client: AsyncClient):
     assert "/static/react/app.js" in ready_checkin_response.text
     assert final_check_response.status_code == 200
     assert "/static/react/app.js" in final_check_response.text
+    assert check_panel_response.status_code == 200
+    assert "/static/react/app.js" in check_panel_response.text
 
 
 async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combobox(
@@ -212,7 +215,7 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "color-scheme: light" in styles_response.text
     assert react_shell_response.status_code == 200
     assert "react.production.min.js" in react_shell_response.text
-    assert "/static/react/app.js?v=checkin-control-20260601" in react_shell_response.text
+    assert "/static/react/app.js?v=check-panel-20260601" in react_shell_response.text
     assert "@babel/standalone" not in react_shell_response.text
     assert 'type="text/babel"' not in react_shell_response.text
     assert '<link rel="icon" type="image/png" href="/static/fjjpe-logo.png" />' in react_shell_response.text
@@ -246,6 +249,8 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert "function fightDurationSeconds" in react_app_response.text
     assert "function CheckinPage" in react_app_response.text
     assert "function FinalCheckPage" in react_app_response.text
+    assert "function CheckOverviewPage" in react_app_response.text
+    assert "function CheckPanelPage" in react_app_response.text
     assert "function WeighinPage" in react_app_response.text
     assert "function AthleteListPage" in react_app_response.text
     assert "/checkin/pesagem" in react_app_response.text
@@ -257,10 +262,16 @@ async def test_frontend_assets_include_light_theme_cpf_validation_and_team_combo
     assert '["/checkin/pesagem", "Pesagem"]' in react_app_response.text
     assert '["/checkin", "Checkin"]' in react_app_response.text
     assert '["/checagem", "Checagem geral"]' in react_app_response.text
-    assert '["/checagem-final", "Painel Geral"]' in react_app_response.text
+    assert '["/checagem-final", "Checagem final"]' in react_app_response.text
+    assert '["/checagem/painel", "Painel Geral"]' in react_app_response.text
     assert "Listagem de Atletas" in react_app_response.text
     assert "Status da checagem" in react_app_response.text
     assert "Iniciar checkin?" in react_app_response.text
+    assert "Checkin Iniciado" in react_app_response.text
+    assert "Checkin finalizado" in react_app_response.text
+    assert "No weight" in react_app_response.text
+    assert "Categoria em checagem" in react_app_response.text
+    assert "Proxima categoria" in react_app_response.text
     assert "Checkin ainda nao iniciado para esta categoria." in react_app_response.text
     assert "Encerrar checkin?" in react_app_response.text
     assert "Nenhum atleta encontrado para os filtros selecionados." in react_app_response.text

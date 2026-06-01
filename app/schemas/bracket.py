@@ -130,7 +130,9 @@ class CompetitionFinalCheckRead(BaseModel):
     status: str
     is_overweight: bool = False
     checkin_started: bool = False
+    checkin_started_at: datetime | None = None
     checkin_closed: bool = False
+    checkin_closed_at: datetime | None = None
 
 
 class CompetitionCheckinControlRead(BaseModel):

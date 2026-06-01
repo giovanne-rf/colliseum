@@ -1796,6 +1796,11 @@ button:disabled {
   color: #111;
 }
 
+.check-status.no-weight {
+  background: #ffcc00;
+  color: #111;
+}
+
 .check-status.no-show {
   background: #b42318;
   color: #fff;
@@ -1804,6 +1809,95 @@ button:disabled {
 .check-status.out-of-weight {
   background: #b42318;
   color: #fff;
+}
+
+.success-button {
+  border: 1px solid #146c43;
+  background: #146c43;
+  color: #fff;
+}
+
+.check-state-muted {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.check-panel-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 18px;
+  align-items: start;
+}
+
+.check-panel-active,
+.check-panel-next {
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.check-panel-active {
+  box-shadow: 0 10px 28px rgba(0, 77, 133, 0.14);
+}
+
+.check-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 4px solid var(--blue);
+}
+
+.check-panel-heading span,
+.check-panel-next > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.check-panel-heading h2 {
+  margin: 4px 0 0;
+  color: var(--blue);
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.check-timer {
+  min-width: 150px;
+  padding: 10px 14px;
+  background: #111827;
+  color: #fff;
+  font-size: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.check-panel-next {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.next-check-button {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #e0a800;
+  background: #ffcc00;
+  color: #111;
+  font-weight: 900;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.next-check-button strong {
+  font-size: 13px;
 }
 
 /* ── Ordem de Lutas page (BJJCOMPSYSTEM tournament_days style) ──────── */
@@ -2345,6 +2439,19 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  .check-panel-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .check-panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .check-timer {
+    width: 100%;
+  }
+
   .ibjjf-mainbar {
     align-items: stretch;
     flex-wrap: wrap;

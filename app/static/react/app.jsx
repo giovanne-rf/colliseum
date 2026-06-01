@@ -14,7 +14,8 @@ const routes = [
     ["/checkin/pesagem", "Pesagem"],
     ["/checkin", "Checkin"],
     ["/checagem", "Checagem geral"],
-    ["/checagem-final", "Painel Geral"],
+    ["/checagem-final", "Checagem final"],
+    ["/checagem/painel", "Painel Geral"],
   ]},
   ["/categorias", "CATEGORIAS"],
   ["/config-categorias", "CONFIG. CATEGORIAS"],
@@ -235,7 +236,7 @@ function App() {
   const knownPaths = [
     "/atletas", "/cadastros", "/categorias", "/config-categorias", "/ordem",
     "/academias", "/equipes", "/competicoes", "/inscricoes", "/chaves", "/chaves/salvas",
-    "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/ranking",
+    "/cronograma", "/checagem", "/checkin/pesagem", "/checkin", "/checagem-final", "/checagem/painel", "/ranking",
   ];
 
   return (
@@ -299,9 +300,10 @@ function App() {
         {path === "/chaves/salvas" && <SavedBracketsPage />}
         {path === "/cronograma" && <SchedulePage />}
         {bracketRouteId && <BracketByIdPage bracketId={bracketRouteId} />}
-        {path === "/checagem" && <AthleteListPage />}
+        {path === "/checagem" && <CheckOverviewPage />}
         {path === "/checkin/pesagem" && <WeighinPage />}
         {path === "/checkin" && <CheckinPage />}
+        {path === "/checagem/painel" && <CheckPanelPage />}
         {path === "/checagem-final" && <FinalCheckPage />}
         {path === "/ranking" && <RankingPage />}
         {!bracketRouteId && !athleteEditId && !academyEditId && ![...knownPaths].includes(path) && <AthletesPage />}
@@ -2720,9 +2722,9 @@ function FinalCheckGroup({ groupKey, items, onStartCategory, onCloseCategory }) 
             {items.map((item) => (
               <tr key={item.registration_id}>
                 <td data-label="Atleta">{item.athlete.name}</td>
-                <td data-label="Peso checado">{item.weight_display || (item.checked_weight ? `${Number(item.checked_weight).toFixed(2)} kg` : "-")}</td>
+                <td data-label="Peso checado"><CheckWeightCell item={item} /></td>
                 <td data-label="Status da checagem">
-                  <span className={`check-status ${item.status.toLowerCase().replace(/\s+/g, "-")}`}>{item.status}</span>
+                  <CheckStatusBadge status={item.status} />
                 </td>
               </tr>
             ))}
@@ -2731,6 +2733,240 @@ function FinalCheckGroup({ groupKey, items, onStartCategory, onCloseCategory }) 
       </div>
     </section>
   );
+}
+
+function hasNoCheckedWeight(item) {
+  return !item.weight_display && !item.checked_weight;
+}
+
+function CheckWeightCell({ item }) {
+  if (hasNoCheckedWeight(item)) {
+    return <span className="check-status no-weight">No weight</span>;
+  }
+  return item.weight_display || `${Number(item.checked_weight).toFixed(2)} kg`;
+}
+
+function CheckStatusBadge({ status }) {
+  return <span className={`check-status ${status.toLowerCase().replace(/\s+/g, "-")}`}>{status}</span>;
+}
+
+function CheckStateButton({ started, closed }) {
+  if (closed) {
+    return <button className="danger-button compact-button" type="button" disabled>Checkin finalizado</button>;
+  }
+  if (started) {
+    return <button className="success-button compact-button" type="button" disabled>Checkin Iniciado</button>;
+  }
+  return <span className="check-state-muted">Aguardando inicio</span>;
+}
+
+function CheckRowsTable({ items }) {
+  return (
+    <div className="checkin-table-wrap">
+      <table className="checkin-table final-check-table">
+        <thead><tr><th>Atleta</th><th>Peso checado</th><th>Status da checagem</th></tr></thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.registration_id}>
+              <td data-label="Atleta">{item.athlete.name}</td>
+              <td data-label="Peso checado"><CheckWeightCell item={item} /></td>
+              <td data-label="Status da checagem"><CheckStatusBadge status={item.status} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function groupFinalCheckRows(rows) {
+  const groups = new Map();
+  rows.forEach((item) => {
+    const key = [item.category.belt, item.category.age_group, item.category.weight_class].join("|");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+  return groups;
+}
+
+function finalCheckGroupLabel(groupKey) {
+  const [belt, ageGroup, weight] = groupKey.split("|");
+  return [beltLabels[belt] || belt, ageGroup, weight].join(" | ");
+}
+
+function CheckOverviewPage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [filters, setFilters] = useState({ sex: "", belt: "", age_group: "", weight_class: "" });
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  async function load(id) {
+    setCompetitionId(id);
+    setRows([]);
+    setFilters({ sex: "", belt: "", age_group: "", weight_class: "" });
+    if (!id) return;
+    try {
+      setRows(await fetchJson(`/competitions/${id}/final-checks`));
+      setMessage(["", ""]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  const values = (selector) => [...new Set(rows.map(selector).filter(Boolean))].sort();
+  const filtered = rows.filter((item) => (
+    (!filters.sex || item.athlete.sex === filters.sex) &&
+    (!filters.belt || item.category.belt === filters.belt) &&
+    (!filters.age_group || item.category.age_group === filters.age_group) &&
+    (!filters.weight_class || item.category.weight_class === filters.weight_class)
+  ));
+  const groups = groupFinalCheckRows(filtered);
+
+  return (
+    <section className="workspace stack">
+      <section className="registration checkin-toolbar">
+        <div className="section-heading">
+          <h2>Checagem</h2>
+          <span>{filtered.length} atleta(s) exibido(s) de {rows.length} na checagem</span>
+        </div>
+        <div className="grid checkin-filters">
+          <Select label="Competicao" className="wide" value={competitionId} onChange={load} options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
+          <Select label="Sexo" value={filters.sex} onChange={(sex) => setFilters({ ...filters, sex })} options={[["", "Todos"], ...values((item) => item.athlete.sex).map((value) => [value, sexLabels[value] || value])]} />
+          <Select label="Faixa" value={filters.belt} onChange={(belt) => setFilters({ ...filters, belt })} options={[["", "Todas"], ...values((item) => item.category.belt).map((value) => [value, beltLabels[value] || value])]} />
+          <Select label="Categoria" value={filters.age_group} onChange={(age_group) => setFilters({ ...filters, age_group })} options={[["", "Todas"], ...values((item) => item.category.age_group).map((value) => [value, value])]} />
+          <Select label="Peso" value={filters.weight_class} onChange={(weight_class) => setFilters({ ...filters, weight_class })} options={[["", "Todos"], ...values((item) => item.category.weight_class).map((value) => [value, value])]} />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </section>
+      <section className="panel checkin-panel">
+        <div className="checkin-groups">
+          {!competitionId && <div className="empty">Selecione uma competicao para consultar a checagem.</div>}
+          {competitionId && !rows.length && <div className="empty">Nenhum atleta inscrito nesta competicao.</div>}
+          {competitionId && rows.length > 0 && filtered.length === 0 && <div className="empty">Nenhum atleta encontrado para os filtros selecionados.</div>}
+          {[...groups.entries()].map(([key, items]) => {
+            const started = items.some((item) => item.checkin_started);
+            const closed = items.some((item) => item.checkin_closed);
+            return (
+              <section className="checkin-group" key={key}>
+                <div className="checkin-group-heading">
+                  <h2>{finalCheckGroupLabel(key)}</h2>
+                  <div className="checkin-group-actions">
+                    <CheckStateButton started={started} closed={closed} />
+                  </div>
+                </div>
+                <CheckRowsTable items={items} />
+              </section>
+            );
+          })}
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function CheckPanelPage() {
+  const [competitions, setCompetitions] = useState([]);
+  const [competitionId, setCompetitionId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [schedule, setSchedule] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  const [message, setMessage] = useState(["", ""]);
+
+  useEffect(() => {
+    fetchJson("/competitions").then(setCompetitions).catch((error) => setMessage([error.message, "error"]));
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  async function load(id) {
+    setCompetitionId(id);
+    setRows([]);
+    setSchedule(null);
+    if (!id) return;
+    try {
+      const [checks, scheduleData] = await Promise.all([
+        fetchJson(`/competitions/${id}/final-checks`),
+        fetchJson(`/competitions/${id}/schedule`),
+      ]);
+      setRows(checks);
+      setSchedule(scheduleData);
+      setMessage(["", ""]);
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  const groups = groupFinalCheckRows(rows);
+  const activeEntry = [...groups.entries()].find(([, items]) => (
+    items.some((item) => item.checkin_started) && !items.some((item) => item.checkin_closed)
+  ));
+  const activeCategoryId = activeEntry?.[1]?.[0]?.category.id;
+  const scheduleRows = [...(schedule?.categories || [])].sort((left, right) => new Date(left.start_time) - new Date(right.start_time));
+  const nextCategory = scheduleRows.find((item) => {
+    if (item.category_id === activeCategoryId) return false;
+    const categoryItems = rows.filter((row) => row.category.id === item.category_id);
+    return categoryItems.length && !categoryItems.some((row) => row.checkin_started || row.checkin_closed);
+  });
+  const startedAt = activeEntry?.[1]?.[0]?.checkin_started_at;
+
+  return (
+    <section className="workspace stack">
+      <section className="registration checkin-toolbar">
+        <div className="section-heading">
+          <h2>Painel de Checagem</h2>
+          <span>Categoria aberta e proxima categoria do cronograma</span>
+        </div>
+        <div className="grid final-check-row">
+          <Select label="Competicao" className="wide" value={competitionId} onChange={load} options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
+        </div>
+        <Message text={message[0]} type={message[1]} />
+      </section>
+      {!competitionId && <section className="panel"><div className="empty">Selecione uma competicao para abrir o painel.</div></section>}
+      {competitionId && !activeEntry && <section className="panel"><div className="empty">Nenhuma categoria com checkin aberto.</div></section>}
+      {competitionId && activeEntry && (
+        <section className="check-panel-layout">
+          <section className="check-panel-active">
+            <div className="check-panel-heading">
+              <div>
+                <span>Categoria em checagem</span>
+                <h2>{finalCheckGroupLabel(activeEntry[0])}</h2>
+              </div>
+              <strong className="check-timer">{formatElapsedCheckin(startedAt, now)}</strong>
+            </div>
+            <CheckRowsTable items={activeEntry[1]} />
+          </section>
+          <aside className="check-panel-next">
+            <span>Proxima categoria</span>
+            {nextCategory ? (
+              <a className="next-check-button" href={`/chaves/${nextCategory.bracket_id}`}>
+                {categoryLabel(nextCategory.category)}
+                <strong>{formatScheduleTime(nextCategory.start_time)}, MAT {nextCategory.mat_number}</strong>
+              </a>
+            ) : (
+              <div className="empty">Nenhuma proxima categoria no cronograma.</div>
+            )}
+          </aside>
+        </section>
+      )}
+    </section>
+  );
+}
+
+function formatElapsedCheckin(startedAt, now) {
+  if (!startedAt) return "00:00:00";
+  const totalSeconds = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 function AthleteListPage() {

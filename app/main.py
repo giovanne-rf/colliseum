@@ -136,6 +136,11 @@ async def final_check_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
 
 
+@app.get("/checagem/painel", include_in_schema=False)
+async def check_panel_frontend() -> FileResponse:
+    return FileResponse(static_dir / "react.html")
+
+
 @app.get("/ranking", include_in_schema=False)
 async def ranking_frontend() -> FileResponse:
     return FileResponse(static_dir / "react.html")
