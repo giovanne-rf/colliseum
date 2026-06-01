@@ -55,6 +55,7 @@ CHECKIN_STATUS_CHECKED = "Checked"
 CHECKIN_STATUS_NO_CHECKED = "No checked"
 CHECKIN_STATUS_NO_SHOW = "No Show"
 CHECKIN_STATUS_OUT_OF_WEIGHT = "Out of weight"
+NO_FIGHTERS_FINISH_METHOD = "No fighters"
 MAX_MATCHES_PER_MAT_DAY = 80
 BETWEEN_MATCHES_MINUTES = 3
 
@@ -1491,8 +1492,7 @@ class BracketService:
             .where(
                 Match.bracket_id == bracket_id,
                 Match.winner_id.is_(None),
-                Match.athlete_a_id.is_not(None),
-                Match.athlete_b_id.is_not(None),
+                Match.status != MatchStatus.completed,
             )
             .order_by(Match.round_number, Match.match_number)
         )
@@ -1522,9 +1522,25 @@ class BracketService:
                 no_show_is_unavailable=checkin_closed,
             )
             if winner_id is None:
+                if self._match_has_no_fighters(
+                    match,
+                    statuses,
+                    no_show_is_unavailable=checkin_closed,
+                ):
+                    match.status = MatchStatus.completed
+                    await self._upsert_automatic_match_result(
+                        match=match,
+                        winner_id=None,
+                        finish_method=NO_FIGHTERS_FINISH_METHOD,
+                    )
                 continue
             match.winner_id = winner_id
             match.status = MatchStatus.completed
+            await self._upsert_automatic_match_result(
+                match=match,
+                winner_id=winner_id,
+                finish_method=NO_FIGHTERS_FINISH_METHOD,
+            )
             await self._advance_winner(match=match, winner_id=winner_id)
 
     async def _advance_available_winners(self, bracket_id: int) -> None:
@@ -1708,6 +1724,50 @@ class BracketService:
             return match.athlete_b_id
         return None
 
+    @staticmethod
+    def _match_has_no_fighters(
+        match: Match,
+        statuses: dict[int, str],
+        *,
+        no_show_is_unavailable: bool = False,
+    ) -> bool:
+        if not no_show_is_unavailable:
+            return False
+        athlete_ids = [athlete_id for athlete_id in (match.athlete_a_id, match.athlete_b_id) if athlete_id is not None]
+        if not athlete_ids:
+            return False
+        unavailable_statuses = {
+            CHECKIN_STATUS_OUT_OF_WEIGHT,
+            CHECKIN_STATUS_NO_CHECKED,
+            CHECKIN_STATUS_NO_SHOW,
+        }
+        return all(statuses.get(athlete_id, CHECKIN_STATUS_NO_SHOW) in unavailable_statuses for athlete_id in athlete_ids)
+
+    async def _upsert_automatic_match_result(
+        self,
+        *,
+        match: Match,
+        winner_id: int | None,
+        finish_method: str,
+    ) -> None:
+        query = await self.session.execute(
+            select(MatchResult).where(MatchResult.match_id == match.id)
+        )
+        result = query.scalar_one_or_none()
+        if result is None:
+            result = MatchResult(match_id=match.id)
+            self.session.add(result)
+        result.athlete_a_points = 0
+        result.athlete_a_advantages = 0
+        result.athlete_a_penalties = 0
+        result.athlete_b_points = 0
+        result.athlete_b_advantages = 0
+        result.athlete_b_penalties = 0
+        result.winner_id = winner_id
+        result.finish_method = finish_method
+        result.finalized = True
+        result.finished_at = datetime.now(UTC)
+
     async def _mark_ranked_athletes(self, bracket: Bracket) -> None:
         athletes = []
         for entry in bracket.entries:
@@ -1842,3 +1902,4 @@ class BracketService:
         if not candidates:
             return None
         return min(candidates, key=lambda item: item.position_end - item.position_start)
+

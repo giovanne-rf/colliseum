@@ -1188,7 +1188,6 @@ async def test_checked_athlete_advances_against_out_of_weight_opponent(client: A
     saved_match = next(item for item in saved_bracket["matches"] if item["id"] == match["id"])
     assert saved_match["winner"]["id"] == checked_athlete_id
     assert saved_match["status"] == "completed"
-
     next_match = next(
         item for item in saved_bracket["matches"]
         if item["round_number"] == match["round_number"] + 1
@@ -1199,3 +1198,66 @@ async def test_checked_athlete_advances_against_out_of_weight_opponent(client: A
         next_match["athlete_a"]["id"] if next_match["athlete_a"] else None,
         next_match["athlete_b"]["id"] if next_match["athlete_b"] else None,
     }
+
+
+async def test_checked_athlete_advances_by_no_fighters_when_other_branch_has_no_available_fighters(
+    client: AsyncClient,
+):
+    teams = [await create_team(client, f"Equipe No Fighters {index}") for index in range(1, 4)]
+    category_id = await create_category(client)
+    competition_id = await create_competition(client)
+    registrations_by_athlete = {}
+
+    for index, team_id in enumerate(teams, start=1):
+        athlete_id = await create_athlete(client, index, team_id)
+        registration_response = await client.post(
+            f"/competitions/{competition_id}/registrations",
+            json=athlete_registration_payload(index, category_id),
+        )
+        assert registration_response.status_code == 201
+        registrations_by_athlete[athlete_id] = registration_response.json()["id"]
+
+    bracket_response = await client.post(
+        f"/competitions/{competition_id}/brackets",
+        json={"category_id": category_id, "replace_existing": True},
+    )
+    assert bracket_response.status_code == 201
+    bracket = bracket_response.json()
+    await start_category_checkin(client, competition_id, category_id)
+
+    bye_match = next(item for item in bracket["matches"] if item["status"] == "bye")
+    checked_athlete_id = bye_match["winner"]["id"]
+    checked_registration_id = registrations_by_athlete[checked_athlete_id]
+    checkin_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": checked_registration_id,
+            "checked_weight": "75.00",
+            "overweight_confirmed": False,
+        },
+    )
+    assert checkin_response.status_code == 201
+    ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{checked_registration_id}/ready",
+    )
+    assert ready_response.status_code == 200
+
+    close_response = await client.post(
+        f"/competitions/{competition_id}/categories/{category_id}/checkin/close",
+    )
+    assert close_response.status_code == 200
+
+    saved_bracket_response = await client.get(f"/competitions/brackets/{bracket['id']}")
+    assert saved_bracket_response.status_code == 200
+    saved_bracket = saved_bracket_response.json()
+    no_winner_match = next(
+        item for item in saved_bracket["matches"]
+        if item["round_number"] == 1 and item["status"] == "completed" and item["winner"] is None
+    )
+    assert no_winner_match["result"]["finish_method"] == "No fighters"
+    final_match = next(item for item in saved_bracket["matches"] if item["round_number"] == 2)
+    assert final_match["winner"]["id"] == checked_athlete_id
+    assert final_match["status"] == "completed"
+    assert final_match["result"]["finish_method"] == "No fighters"
+
+

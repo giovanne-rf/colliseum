@@ -1222,6 +1222,11 @@ button:disabled {
   background: #b42318;
 }
 
+.match-result-dot.no-fighters {
+  border: 2px solid #146c43;
+  background: #fff;
+}
+
 .checkin-toolbar,
 .checkin-panel,
 .ranking-form,
