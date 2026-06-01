@@ -331,23 +331,29 @@ async def update_match_result(
 
 @router.post(
     "/{competition_id}/brackets",
-    response_model=BracketRead,
+    response_model=BracketBatchGenerateRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Generate IBJJF-style bracket",
+    summary="Generate IBJJF-style brackets for a category",
 )
 async def generate_bracket(
     competition_id: int,
     payload: BracketGenerateRequest,
     session: DbSession,
-) -> BracketRead:
+) -> BracketBatchGenerateRead:
     try:
-        return await BracketService(session).generate(
+        brackets = await BracketService(session).generate(
             competition_id=competition_id,
             category_id=payload.category_id,
             replace_existing=payload.replace_existing,
         )
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
+    return BracketBatchGenerateRead(
+        competition_id=competition_id,
+        generated_count=len(brackets),
+        skipped_count=0,
+        brackets=brackets,
+    )
 
 
 @router.get("/brackets/{bracket_id}", response_model=BracketRead, summary="Get bracket by ID")
@@ -356,3 +362,4 @@ async def get_bracket(bracket_id: int, session: DbSession) -> BracketRead:
         return await BracketService(session).get(bracket_id)
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
+

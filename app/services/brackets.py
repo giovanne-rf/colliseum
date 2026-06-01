@@ -57,6 +57,7 @@ CHECKIN_STATUS_NO_SHOW = "No Show"
 CHECKIN_STATUS_OUT_OF_WEIGHT = "Out of weight"
 NO_FIGHTERS_FINISH_METHOD = "No fighters"
 MAX_MATCHES_PER_MAT_DAY = 80
+MAX_ATHLETES_PER_BRACKET = 16
 BETWEEN_MATCHES_MINUTES = 3
 
 
@@ -1041,7 +1042,7 @@ class BracketService:
         competition_id: int,
         category_id: int,
         replace_existing: bool = False,
-    ) -> Bracket:
+    ) -> list[Bracket]:
         _ = replace_existing
         competition = await CompetitionService(self.session).get(competition_id)
         category = await self.session.get(Category, category_id)
@@ -1059,6 +1060,32 @@ class BracketService:
         ranked_athlete_ids = await self._get_ranked_athlete_ids(
             athlete_ids={athlete.id for athlete in athletes}
         )
+        athlete_groups = self._split_athletes_for_brackets(
+            athletes,
+            ranked_athlete_ids=ranked_athlete_ids,
+        )
+        bracket_ids: list[int] = []
+        for group in athlete_groups:
+            bracket = await self._create_single_bracket(
+                competition=competition,
+                category=category,
+                athletes=group,
+                ranked_athlete_ids=ranked_athlete_ids,
+            )
+            bracket_ids.append(bracket.id)
+
+        await self.advance_status_walkovers_for_competition(competition_id=competition_id)
+        await self.session.commit()
+        return [await self.get(bracket_id) for bracket_id in bracket_ids]
+
+    async def _create_single_bracket(
+        self,
+        *,
+        competition: Competition,
+        category: Category,
+        athletes: list[Athlete],
+        ranked_athlete_ids: set[int],
+    ) -> Bracket:
         placements = generate_ibjjf_style_placements(
             athletes,
             ranked_athlete_ids=ranked_athlete_ids,
@@ -1066,8 +1093,8 @@ class BracketService:
         bracket_size = next_power_of_two(len(athletes))
         rounds = bracket_size.bit_length() - 1
         bracket = Bracket(
-            competition_id=competition_id,
-            category_id=category_id,
+            competition_id=competition.id,
+            category_id=category.id,
             bracket_size=bracket_size,
             bye_count=bracket_size - len(athletes),
             rounds=rounds,
@@ -1077,7 +1104,7 @@ class BracketService:
         await self.session.flush()
 
         checked_athlete_ids = await self._get_checked_athlete_ids(
-            competition_id=competition_id,
+            competition_id=competition.id,
             athlete_ids={athlete.id for athlete in athletes},
         )
 
@@ -1103,10 +1130,8 @@ class BracketService:
             category=category,
             matches=matches,
         )
-        await self.advance_status_walkovers_for_competition(competition_id=competition_id)
-
-        await self.session.commit()
-        return await self.get(bracket.id)
+        await self.session.flush()
+        return bracket
 
     async def generate_all(
         self,
@@ -1127,7 +1152,7 @@ class BracketService:
             if await self._get_existing_bracket(competition_id, category_id) is not None:
                 skipped_count += 1
                 continue
-            brackets.append(
+            brackets.extend(
                 await self.generate(
                     competition_id=competition_id,
                     category_id=category_id,
@@ -1142,6 +1167,49 @@ class BracketService:
 
         return brackets, skipped_count
 
+    @staticmethod
+    def _split_athletes_for_brackets(
+        athletes: list[Athlete],
+        *,
+        ranked_athlete_ids: set[int],
+    ) -> list[list[Athlete]]:
+        if len(athletes) <= MAX_ATHLETES_PER_BRACKET:
+            return [athletes]
+
+        bracket_count = (len(athletes) + MAX_ATHLETES_PER_BRACKET - 1) // MAX_ATHLETES_PER_BRACKET
+        groups: list[list[Athlete]] = [[] for _ in range(bracket_count)]
+        team_counts: dict[int | None, int] = {}
+        for athlete in athletes:
+            team_counts[athlete.team_id] = team_counts.get(athlete.team_id, 0) + 1
+
+        ordered_athletes = sorted(
+            athletes,
+            key=lambda athlete: (
+                athlete.id not in ranked_athlete_ids,
+                -team_counts.get(athlete.team_id, 0),
+                athlete.team_id or 0,
+                athlete.name,
+                athlete.id,
+            ),
+        )
+
+        for athlete in ordered_athletes:
+            available_indexes = [
+                index
+                for index, group in enumerate(groups)
+                if len(group) < MAX_ATHLETES_PER_BRACKET
+            ]
+            best_index = min(
+                available_indexes,
+                key=lambda index: (
+                    sum(1 for item in groups[index] if item.team_id == athlete.team_id),
+                    len(groups[index]),
+                    index,
+                ),
+            )
+            groups[best_index].append(athlete)
+
+        return groups
     async def list_for_competition(self, competition_id: int) -> list[Bracket]:
         await CompetitionService(self.session).get(competition_id)
         result = await self.session.execute(
@@ -1902,4 +1970,5 @@ class BracketService:
         if not candidates:
             return None
         return min(candidates, key=lambda item: item.position_end - item.position_start)
+
 

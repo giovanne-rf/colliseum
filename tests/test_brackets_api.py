@@ -95,21 +95,14 @@ async def start_category_checkin(client: AsyncClient, competition_id: int, categ
 
 
 async def create_athlete(client: AsyncClient, index: int, team_id: int) -> int:
-    cpfs = [
-        "529.982.247-25",
-        "390.533.447-05",
-        "111.444.777-35",
-        "935.411.347-80",
-        "123.456.789-09",
-        "168.995.350-09",
-    ]
+
     response = await client.post(
         "/athletes",
         json={
             "name": f"Atleta {index}",
-            "cpf": cpfs[index - 1],
+            "cpf": cpf_for_index(index),
             "email": f"atleta{index}@example.com",
-            "phone": f"11-9999{index}.1234",
+            "phone": f"11-9{index:04d}.1234",
             "sex": "male",
             "team_id": team_id,
             "belt": "blue",
@@ -135,8 +128,8 @@ async def add_ranking_points(client: AsyncClient, athlete_id: int) -> None:
     assert response.status_code == 201
 
 
-def athlete_registration_payload(index: int, category_id: int):
-    cpfs = [
+def cpf_for_index(index: int) -> str:
+    fixed_cpfs = [
         "529.982.247-25",
         "390.533.447-05",
         "111.444.777-35",
@@ -144,8 +137,28 @@ def athlete_registration_payload(index: int, category_id: int):
         "123.456.789-09",
         "168.995.350-09",
     ]
+    if index <= len(fixed_cpfs):
+        return fixed_cpfs[index - 1]
+
+    base_number = 100000000 + index
+    digits = [int(digit) for digit in f"{base_number:09d}"]
+    first = (sum(digit * weight for digit, weight in zip(digits, range(10, 1, -1))) * 10) % 11
+    first = 0 if first == 10 else first
+    digits.append(first)
+    second = (sum(digit * weight for digit, weight in zip(digits, range(11, 1, -1))) * 10) % 11
+    second = 0 if second == 10 else second
+    digits.append(second)
+    raw = "".join(str(digit) for digit in digits)
+    return f"{raw[:3]}.{raw[3:6]}.{raw[6:9]}-{raw[9:]}"
+
+
+def generated_bracket(payload: dict):
+    return payload["brackets"][0] if "brackets" in payload else payload
+
+
+def athlete_registration_payload(index: int, category_id: int):
     return {
-        "cpf": cpfs[index - 1],
+        "cpf": cpf_for_index(index),
         "birth_date": "2002-05-14",
         "category_id": category_id,
     }
@@ -178,7 +191,7 @@ async def test_generate_bracket_uses_power_of_two_byes_and_separates_same_team(
     )
 
     assert response.status_code == 201
-    bracket = response.json()
+    bracket = generated_bracket(response.json())
     assert bracket["bracket_size"] == 4
     assert bracket["bye_count"] == 0
     assert bracket["rounds"] == 2
@@ -211,6 +224,52 @@ async def test_generate_bracket_uses_power_of_two_byes_and_separates_same_team(
         assert len(positions) == 2
         assert earliest_possible_meeting_round(positions[0], positions[1], 4) == 2
 
+
+async def test_generate_category_splits_athletes_into_brackets_with_limit_of_16(
+    client: AsyncClient,
+):
+    teams = [await create_team(client, f"Equipe Split {index}") for index in range(1, 5)]
+    category_id = await create_category(client)
+    competition_id = await create_competition(client)
+    athlete_ids = []
+
+    for index in range(1, 21):
+        athlete_id = await create_athlete(client, index, teams[(index - 1) % len(teams)])
+        athlete_ids.append(athlete_id)
+        response = await client.post(
+            f"/competitions/{competition_id}/registrations",
+            json=athlete_registration_payload(index, category_id),
+        )
+        assert response.status_code == 201
+
+    for athlete_id in athlete_ids[:4]:
+        await add_ranking_points(client, athlete_id)
+
+    response = await client.post(
+        f"/competitions/{competition_id}/brackets",
+        json={"category_id": category_id},
+    )
+
+    assert response.status_code == 201
+    payload = response.json()
+    assert payload["generated_count"] == 2
+    assert len(payload["brackets"]) == 2
+    assert sum(
+        1
+        for bracket in payload["brackets"]
+        for entry in bracket["entries"]
+        if entry["athlete"] is not None
+    ) == 20
+    assert all(
+        sum(1 for entry in bracket["entries"] if entry["athlete"] is not None) <= 16
+        for bracket in payload["brackets"]
+    )
+    assert all(bracket["bracket_size"] <= 16 for bracket in payload["brackets"])
+    assert all(bracket["same_team_conflicts"] == 0 for bracket in payload["brackets"])
+
+    saved_response = await client.get(f"/competitions/{competition_id}/brackets")
+    assert saved_response.status_code == 200
+    assert len(saved_response.json()) == 2
 
 async def test_create_competition_registrations_bulk(client: AsyncClient):
     team_a = await create_team(client, "Equipe Bulk A")
@@ -283,7 +342,7 @@ async def test_generate_bracket_adds_byes_for_non_power_of_two(client: AsyncClie
     )
 
     assert response.status_code == 201
-    bracket = response.json()
+    bracket = generated_bracket(response.json())
     assert bracket["bracket_size"] == next_power_of_two(6)
     assert bracket["bye_count"] == 2
     assert sum(1 for entry in bracket["entries"] if entry["is_bye"]) == 2
@@ -313,7 +372,7 @@ async def test_generate_bracket_gives_byes_to_ranked_athletes_first(client: Asyn
     )
 
     assert response.status_code == 201
-    bracket = response.json()
+    bracket = generated_bracket(response.json())
     ranked_ids = set(athlete_ids[:2])
     ranked_entry_flags = {
         entry["athlete"]["id"]: entry["athlete"]["is_ranked"]
@@ -364,7 +423,7 @@ async def test_generate_bracket_keeps_same_team_ranked_byes_on_opposite_extremes
     )
 
     assert response.status_code == 201
-    bracket = response.json()
+    bracket = generated_bracket(response.json())
     positions = [
         entry["position"] - 1
         for entry in bracket["entries"]
@@ -399,7 +458,7 @@ async def test_generate_bracket_avoids_ranked_vs_ranked_when_unranked_is_availab
     )
 
     assert response.status_code == 201
-    bracket = response.json()
+    bracket = generated_bracket(response.json())
     ranked_ids = set(athlete_ids[:3])
     bye_winner_ids = {
         match["winner"]["id"]
@@ -763,8 +822,8 @@ async def test_close_category_checkin_blocks_new_checkin_and_advances_checked_at
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    assert bracket_response.json()["checkin_closed"] is False
-    bracket_id = bracket_response.json()["id"]
+    assert generated_bracket(bracket_response.json())["checkin_closed"] is False
+    bracket_id = generated_bracket(bracket_response.json())["id"]
     await start_category_checkin(client, competition_id, category_id)
 
     checkin_response = await client.post(
@@ -829,7 +888,7 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    bracket = bracket_response.json()
+    bracket = generated_bracket(bracket_response.json())
     await start_category_checkin(client, competition_id, category_id)
 
     for registration_id in registration_ids:
@@ -951,7 +1010,7 @@ async def test_finalize_match_accepts_unaccented_finish_methods_from_scoreboard(
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    bracket = bracket_response.json()
+    bracket = generated_bracket(bracket_response.json())
     matches = [
         item for item in bracket["matches"]
         if item["round_number"] == 1 and item["athlete_a"] is not None and item["athlete_b"] is not None
@@ -1012,7 +1071,7 @@ async def test_finalize_match_advances_winner_against_bye_winner(client: AsyncCl
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    bracket = bracket_response.json()
+    bracket = generated_bracket(bracket_response.json())
     await start_category_checkin(client, competition_id, category_id)
 
     for registration_id in registration_ids:
@@ -1092,7 +1151,7 @@ async def test_bye_winner_advances_only_after_checked_status(client: AsyncClient
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    bracket = bracket_response.json()
+    bracket = generated_bracket(bracket_response.json())
     await start_category_checkin(client, competition_id, category_id)
     bye_match = next(item for item in bracket["matches"] if item["status"] == "bye")
     final_match = next(item for item in bracket["matches"] if item["round_number"] == 2)
@@ -1149,7 +1208,7 @@ async def test_checked_athlete_advances_against_out_of_weight_opponent(client: A
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    bracket = bracket_response.json()
+    bracket = generated_bracket(bracket_response.json())
     await start_category_checkin(client, competition_id, category_id)
     match = next(item for item in bracket["matches"] if item["round_number"] == 1)
     checked_athlete_id = match["athlete_a"]["id"]
@@ -1222,7 +1281,7 @@ async def test_checked_athlete_advances_by_no_fighters_when_other_branch_has_no_
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
-    bracket = bracket_response.json()
+    bracket = generated_bracket(bracket_response.json())
     await start_category_checkin(client, competition_id, category_id)
 
     bye_match = next(item for item in bracket["matches"] if item["status"] == "bye")
@@ -1259,5 +1318,10 @@ async def test_checked_athlete_advances_by_no_fighters_when_other_branch_has_no_
     assert final_match["winner"]["id"] == checked_athlete_id
     assert final_match["status"] == "completed"
     assert final_match["result"]["finish_method"] == "No fighters"
+
+
+
+
+
 
 

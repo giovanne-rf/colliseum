@@ -1120,17 +1120,13 @@ function BracketsPage() {
   async function generateCategory(event) {
     event.preventDefault();
     try {
-      const bracket = await fetchJson(`/competitions/${competitionId}/brackets`, {
+      const batch = await fetchJson(`/competitions/${competitionId}/brackets`, {
         method: "POST",
         body: JSON.stringify({ category_id: Number(categoryId) }),
       });
-      setResult({
-        competition_id: Number(competitionId),
-        generated_count: 1,
-        skipped_count: 0,
-        brackets: [bracket],
-      });
-      setMessage([`Chave ID ${bracket.id} gerada e salva com sucesso.`, "success"]);
+      setResult(batch);
+      const ids = batch.brackets.map((bracket) => `#${bracket.id}`).join(", ");
+      setMessage([`${batch.generated_count} chave(s) gerada(s) e salva(s): ${ids}.`, "success"]);
     } catch (error) {
       setMessage([error.message, "error"]);
     }
@@ -1231,12 +1227,11 @@ function SavedBracketsPage() {
       .filter((bracket) => !filters.age_group || bracket.category.age_group === filters.age_group)
       .map((bracket) => bracket.category.weight_class),
   )].sort((left, right) => left.localeCompare(right));
-  const selectedBracket = brackets.find((bracket) => (
+  const selectedBrackets = brackets.filter((bracket) => (
     bracket.category.belt === filters.belt
     && bracket.category.age_group === filters.age_group
     && bracket.category.weight_class === filters.weight_class
   ));
-
   return (
     <section className="workspace stack">
       <form className="registration bracket-generator">
@@ -1265,22 +1260,24 @@ function SavedBracketsPage() {
         <section className="panel saved-brackets-panel">
           <div className="section-heading">
             <h2>Consulta de Chaves</h2>
-            <span>{selectedBracket ? `ID ${selectedBracket.id}` : `${brackets.length} chave(s) salva(s)`}</span>
+            <span>{selectedBrackets.length ? `${selectedBrackets.length} chave(s) encontrada(s)` : `${brackets.length} chave(s) salva(s)`}</span>
           </div>
-          {selectedBracket ? (
+          {selectedBrackets.length ? (
             <div className="checkin-table-wrap">
               <table className="checkin-table saved-brackets-table">
                 <thead><tr><th>ID</th><th>Faixa</th><th>Idade</th><th>Peso</th><th>Atletas</th><th>Lutas</th><th>Link</th></tr></thead>
                 <tbody>
-                  <tr>
-                    <td data-label="ID">#{selectedBracket.id}</td>
-                    <td data-label="Faixa">{beltLabels[selectedBracket.category.belt] || selectedBracket.category.belt}</td>
-                    <td data-label="Idade">{selectedBracket.category.age_group}</td>
-                    <td data-label="Peso">{selectedBracket.category.weight_class}</td>
-                    <td data-label="Atletas">{selectedBracket.entries.filter((entry) => entry.athlete).length}</td>
-                    <td data-label="Lutas">{selectedBracket.matches.length}</td>
-                    <td data-label="Link"><a href={`/chaves/${selectedBracket.id}`}>Abrir URL</a></td>
-                  </tr>
+                  {selectedBrackets.map((bracket) => (
+                    <tr key={bracket.id}>
+                      <td data-label="ID">#{bracket.id}</td>
+                      <td data-label="Faixa">{beltLabels[bracket.category.belt] || bracket.category.belt}</td>
+                      <td data-label="Idade">{bracket.category.age_group}</td>
+                      <td data-label="Peso">{bracket.category.weight_class}</td>
+                      <td data-label="Atletas">{bracket.entries.filter((entry) => entry.athlete).length}</td>
+                      <td data-label="Lutas">{bracket.matches.length}</td>
+                      <td data-label="Link"><a href={`/chaves/${bracket.id}`}>Abrir URL</a></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -1289,15 +1286,17 @@ function SavedBracketsPage() {
           )}
         </section>
       )}
-      {selectedBracket && (
+      {!!selectedBrackets.length && (
         <section className="registration bracket-result">
           <div className="section-heading">
             <h2>Exibicao da Chave</h2>
-            <span>ID {selectedBracket.id} | {categoryLabel(selectedBracket.category)}</span>
+            <span>{selectedBrackets.length} chave(s) | {categoryLabel(selectedBrackets[0].category)}</span>
           </div>
           <div className="landscape-scroll" aria-label="Chaves salvas em formato paisagem">
             <div className="ibjjf-sheets">
-              <BracketSheet bracket={selectedBracket} showDirectLink onOpenFight={(match, matchNumber) => setFightPanel({ bracket: selectedBracket, match, matchNumber })} onBlockedFight={setBlockedFightNotice} />
+              {selectedBrackets.map((bracket) => (
+                <BracketSheet bracket={bracket} key={bracket.id} showDirectLink onOpenFight={(match, matchNumber) => setFightPanel({ bracket, match, matchNumber })} onBlockedFight={setBlockedFightNotice} />
+              ))}
             </div>
           </div>
         </section>
@@ -3682,3 +3681,4 @@ function Select({ label, value, onChange, options, className = "", ...props }) {
 }
 
 ReactDOM.createRoot(document.querySelector("#root")).render(<App />);
+

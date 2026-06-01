@@ -234,6 +234,10 @@ async def create_db_and_tables() -> None:
                 await conn.execute(text("ALTER TABLE teams ALTER COLUMN responsible DROP NOT NULL"))
 
         table_names = await conn.run_sync(lambda sync_conn: set(inspect(sync_conn).get_table_names()))
+        if conn.dialect.name == "postgresql" and "brackets" in table_names:
+            await conn.execute(
+                text("ALTER TABLE brackets DROP CONSTRAINT IF EXISTS uq_bracket_competition_category")
+            )
         if "competition_schedule" not in table_names:
             await conn.execute(
                 text(
@@ -267,3 +271,4 @@ async def create_db_and_tables() -> None:
             await conn.execute(text("CREATE INDEX ix_competition_schedule_mat_number ON competition_schedule (mat_number)"))
             await conn.execute(text("CREATE INDEX ix_competition_schedule_day_number ON competition_schedule (day_number)"))
             await conn.execute(text("CREATE INDEX ix_competition_schedule_scheduled_start ON competition_schedule (scheduled_start)"))
+

@@ -183,9 +183,6 @@ class CompetitionCheckinControl(Base):
 
 class Bracket(Base):
     __tablename__ = "brackets"
-    __table_args__ = (
-        UniqueConstraint("competition_id", "category_id", name="uq_bracket_competition_category"),
-    )
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     competition_id: Mapped[int] = mapped_column(
@@ -370,3 +367,4 @@ class CompetitionSchedule(Base):
     bracket = relationship("Bracket")
     category = relationship("Category")
     match = relationship("Match", back_populates="schedule")
+

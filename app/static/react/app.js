@@ -729,17 +729,13 @@
     async function generateCategory(event) {
       event.preventDefault();
       try {
-        const bracket = await fetchJson(`/competitions/${competitionId}/brackets`, {
+        const batch = await fetchJson(`/competitions/${competitionId}/brackets`, {
           method: "POST",
           body: JSON.stringify({ category_id: Number(categoryId) })
         });
-        setResult({
-          competition_id: Number(competitionId),
-          generated_count: 1,
-          skipped_count: 0,
-          brackets: [bracket]
-        });
-        setMessage([`Chave ID ${bracket.id} gerada e salva com sucesso.`, "success"]);
+        setResult(batch);
+        const ids = batch.brackets.map((bracket) => `#${bracket.id}`).join(", ");
+        setMessage([`${batch.generated_count} chave(s) gerada(s) e salva(s): ${ids}.`, "success"]);
       } catch (error) {
         setMessage([error.message, "error"]);
       }
@@ -797,20 +793,44 @@
     const weightOptionsForBrackets = [...new Set(
       brackets.filter((bracket) => !filters.belt || bracket.category.belt === filters.belt).filter((bracket) => !filters.age_group || bracket.category.age_group === filters.age_group).map((bracket) => bracket.category.weight_class)
     )].sort((left, right) => left.localeCompare(right));
-    const selectedBracket = brackets.find((bracket) => bracket.category.belt === filters.belt && bracket.category.age_group === filters.age_group && bracket.category.weight_class === filters.weight_class);
-    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("form", { className: "registration bracket-generator" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Chaves Salvas"), /* @__PURE__ */ React.createElement("span", null, "Selecione faixa, idade e peso")), /* @__PURE__ */ React.createElement("div", { className: "grid bracket-generator-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: competitionId, onChange: loadSavedBrackets, required: true, options: [
-      ["", "Selecione a competicao"],
-      ...competitions.map((competition) => [String(competition.id), competition.name])
-    ] }), /* @__PURE__ */ React.createElement(Select, { label: "Faixa", value: filters.belt, onChange: (belt) => setFilters({ belt, age_group: "", weight_class: "" }), disabled: !brackets.length, options: [
-      ["", brackets.length ? "Selecione a faixa" : "Selecione a competicao"],
-      ...beltOptionsForBrackets.map((belt) => [belt, beltLabels[belt] || belt])
-    ] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria de idade", value: filters.age_group, onChange: (age_group) => setFilters({ ...filters, age_group, weight_class: "" }), disabled: !filters.belt, options: [
-      ["", filters.belt ? "Selecione a idade" : "Selecione a faixa"],
-      ...ageGroupOptionsForBrackets.map((ageGroup) => [ageGroup, ageGroup])
-    ] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria de peso", value: filters.weight_class, onChange: (weight_class) => setFilters({ ...filters, weight_class }), disabled: !filters.age_group, options: [
-      ["", filters.age_group ? "Selecione o peso" : "Selecione a idade"],
-      ...weightOptionsForBrackets.map((weightClass) => [weightClass, weightClass])
-    ] })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), !!brackets.length && /* @__PURE__ */ React.createElement("section", { className: "panel saved-brackets-panel" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Consulta de Chaves"), /* @__PURE__ */ React.createElement("span", null, selectedBracket ? `ID ${selectedBracket.id}` : `${brackets.length} chave(s) salva(s)`)), selectedBracket ? /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table saved-brackets-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "ID"), /* @__PURE__ */ React.createElement("th", null, "Faixa"), /* @__PURE__ */ React.createElement("th", null, "Idade"), /* @__PURE__ */ React.createElement("th", null, "Peso"), /* @__PURE__ */ React.createElement("th", null, "Atletas"), /* @__PURE__ */ React.createElement("th", null, "Lutas"), /* @__PURE__ */ React.createElement("th", null, "Link"))), /* @__PURE__ */ React.createElement("tbody", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { "data-label": "ID" }, "#", selectedBracket.id), /* @__PURE__ */ React.createElement("td", { "data-label": "Faixa" }, beltLabels[selectedBracket.category.belt] || selectedBracket.category.belt), /* @__PURE__ */ React.createElement("td", { "data-label": "Idade" }, selectedBracket.category.age_group), /* @__PURE__ */ React.createElement("td", { "data-label": "Peso" }, selectedBracket.category.weight_class), /* @__PURE__ */ React.createElement("td", { "data-label": "Atletas" }, selectedBracket.entries.filter((entry) => entry.athlete).length), /* @__PURE__ */ React.createElement("td", { "data-label": "Lutas" }, selectedBracket.matches.length), /* @__PURE__ */ React.createElement("td", { "data-label": "Link" }, /* @__PURE__ */ React.createElement("a", { href: `/chaves/${selectedBracket.id}` }, "Abrir URL")))))) : /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Selecione a faixa, a categoria de idade e a categoria de peso para exibir a chave.")), selectedBracket && /* @__PURE__ */ React.createElement("section", { className: "registration bracket-result" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Exibicao da Chave"), /* @__PURE__ */ React.createElement("span", null, "ID ", selectedBracket.id, " | ", categoryLabel(selectedBracket.category))), /* @__PURE__ */ React.createElement("div", { className: "landscape-scroll", "aria-label": "Chaves salvas em formato paisagem" }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-sheets" }, /* @__PURE__ */ React.createElement(BracketSheet, { bracket: selectedBracket, showDirectLink: true, onOpenFight: (match, matchNumber) => setFightPanel({ bracket: selectedBracket, match, matchNumber }), onBlockedFight: setBlockedFightNotice })))), blockedFightNotice && /* @__PURE__ */ React.createElement("div", { className: "modal-backdrop fight-modal-backdrop", role: "alertdialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-confirm" }, /* @__PURE__ */ React.createElement("h2", null, "Luta ja finalizada"), /* @__PURE__ */ React.createElement("p", null, blockedFightNotice), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: () => setBlockedFightNotice("") }, "OK")))), fightPanel && /* @__PURE__ */ React.createElement(FightPanel, { data: fightPanel, onClose: () => setFightPanel(null), onBracketUpdated: updateBracket, onResultSaved: updateSavedResult }));
+    const selectedBrackets = brackets.filter((bracket) => bracket.category.belt === filters.belt && bracket.category.age_group === filters.age_group && bracket.category.weight_class === filters.weight_class);
+    return React.createElement("section", { className: "workspace stack" },
+      React.createElement("form", { className: "registration bracket-generator" },
+        React.createElement("div", { className: "section-heading" }, React.createElement("h2", null, "Chaves Salvas"), React.createElement("span", null, "Selecione faixa, idade e peso")),
+        React.createElement("div", { className: "grid bracket-generator-row" },
+          React.createElement(Select, { label: "Competicao", value: competitionId, onChange: loadSavedBrackets, required: true, options: [["", "Selecione a competicao"], ...competitions.map((competition) => [String(competition.id), competition.name])] }),
+          React.createElement(Select, { label: "Faixa", value: filters.belt, onChange: (belt) => setFilters({ belt, age_group: "", weight_class: "" }), disabled: !brackets.length, options: [["", brackets.length ? "Selecione a faixa" : "Selecione a competicao"], ...beltOptionsForBrackets.map((belt) => [belt, beltLabels[belt] || belt])] }),
+          React.createElement(Select, { label: "Categoria de idade", value: filters.age_group, onChange: (age_group) => setFilters({ ...filters, age_group, weight_class: "" }), disabled: !filters.belt, options: [["", filters.belt ? "Selecione a idade" : "Selecione a faixa"], ...ageGroupOptionsForBrackets.map((ageGroup) => [ageGroup, ageGroup])] }),
+          React.createElement(Select, { label: "Categoria de peso", value: filters.weight_class, onChange: (weight_class) => setFilters({ ...filters, weight_class }), disabled: !filters.age_group, options: [["", filters.age_group ? "Selecione o peso" : "Selecione a idade"], ...weightOptionsForBrackets.map((weightClass) => [weightClass, weightClass])] })
+        ),
+        React.createElement(Message, { text: message[0], type: message[1] })
+      ),
+      !!brackets.length && React.createElement("section", { className: "panel saved-brackets-panel" },
+        React.createElement("div", { className: "section-heading" }, React.createElement("h2", null, "Consulta de Chaves"), React.createElement("span", null, selectedBrackets.length ? `${selectedBrackets.length} chave(s) encontrada(s)` : `${brackets.length} chave(s) salva(s)`)),
+        selectedBrackets.length ? React.createElement("div", { className: "checkin-table-wrap" },
+          React.createElement("table", { className: "checkin-table saved-brackets-table" },
+            React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", null, "ID"), React.createElement("th", null, "Faixa"), React.createElement("th", null, "Idade"), React.createElement("th", null, "Peso"), React.createElement("th", null, "Atletas"), React.createElement("th", null, "Lutas"), React.createElement("th", null, "Link"))),
+            React.createElement("tbody", null, selectedBrackets.map((bracket) => React.createElement("tr", { key: bracket.id },
+              React.createElement("td", { "data-label": "ID" }, "#", bracket.id),
+              React.createElement("td", { "data-label": "Faixa" }, beltLabels[bracket.category.belt] || bracket.category.belt),
+              React.createElement("td", { "data-label": "Idade" }, bracket.category.age_group),
+              React.createElement("td", { "data-label": "Peso" }, bracket.category.weight_class),
+              React.createElement("td", { "data-label": "Atletas" }, bracket.entries.filter((entry) => entry.athlete).length),
+              React.createElement("td", { "data-label": "Lutas" }, bracket.matches.length),
+              React.createElement("td", { "data-label": "Link" }, React.createElement("a", { href: `/chaves/${bracket.id}` }, "Abrir URL"))
+            )))
+          )
+        ) : React.createElement("div", { className: "empty" }, "Selecione a faixa, a categoria de idade e a categoria de peso para exibir a chave.")
+      ),
+      !!selectedBrackets.length && React.createElement("section", { className: "registration bracket-result" },
+        React.createElement("div", { className: "section-heading" }, React.createElement("h2", null, "Exibicao da Chave"), React.createElement("span", null, selectedBrackets.length, " chave(s) | ", categoryLabel(selectedBrackets[0].category))),
+        React.createElement("div", { className: "landscape-scroll", "aria-label": "Chaves salvas em formato paisagem" },
+          React.createElement("div", { className: "ibjjf-sheets" }, selectedBrackets.map((bracket) => React.createElement(BracketSheet, { bracket, key: bracket.id, showDirectLink: true, onOpenFight: (match, matchNumber) => setFightPanel({ bracket, match, matchNumber }), onBlockedFight: setBlockedFightNotice })))
+        )
+      ),
+      blockedFightNotice && React.createElement("div", { className: "modal-backdrop fight-modal-backdrop", role: "alertdialog", "aria-modal": "true" }, React.createElement("section", { className: "fight-confirm" }, React.createElement("h2", null, "Luta ja finalizada"), React.createElement("p", null, blockedFightNotice), React.createElement("div", { className: "actions" }, React.createElement("button", { className: "primary", type: "button", onClick: () => setBlockedFightNotice("") }, "OK")))),
+      fightPanel && React.createElement(FightPanel, { data: fightPanel, onClose: () => setFightPanel(null), onBracketUpdated: updateBracket, onResultSaved: updateSavedResult })
+    );
   }
   function SchedulePage() {
     const [competitions, setCompetitions] = useState([]);
@@ -2135,3 +2155,4 @@
   }
   ReactDOM.createRoot(document.querySelector("#root")).render(/* @__PURE__ */ React.createElement(App, null));
 })();
+
