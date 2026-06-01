@@ -153,6 +153,34 @@ class CompetitionCheckinClosure(Base):
     category = relationship("Category")
 
 
+class CompetitionCheckinControl(Base):
+    __tablename__ = "competition_checkin_controls"
+    __table_args__ = (
+        UniqueConstraint("competition_id", "category_id", name="uq_checkin_control_competition_category"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    competition_id: Mapped[int] = mapped_column(
+        ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    competition = relationship("Competition")
+    category = relationship("Category")
+
+
 class Bracket(Base):
     __tablename__ = "brackets"
     __table_args__ = (

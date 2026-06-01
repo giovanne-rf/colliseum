@@ -85,6 +85,15 @@ async def create_competition(client: AsyncClient) -> int:
     return int(response.json()["id"])
 
 
+async def start_category_checkin(client: AsyncClient, competition_id: int, category_id: int):
+    response = await client.post(
+        f"/competitions/{competition_id}/categories/{category_id}/checkin/start",
+    )
+    assert response.status_code == 200
+    assert response.json()["category_id"] == category_id
+    return response.json()
+
+
 async def create_athlete(client: AsyncClient, index: int, team_id: int) -> int:
     cpfs = [
         "529.982.247-25",
@@ -586,6 +595,8 @@ async def test_checkin_lookup_and_confirm_overweight(client: AsyncClient):
         json={"category_id": category_id},
     )
     assert bracket_response.status_code == 201
+    start_control = await start_category_checkin(client, competition_id, category_id)
+    assert start_control["closed_at"] is None
 
     overweight_response = await client.post(
         f"/competitions/{competition_id}/checkins",
@@ -702,6 +713,7 @@ async def test_super_heavy_athlete_can_be_checked_without_weighin(client: AsyncC
         json={"category_id": category_id, "replace_existing": True},
     )
     assert bracket_response.status_code == 201
+    await start_category_checkin(client, competition_id, category_id)
 
     lookup_response = await client.get(
         f"/competitions/{competition_id}/checkin-options?cpf=52998224725"
@@ -753,6 +765,7 @@ async def test_close_category_checkin_blocks_new_checkin_and_advances_checked_at
     assert bracket_response.status_code == 201
     assert bracket_response.json()["checkin_closed"] is False
     bracket_id = bracket_response.json()["id"]
+    await start_category_checkin(client, competition_id, category_id)
 
     checkin_response = await client.post(
         f"/competitions/{competition_id}/checkins",
@@ -817,6 +830,7 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     )
     assert bracket_response.status_code == 201
     bracket = bracket_response.json()
+    await start_category_checkin(client, competition_id, category_id)
 
     for registration_id in registration_ids:
         checkin_response = await client.post(
@@ -999,6 +1013,7 @@ async def test_finalize_match_advances_winner_against_bye_winner(client: AsyncCl
     )
     assert bracket_response.status_code == 201
     bracket = bracket_response.json()
+    await start_category_checkin(client, competition_id, category_id)
 
     for registration_id in registration_ids:
         checkin_response = await client.post(
@@ -1078,6 +1093,7 @@ async def test_bye_winner_advances_only_after_checked_status(client: AsyncClient
     )
     assert bracket_response.status_code == 201
     bracket = bracket_response.json()
+    await start_category_checkin(client, competition_id, category_id)
     bye_match = next(item for item in bracket["matches"] if item["status"] == "bye")
     final_match = next(item for item in bracket["matches"] if item["round_number"] == 2)
     bye_winner_id = bye_match["winner"]["id"]
@@ -1134,6 +1150,7 @@ async def test_checked_athlete_advances_against_out_of_weight_opponent(client: A
     )
     assert bracket_response.status_code == 201
     bracket = bracket_response.json()
+    await start_category_checkin(client, competition_id, category_id)
     match = next(item for item in bracket["matches"] if item["round_number"] == 1)
     checked_athlete_id = match["athlete_a"]["id"]
     out_of_weight_athlete_id = match["athlete_b"]["id"]

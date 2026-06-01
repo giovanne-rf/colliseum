@@ -19,6 +19,7 @@ from app.models.bracket import (
     CompetitionSchedule,
     CompetitionCheckin,
     CompetitionCheckinClosure,
+    CompetitionCheckinControl,
     Competition,
     CompetitionRegistration,
     Match,
@@ -31,6 +32,7 @@ from app.models.ranking import RankingEntry
 from app.schemas.bracket import (
     CompetitionCheckinCreate,
     CompetitionCheckinClosureRead,
+    CompetitionCheckinControlRead,
     CompetitionFinalCheckRead,
     CompetitionCheckinLookupRead,
     CompetitionCheckinRead,
@@ -418,6 +420,10 @@ class CheckinService:
             cpf=cpf,
         )
         checkin = await self._get_checkin_by_registration(registration.id)
+        checkin_started = await self._is_checkin_started(
+            competition_id=competition_id,
+            category_id=registration.category_id,
+        )
         checkin_closed = await self._is_checkin_closed(
             competition_id=competition_id,
             category_id=registration.category_id,
@@ -429,6 +435,7 @@ class CheckinService:
             category=registration.category,
             max_weight_kg=max_weight_kg(registration.category.weight_class),
             is_super_heavy=is_super_heavy_category(registration.category.weight_class),
+            checkin_started=checkin_started,
             checkin_closed=checkin_closed,
             status=checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW,
             checkin=self._to_read(checkin, registration) if checkin is not None else None,
@@ -463,6 +470,12 @@ class CheckinService:
             )
         )
         closed_category_ids = {int(category_id) for category_id in closures_result.scalars().all()}
+        controls_result = await self.session.execute(
+            select(CompetitionCheckinControl.category_id).where(
+                CompetitionCheckinControl.competition_id == competition_id
+            )
+        )
+        started_category_ids = {int(category_id) for category_id in controls_result.scalars().all()}
 
         rows: list[CompetitionFinalCheckRead] = []
         for registration in registrations:
@@ -470,6 +483,12 @@ class CheckinService:
             checked_weight = Decimal(str(checkin.checked_weight)) if checkin is not None else None
             max_weight = max_weight_kg(registration.category.weight_class)
             is_super_heavy = is_super_heavy_category(registration.category.weight_class)
+            status = checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW
+            if (
+                registration.category_id in closed_category_ids
+                and status not in {CHECKIN_STATUS_CHECKED, CHECKIN_STATUS_OUT_OF_WEIGHT}
+            ):
+                status = CHECKIN_STATUS_NO_SHOW
             rows.append(
                 CompetitionFinalCheckRead(
                     registration_id=registration.id,
@@ -478,16 +497,59 @@ class CheckinService:
                     category=registration.category,
                     checked_weight=checked_weight,
                     weight_display="Pesadíssimo" if is_super_heavy and checkin is not None else None,
-                    status=checkin.status if checkin is not None else CHECKIN_STATUS_NO_SHOW,
+                    status=status,
                     is_overweight=(
                         checked_weight is not None
                         and max_weight is not None
                         and checked_weight > max_weight
                     ),
+                    checkin_started=registration.category_id in started_category_ids,
                     checkin_closed=registration.category_id in closed_category_ids,
                 )
             )
         return rows
+
+    async def start_category_checkin(
+        self,
+        *,
+        competition_id: int,
+        category_id: int,
+    ) -> CompetitionCheckinControlRead:
+        await self._ensure_competition_exists(competition_id)
+        await self._ensure_bracket_generated(competition_id=competition_id, category_id=category_id)
+        category = await self.session.get(Category, category_id)
+        if category is None:
+            raise NotFoundError("Category not found.")
+
+        existing = await self._get_checkin_control(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
+        if existing is not None:
+            return CompetitionCheckinControlRead(
+                id=existing.id,
+                competition_id=existing.competition_id,
+                category_id=existing.category_id,
+                category=category,
+                started_at=existing.started_at,
+                closed_at=existing.closed_at,
+            )
+
+        control = CompetitionCheckinControl(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
+        self.session.add(control)
+        await self.session.commit()
+        await self.session.refresh(control)
+        return CompetitionCheckinControlRead(
+            id=control.id,
+            competition_id=control.competition_id,
+            category_id=control.category_id,
+            category=category,
+            started_at=control.started_at,
+            closed_at=control.closed_at,
+        )
 
     async def close_category_checkin(
         self,
@@ -496,14 +558,7 @@ class CheckinService:
         category_id: int,
     ) -> CompetitionCheckinClosureRead:
         await self._ensure_competition_exists(competition_id)
-        result = await self.session.execute(
-            select(Bracket.id).where(
-                Bracket.competition_id == competition_id,
-                Bracket.category_id == category_id,
-            )
-        )
-        if result.scalar_one_or_none() is None:
-            raise ValidationError("Bracket must be generated before closing category check-in.")
+        await self._ensure_bracket_generated(competition_id=competition_id, category_id=category_id)
 
         category = await self.session.get(Category, category_id)
         if category is None:
@@ -522,6 +577,14 @@ class CheckinService:
                 closed_at=existing.closed_at,
             )
 
+        control = await self._get_checkin_control(
+            competition_id=competition_id,
+            category_id=category_id,
+        )
+        if control is None:
+            raise ValidationError("Checkin ainda nao iniciado para esta categoria.")
+
+        control.closed_at = datetime.now(UTC)
         closure = CompetitionCheckinClosure(
             competition_id=competition_id,
             category_id=category_id,
@@ -750,6 +813,26 @@ class CheckinService:
         )
         return result.scalar_one_or_none()
 
+    async def _get_checkin_control(
+        self,
+        *,
+        competition_id: int,
+        category_id: int,
+    ) -> CompetitionCheckinControl | None:
+        result = await self.session.execute(
+            select(CompetitionCheckinControl).where(
+                CompetitionCheckinControl.competition_id == competition_id,
+                CompetitionCheckinControl.category_id == category_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def _is_checkin_started(self, *, competition_id: int, category_id: int) -> bool:
+        return await self._get_checkin_control(
+            competition_id=competition_id,
+            category_id=category_id,
+        ) is not None
+
     async def _is_checkin_closed(self, *, competition_id: int, category_id: int) -> bool:
         return await self._get_checkin_closure(
             competition_id=competition_id,
@@ -762,6 +845,21 @@ class CheckinService:
             category_id=registration.category_id,
         ):
             raise ValidationError("Checkin encerrado.")
+        if not await self._is_checkin_started(
+            competition_id=registration.competition_id,
+            category_id=registration.category_id,
+        ):
+            raise ValidationError("Checkin ainda nao iniciado para esta categoria.")
+
+    async def _ensure_bracket_generated(self, *, competition_id: int, category_id: int) -> None:
+        result = await self.session.execute(
+            select(Bracket.id).where(
+                Bracket.competition_id == competition_id,
+                Bracket.category_id == category_id,
+            )
+        )
+        if result.scalar_one_or_none() is None:
+            raise ValidationError("Bracket must be generated before category check-in.")
 
     async def _ensure_bracket_generated_for_registration(
         self,
@@ -1648,7 +1746,10 @@ class BracketService:
             int(athlete_id): status for athlete_id, status in result.all()
         }
         for athlete_id, athlete in athletes_by_id.items():
-            athlete.checkin_status = statuses_by_athlete.get(athlete_id, CHECKIN_STATUS_NO_SHOW)
+            status = statuses_by_athlete.get(athlete_id, CHECKIN_STATUS_NO_SHOW)
+            if bracket.checkin_closed and status not in {CHECKIN_STATUS_CHECKED, CHECKIN_STATUS_OUT_OF_WEIGHT}:
+                status = CHECKIN_STATUS_NO_SHOW
+            athlete.checkin_status = status
 
     def _build_matches(
         self,

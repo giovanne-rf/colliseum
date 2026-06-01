@@ -10,6 +10,12 @@ const routes = [
     ["/academias", "Listagem"],
     ["/equipes", "Cadastro"],
   ]},
+  { label: "PAINEL DE CHECAGEM", items: [
+    ["/checkin/pesagem", "Pesagem"],
+    ["/checkin", "Checkin"],
+    ["/checagem", "Checagem geral"],
+    ["/checagem-final", "Painel Geral"],
+  ]},
   ["/categorias", "CATEGORIAS"],
   ["/config-categorias", "CONFIG. CATEGORIAS"],
   ["/ordem", "ORDEM DE LUTAS"],
@@ -18,10 +24,6 @@ const routes = [
   ["/chaves", "GERAR CHAVES"],
   ["/chaves/salvas", "CHAVES SALVAS"],
   ["/cronograma", "CRONOGRAMA"],
-  ["/checagem", "LISTAGEM DE ATLETAS"],
-  ["/checkin/pesagem", "PESAGEM"],
-  ["/checkin", "CHECKIN"],
-  ["/checagem-final", "CHECAGEM FINAL"],
   ["/ranking", "RANKING"],
 ];
 
@@ -2301,9 +2303,15 @@ function WeighinPage() {
         ...nextForm,
         checked_weight: data.checkin?.checked_weight ? String(data.checkin.checked_weight) : "",
       });
-      setMessage(data.checkin
-        ? ["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"]
-        : ["Atleta localizado para pesagem.", "success"]);
+      if (data.checkin_closed) {
+        setMessage(["Checkin encerrado.", "error"]);
+      } else if (!data.checkin_started) {
+        setMessage(["Checkin ainda nao iniciado para esta categoria.", "error"]);
+      } else {
+        setMessage(data.checkin
+          ? ["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"]
+          : ["Atleta localizado para pesagem.", "success"]);
+      }
     } catch (error) {
       setMessage([error.message, "error"]);
     }
@@ -2316,6 +2324,10 @@ function WeighinPage() {
 
   function isAlreadyWeighed() {
     return Boolean(lookup?.checkin);
+  }
+
+  function isCheckinUnavailable() {
+    return Boolean(lookup && (!lookup.checkin_started || lookup.checkin_closed));
   }
 
   async function persistCheckin(overweightConfirmed = false) {
@@ -2340,6 +2352,10 @@ function WeighinPage() {
     }
     if (isAlreadyWeighed()) {
       setMessage(["Este atleta ja foi pesado nesta competicao. Nova pesagem bloqueada.", "error"]);
+      return;
+    }
+    if (isCheckinUnavailable()) {
+      setMessage([lookup.checkin_closed ? "Checkin encerrado." : "Checkin ainda nao iniciado para esta categoria.", "error"]);
       return;
     }
     if (isOverweight()) {
@@ -2381,9 +2397,9 @@ function WeighinPage() {
             findAthlete(next);
           }} required options={[["", "Selecione a competicao"], ...competitions.map((item) => [String(item.id), item.name])]} />
           <Field label="CPF" value={form.cpf} onBlur={() => findAthlete()} onChange={(cpf) => setForm({ ...form, cpf: maskCpf(cpf) })} required />
-          <Field label="Peso checado" type="number" min="0" step="0.01" value={form.checked_weight} onChange={(checked_weight) => setForm({ ...form, checked_weight })} required disabled={!lookup || isAlreadyWeighed()} />
+          <Field label="Peso checado" type="number" min="0" step="0.01" value={form.checked_weight} onChange={(checked_weight) => setForm({ ...form, checked_weight })} required disabled={!lookup || isAlreadyWeighed() || isCheckinUnavailable()} />
           <div className="inline-submit">
-            <button className="primary" type="submit" disabled={!lookup || isAlreadyWeighed()}>Salvar pesagem</button>
+            <button className="primary" type="submit" disabled={!lookup || isAlreadyWeighed() || isCheckinUnavailable()}>Salvar pesagem</button>
           </div>
         </div>
         <div className="grid weighin-data">
@@ -2436,6 +2452,8 @@ function CheckinPage() {
       setLookup(data);
       if (data.checkin_closed) {
         setMessage(["Checkin encerrado.", "error"]);
+      } else if (!data.checkin_started) {
+        setMessage(["Checkin ainda nao iniciado para esta categoria.", "error"]);
       } else if (!data.checkin && data.is_super_heavy) {
         setMessage(["Categoria super pesado: atleta apto para CHECKED sem pesagem.", "success"]);
       } else if (!data.checkin) {
@@ -2454,6 +2472,7 @@ function CheckinPage() {
 
   const canReady = Boolean(
     lookup
+    && lookup.checkin_started
     && !lookup.checkin_closed
     && (
       (lookup.checkin && !lookup.checkin.is_overweight && lookup.checkin.status !== "Checked")
@@ -2462,6 +2481,7 @@ function CheckinPage() {
   );
   const canNotReady = Boolean(
     lookup
+    && lookup.checkin_started
     && !lookup.checkin_closed
     && (
       (lookup.checkin && lookup.checkin.status !== "Checked")
@@ -2473,6 +2493,10 @@ function CheckinPage() {
     event.preventDefault();
     if (!lookup) {
       setMessage(["Localize o atleta pelo CPF antes do checkin.", "error"]);
+      return;
+    }
+    if (!lookup.checkin_started) {
+      setMessage(["Checkin ainda nao iniciado para esta categoria.", "error"]);
       return;
     }
     if (lookup.checkin_closed) {
@@ -2552,6 +2576,7 @@ function FinalCheckPage() {
   const [competitionId, setCompetitionId] = useState("");
   const [rows, setRows] = useState([]);
   const [filters, setFilters] = useState({ sex: "", belt: "", age_group: "", weight_class: "" });
+  const [startTarget, setStartTarget] = useState(null);
   const [closeTarget, setCloseTarget] = useState(null);
   const [message, setMessage] = useState(["", ""]);
 
@@ -2580,6 +2605,20 @@ function FinalCheckPage() {
       });
       setMessage(["Checkin encerrado para a categoria.", "success"]);
       setCloseTarget(null);
+      setRows(await fetchJson(`/competitions/${competitionId}/final-checks`));
+    } catch (error) {
+      setMessage([error.message, "error"]);
+    }
+  }
+
+  async function startCategory() {
+    if (!competitionId || !startTarget?.categoryId) return;
+    try {
+      await fetchJson(`/competitions/${competitionId}/categories/${startTarget.categoryId}/checkin/start`, {
+        method: "POST",
+      });
+      setMessage(["Checkin iniciado para a categoria.", "success"]);
+      setStartTarget(null);
       setRows(await fetchJson(`/competitions/${competitionId}/final-checks`));
     } catch (error) {
       setMessage([error.message, "error"]);
@@ -2622,10 +2661,22 @@ function FinalCheckPage() {
           {competitionId && !rows.length && <div className="empty">Nenhum atleta inscrito nesta competicao.</div>}
           {competitionId && rows.length > 0 && filtered.length === 0 && <div className="empty">Nenhum atleta encontrado para os filtros selecionados.</div>}
           {[...groups.entries()].map(([key, items]) => (
-            <FinalCheckGroup groupKey={key} items={items} key={key} onCloseCategory={setCloseTarget} />
+            <FinalCheckGroup groupKey={key} items={items} key={key} onStartCategory={setStartTarget} onCloseCategory={setCloseTarget} />
           ))}
         </div>
       </section>
+      {startTarget && (
+        <div className="modal-backdrop fight-modal-backdrop" role="alertdialog" aria-modal="true">
+          <section className="fight-confirm">
+            <h2>Iniciar checkin?</h2>
+            <p>Confirma o inicio do checkin da categoria {startTarget.label}? Depois disso, pesagem e checkin dos atletas dessa categoria ficarao liberados.</p>
+            <div className="actions">
+              <button className="secondary" type="button" onClick={() => setStartTarget(null)}>Cancelar</button>
+              <button className="primary" type="button" onClick={startCategory}>Iniciar Checkin</button>
+            </div>
+          </section>
+        </div>
+      )}
       {closeTarget && (
         <div className="modal-backdrop fight-modal-backdrop" role="alertdialog" aria-modal="true">
           <section className="fight-confirm">
@@ -2642,8 +2693,9 @@ function FinalCheckPage() {
   );
 }
 
-function FinalCheckGroup({ groupKey, items, onCloseCategory }) {
+function FinalCheckGroup({ groupKey, items, onStartCategory, onCloseCategory }) {
   const [belt, ageGroup, weight] = groupKey.split("|");
+  const started = items.some((item) => item.checkin_started);
   const closed = items.some((item) => item.checkin_closed);
   const categoryId = items[0]?.category.id;
   const label = [beltLabels[belt] || belt, ageGroup, weight].join(" | ");
@@ -2652,8 +2704,11 @@ function FinalCheckGroup({ groupKey, items, onCloseCategory }) {
       <div className="checkin-group-heading">
         <h2>{label}</h2>
         <div className="checkin-group-actions">
-          <span>{closed ? "Checkin encerrado" : `${items.length} atleta(s)`}</span>
-          <button className="secondary compact-button" type="button" disabled={closed} onClick={() => onCloseCategory?.({ categoryId, label })}>
+          <span>{closed ? "Checkin encerrado" : started ? "Checkin iniciado" : `${items.length} atleta(s)`}</span>
+          <button className="primary compact-button" type="button" disabled={started || closed} onClick={() => onStartCategory?.({ categoryId, label })}>
+            Iniciar Checkin
+          </button>
+          <button className="secondary compact-button" type="button" disabled={!started || closed} onClick={() => onCloseCategory?.({ categoryId, label })}>
             Encerrar Checkin
           </button>
         </div>

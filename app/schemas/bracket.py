@@ -114,6 +114,7 @@ class CompetitionCheckinLookupRead(BaseModel):
     category: CategoryRead
     max_weight_kg: Decimal | None = None
     is_super_heavy: bool = False
+    checkin_started: bool = False
     checkin_closed: bool = False
     status: str
     checkin: CompetitionCheckinRead | None = None
@@ -128,7 +129,19 @@ class CompetitionFinalCheckRead(BaseModel):
     weight_display: str | None = None
     status: str
     is_overweight: bool = False
+    checkin_started: bool = False
     checkin_closed: bool = False
+
+
+class CompetitionCheckinControlRead(BaseModel):
+    id: int
+    competition_id: int
+    category_id: int
+    category: CategoryRead
+    started_at: datetime
+    closed_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CompetitionCheckinClosureRead(BaseModel):
