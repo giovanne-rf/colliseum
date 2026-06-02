@@ -2143,6 +2143,38 @@ button:disabled {
   display: grid;
 }
 
+.ordem-time-slot {
+  position: relative;
+  display: grid;
+  align-content: stretch;
+  min-height: 56px;
+  border: 1px solid #b9dcff;
+  background: #fff;
+}
+
+.ordem-time-slot + .ordem-time-slot {
+  border-top: 0;
+}
+
+.ordem-time-slot-label {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  z-index: 1;
+  color: #6b9fd0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.ordem-time-slot-empty {
+  display: grid;
+  place-items: center;
+  color: #9abfe3;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .ordem-fight {
   display: grid;
   align-content: start;
@@ -2151,8 +2183,17 @@ button:disabled {
   background: #ffe88a;
 }
 
+.ordem-time-slot .ordem-fight {
+  min-height: 100%;
+  border-bottom: 0;
+}
+
 .ordem-fight:last-child {
   border-bottom: 0;
+}
+
+.ordem-fight--done-section {
+  margin-top: 8px;
 }
 
 .ordem-fight--ready {

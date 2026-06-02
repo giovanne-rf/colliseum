@@ -3444,7 +3444,9 @@ function OrdemPage() {
               </div>
               <div className="ordem-mat-fights">
                 {column.items.map((item) => (
-                  <OrdemFightCard item={item} key={item.match.id} />
+                  item.type === "slot"
+                    ? <OrdemTimeSlot item={item} key={item.key} />
+                    : <OrdemFightCard item={item} key={item.key || item.match.id} />
                 ))}
               </div>
             </div>
@@ -3470,37 +3472,72 @@ function displayMatchNumbersForBracket(bracket) {
 function buildOrdemMatItems(items, now) {
   const sorted = [...items].sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
   const done = sorted
-    .filter((item) => isVictoryMatch(item.match))
+    .filter((item) => isVictoryMatch(item.match) || isVacantMatSlot(item.match))
     .sort((a, b) => {
       const left = new Date(a.match.result?.finished_at || a.match.schedule.scheduled_start);
       const right = new Date(b.match.result?.finished_at || b.match.schedule.scheduled_start);
       return left - right;
     });
-  const timeline = sorted.filter((item) => !isVictoryMatch(item.match));
-  const columnItems = [];
-  for (const [index, item] of timeline.entries()) {
+  const timeline = sorted.filter((item) => !isVictoryMatch(item.match) && !isVacantMatSlot(item.match));
+  const timelineStart = matTimelineStart(sorted);
+  const lastTimelineStart = timeline.length
+    ? Math.max(...timeline.map((item) => new Date(item.match.schedule.scheduled_start).getTime()))
+    : timelineStart.getTime();
+  const slotCount = Math.max(1, Math.floor((lastTimelineStart - timelineStart.getTime()) / ORDEM_SLOT_MINUTES_MS) + 1);
+  const slots = Array.from({ length: slotCount }, (_, index) => ({
+    type: "slot",
+    key: `slot-${timelineStart.getTime()}-${index}`,
+    slotIndex: index,
+    slotStart: new Date(timelineStart.getTime() + index * ORDEM_SLOT_MINUTES_MS),
+    fight: null,
+  }));
+  for (const item of timeline) {
+    const slotIndex = Math.max(
+      0,
+      Math.floor((new Date(item.match.schedule.scheduled_start).getTime() - timelineStart.getTime()) / ORDEM_SLOT_MINUTES_MS),
+    );
     const state = ordemFightState(item.match, now);
-    const nextValidFight = timeline
-      .slice(index + 1)
-      .find((nextItem) => !isVacantMatSlot(nextItem.match));
-    columnItems.push({
+    const fight = {
       ...item,
       type: "fight",
+      key: `fight-${item.match.id}`,
       state,
       statusText: ordemFightStatusText(state),
-      vacantMinutes: state === "vacant" ? vacantSlotMinutes(item, nextValidFight) : 8,
-    });
+    };
+    if (slots[slotIndex]?.fight) {
+      slots.splice(slotIndex + 1, 0, {
+        type: "slot",
+        key: `slot-extra-${item.match.id}`,
+        slotIndex: slotIndex + 1,
+        slotStart: new Date(timelineStart.getTime() + (slotIndex + 1) * ORDEM_SLOT_MINUTES_MS),
+        fight,
+      });
+    } else if (slots[slotIndex]) {
+      slots[slotIndex].fight = fight;
+    }
   }
+  const columnItems = [...slots];
   for (const item of done) {
+    const state = ordemFightState(item.match, now);
     columnItems.push({
       ...item,
       type: "fight",
-      state: "victory",
-      statusText: ordemFightStatusText("victory"),
-      vacantMinutes: 8,
+      key: `done-${item.match.id}`,
+      state,
+      statusText: ordemFightStatusText(state),
+      doneSection: true,
     });
   }
   return { items: columnItems, fightCount: sorted.length };
+}
+
+const ORDEM_SLOT_MINUTES = 8;
+const ORDEM_SLOT_MINUTES_MS = ORDEM_SLOT_MINUTES * 60 * 1000;
+
+function matTimelineStart(sortedItems) {
+  const first = sortedItems[0];
+  if (!first) return new Date();
+  return new Date(first.match.result?.started_at || first.match.schedule.scheduled_start);
 }
 
 function scheduleEnd(schedule) {
@@ -3560,19 +3597,21 @@ function isAthleteFightReady(athlete) {
   return athlete?.checkin_status === "Checked";
 }
 
-function vacantSlotMinutes(item, nextValidFight) {
-  if (!nextValidFight) return 8;
-  const currentStart = new Date(item.match.schedule.scheduled_start);
-  const nextStart = new Date(nextValidFight.match.schedule.scheduled_start);
-  return Math.max(8, Math.round((nextStart - currentStart) / 60000));
+function ordemSlotHeight() {
+  return 56;
 }
 
-function ordemSlotHeight(item) {
-  const minutes = item.state === "vacant" ? item.vacantMinutes : 8;
-  return Math.max(56, Math.ceil(minutes / 8) * 56);
+function OrdemTimeSlot({ item }) {
+  const time = item.slotStart.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className="ordem-time-slot" style={{ minHeight: `${ordemSlotHeight()}px` }}>
+      <span className="ordem-time-slot-label">{time}</span>
+      {item.fight ? <OrdemFightCard item={item.fight} embedded /> : <span className="ordem-time-slot-empty">Livre</span>}
+    </div>
+  );
 }
 
-function OrdemFightCard({ item }) {
+function OrdemFightCard({ item, embedded = false }) {
   const { match, bracket, maxRound, displayNumber, state } = item;
   const sched = match.schedule;
   const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -3580,10 +3619,10 @@ function OrdemFightCard({ item }) {
   const cat = bracket.category;
   const winnerId = match.winner?.id || match.result?.winner_id;
   const winner = [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId);
-  const height = ordemSlotHeight(item);
+  const height = embedded ? null : ordemSlotHeight();
   const showAthletes = state !== "vacant";
   return (
-    <div className={`ordem-fight ordem-fight--${state}`} style={{ minHeight: `${height}px` }}>
+    <div className={`ordem-fight ordem-fight--${state} ${item.doneSection ? "ordem-fight--done-section" : ""}`.trim()} style={height ? { minHeight: `${height}px` } : undefined}>
       <div className="ordem-fight-header">
         <span className="ordem-fight-time">{time}</span>
         <span className="ordem-fight-number">Luta {displayNumber}</span>
