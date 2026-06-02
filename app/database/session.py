@@ -207,9 +207,15 @@ async def create_db_and_tables() -> None:
                 }
             )
             if "started_at" not in match_result_columns:
-                await conn.execute(text("ALTER TABLE match_results ADD COLUMN started_at DATETIME"))
+                started_at_type = "TIMESTAMP WITH TIME ZONE" if conn.dialect.name == "postgresql" else "DATETIME"
+                await conn.execute(
+                    text(f"ALTER TABLE match_results ADD COLUMN started_at {started_at_type}")
+                )
             if "finished_at" not in match_result_columns:
-                await conn.execute(text("ALTER TABLE match_results ADD COLUMN finished_at DATETIME"))
+                finished_at_type = "TIMESTAMP WITH TIME ZONE" if conn.dialect.name == "postgresql" else "DATETIME"
+                await conn.execute(
+                    text(f"ALTER TABLE match_results ADD COLUMN finished_at {finished_at_type}")
+                )
         # Make athletes.team_id nullable (required for belts above black)
         athlete_columns = await conn.run_sync(
             lambda sync_conn: {
