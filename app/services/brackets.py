@@ -1367,6 +1367,7 @@ class BracketService:
         result = await self.session.execute(
             select(CompetitionSchedule)
             .where(CompetitionSchedule.competition_id == competition.id)
+            .options(selectinload(CompetitionSchedule.match))
             .order_by(CompetitionSchedule.day_number, CompetitionSchedule.mat_number)
         )
         existing_rows = list(result.scalars().all())
@@ -1389,13 +1390,22 @@ class BracketService:
             if state is None:
                 continue
             state["count"] = int(state["count"]) + 1
-            row_next = _as_utc(row.scheduled_start) + timedelta(
-                minutes=row.estimated_minutes + BETWEEN_MATCHES_MINUTES
-            )
+            row_start = _as_utc(row.scheduled_start)
+            row_finish = row_start + timedelta(minutes=row.estimated_minutes)
+            row_next = row_finish + timedelta(minutes=BETWEEN_MATCHES_MINUTES)
             if row_next > state["next"]:
                 state["next"] = row_next
             if row.category_id == category.id:
                 category_mat = row.mat_number
+            if row.match is not None:
+                for athlete_id in (row.match.athlete_a_id, row.match.athlete_b_id):
+                    if athlete_id is None:
+                        continue
+                    ready_at = row_finish + timedelta(minutes=SAME_ATHLETE_REST_MINUTES)
+                    athlete_available[athlete_id] = max(
+                        athlete_available.get(athlete_id, _MIN_SCHEDULE_DATETIME),
+                        ready_at,
+                    )
 
         estimated_minutes = _fight_duration_minutes(category)
         ordered_matches = sorted(matches, key=lambda item: (item.round_number, item.match_number))

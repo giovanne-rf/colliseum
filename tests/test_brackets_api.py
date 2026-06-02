@@ -1049,6 +1049,8 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
         next_match["athlete_a"]["id"] if next_match["athlete_a"] else None,
         next_match["athlete_b"]["id"] if next_match["athlete_b"] else None,
     }
+    next_match_start = datetime.fromisoformat(next_match["schedule"]["scheduled_start"])
+    assert next_match_start >= finished_at + timedelta(minutes=20)
 
 
 async def test_finalize_match_accepts_unaccented_finish_methods_from_scoreboard(

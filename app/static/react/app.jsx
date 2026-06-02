@@ -3054,7 +3054,7 @@ function CheckinGroup({ groupKey, items }) {
   );
 }
 
-const ORDEM_REFRESH_MS = 2 * 60 * 1000;
+const ORDEM_REFRESH_MS = 60 * 1000;
 
 // -- IBJJF category rules --
 const IBJJF_AGE_GROUPS = [
@@ -3283,6 +3283,7 @@ function OrdemPage() {
   const [message, setMessage] = useState(["", ""]);
   const [dayFilter, setDayFilter] = useState(1);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [now, setNow] = useState(() => new Date());
   const competitionIdRef = useRef("");
 
   useEffect(() => {
@@ -3324,14 +3325,19 @@ function OrdemPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const allMatches = useMemo(() => {
     const result = [];
     for (const bracket of brackets) {
       const maxRound = Math.max(...bracket.matches.map((m) => m.round_number), 0);
+      const matchNumbers = displayMatchNumbersForBracket(bracket);
       for (const match of bracket.matches) {
         if (!match.schedule) continue;
-        if (match.result?.finalized) continue;
-        result.push({ match, bracket, maxRound });
+        result.push({ match, bracket, maxRound, displayNumber: matchNumbers.get(match.id) || match.match_number });
       }
     }
     return result;
@@ -3351,11 +3357,10 @@ function OrdemPage() {
       if (!cols.has(mat)) cols.set(mat, []);
       cols.get(mat).push(item);
     }
-    for (const [, items] of cols) {
-      items.sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
-    }
-    return [...cols.entries()].sort(([a], [b]) => a - b);
-  }, [matchesForDay]);
+    return [...cols.entries()]
+      .map(([matNumber, items]) => [matNumber, buildOrdemMatItems(items, now)])
+      .sort(([a], [b]) => a - b);
+  }, [matchesForDay, now]);
 
   const competition = competitions.find((c) => String(c.id) === competitionId);
 
@@ -3380,7 +3385,7 @@ function OrdemPage() {
         {lastRefresh && (
           <div className="ordem-refresh-badge">
             <span>Atualizado as {lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-            <span className="ordem-refresh-hint">| proxima atualizacao em 2 min</span>
+            <span className="ordem-refresh-hint">| proxima atualizacao em 1 min</span>
           </div>
         )}
       </div>
@@ -3402,40 +3407,20 @@ function OrdemPage() {
 
       {matColumns.length > 0 && (
         <div className="ordem-mat-grid">
-          {matColumns.map(([matNumber, items]) => (
+          {matColumns.map(([matNumber, column]) => (
             <div key={matNumber} className="ordem-mat-col">
               <div className="ordem-mat-header">
                 <span className="ordem-mat-label">MAT {matNumber}</span>
-                <span className="ordem-mat-count">{items.length} luta{items.length !== 1 ? "s" : ""}</span>
+                <span className="ordem-mat-count">
+                  {column.fightCount} luta{column.fightCount !== 1 ? "s" : ""}
+                </span>
               </div>
               <div className="ordem-mat-fights">
-                {items.map(({ match, bracket, maxRound }) => {
-                  const sched = match.schedule;
-                  const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-                  const round = roundLabel(match.round_number, maxRound);
-                  const cat = bracket.category;
-                  const finished = match.result?.finalized;
-                  const athleteA = match.athlete_a;
-                  const athleteB = match.athlete_b;
-                  const winnerId = match.winner?.id;
-                  return (
-                    <div key={match.id} className={`ordem-fight ${finished ? "ordem-fight--done" : ""}`}>
-                      <div className="ordem-fight-header">
-                        <span className="ordem-fight-time">{time}</span>
-                        <span className="ordem-fight-round">{round}</span>
-                        {finished && <span className="ordem-fight-done">OK</span>}
-                      </div>
-                      <div className="ordem-fight-cat">
-                        {cat.age_group} | {beltLabels[cat.belt] || cat.belt} | {cat.weight_class}
-                      </div>
-                      <div className="ordem-fight-athletes">
-                        <OrdemAthlete athlete={athleteA} winnerId={winnerId} side="a" />
-                        <div className="ordem-fight-vs">* * *</div>
-                        <OrdemAthlete athlete={athleteB} winnerId={winnerId} side="b" />
-                      </div>
-                    </div>
-                  );
-                })}
+                {column.items.map((item) => (
+                  item.type === "gap"
+                    ? <OrdemNoFightGap gap={item} key={item.key} />
+                    : <OrdemFightCard item={item} key={item.match.id} />
+                ))}
               </div>
             </div>
           ))}
@@ -3445,6 +3430,103 @@ function OrdemPage() {
       {!loading && competitionId && !matColumns.length && !message[0] && (
         <div className="empty">Nenhuma luta agendada. Gere as chaves e o cronograma primeiro.</div>
       )}
+    </div>
+  );
+}
+
+function displayMatchNumbersForBracket(bracket) {
+  const halfSize = bracket.bracket_size / 2;
+  const sideA = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_end <= halfSize);
+  const sideB = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_start > halfSize);
+  const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+  return bracketMatchNumbers(sideA, sideB, finalMatch);
+}
+
+function buildOrdemMatItems(items, now) {
+  const sorted = [...items].sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
+  const pending = sorted.filter((item) => !item.match.result?.finalized);
+  const done = sorted
+    .filter((item) => item.match.result?.finalized)
+    .sort((a, b) => {
+      const left = new Date(a.match.result?.finished_at || a.match.schedule.scheduled_start);
+      const right = new Date(b.match.result?.finished_at || b.match.schedule.scheduled_start);
+      return left - right;
+    });
+  const columnItems = [];
+  for (const item of pending) {
+    const previousFight = [...columnItems].reverse().find((entry) => entry.type === "fight");
+    if (previousFight) {
+      const previousEnd = scheduleEnd(previousFight.match.schedule);
+      const currentStart = new Date(item.match.schedule.scheduled_start);
+      const gapMinutes = Math.round((currentStart - previousEnd) / 60000);
+      if (gapMinutes > 0) {
+        columnItems.push({
+          type: "gap",
+          key: `gap-${previousFight.match.id}-${item.match.id}`,
+          minutes: gapMinutes,
+        });
+      }
+    }
+    columnItems.push({
+      ...item,
+      type: "fight",
+      state: isScheduleActive(item.match.schedule, now) ? "active" : "waiting",
+    });
+  }
+  for (const item of done) {
+    columnItems.push({ ...item, type: "fight", state: "done" });
+  }
+  return { items: columnItems, fightCount: sorted.length };
+}
+
+function scheduleEnd(schedule) {
+  return new Date(new Date(schedule.scheduled_start).getTime() + schedule.estimated_minutes * 60000);
+}
+
+function isScheduleActive(schedule, now) {
+  const start = new Date(schedule.scheduled_start);
+  const end = scheduleEnd(schedule);
+  return now >= start && now < end;
+}
+
+function OrdemNoFightGap({ gap }) {
+  const height = Math.max(28, Math.min(180, gap.minutes * 4));
+  return (
+    <div className="ordem-no-fight" style={{ minHeight: `${height}px` }}>
+      <strong>No fight</strong>
+      <span>{gap.minutes} min sem luta</span>
+    </div>
+  );
+}
+
+function OrdemFightCard({ item }) {
+  const { match, bracket, maxRound, displayNumber, state } = item;
+  const sched = match.schedule;
+  const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const round = roundLabel(match.round_number, maxRound);
+  const cat = bracket.category;
+  const winnerId = match.winner?.id || match.result?.winner_id;
+  const winner = [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId);
+  return (
+    <div className={`ordem-fight ordem-fight--${state}`}>
+      <div className="ordem-fight-header">
+        <span className="ordem-fight-time">{time}</span>
+        <span className="ordem-fight-number">Luta {displayNumber}</span>
+        <span className="ordem-fight-round">{round}</span>
+        {state === "active" && <span className="ordem-fight-live">Em luta</span>}
+        {state === "done" && <span className="ordem-fight-done">Realizada</span>}
+      </div>
+      <div className="ordem-fight-cat">
+        {cat.age_group} | {beltLabels[cat.belt] || cat.belt} | {cat.weight_class}
+      </div>
+      {state === "done" && (
+        <div className="ordem-fight-winner">Vencedor: {winner?.name || "Sem vencedor"}</div>
+      )}
+      <div className="ordem-fight-athletes">
+        <OrdemAthlete athlete={match.athlete_a} winnerId={winnerId} side="a" />
+        <div className="ordem-fight-vs">* * *</div>
+        <OrdemAthlete athlete={match.athlete_b} winnerId={winnerId} side="b" />
+      </div>
     </div>
   );
 }

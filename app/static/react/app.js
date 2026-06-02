@@ -1,6 +1,7 @@
-(() => {
-  const { useEffect, useLayoutEffect, useMemo, useRef, useState } = React;
-  const routes = [
+var ColliseumApp = (() => {
+  // app/static/react/app.jsx
+  var { useEffect, useLayoutEffect, useMemo, useRef, useState } = React;
+  var routes = [
     { label: "ATLETAS", items: [
       ["/atletas", "Listagem"],
       ["/cadastros", "Cadastro"]
@@ -26,7 +27,7 @@
     ["/cronograma", "CRONOGRAMA"],
     ["/ranking", "RANKING"]
   ];
-  const beltLabels = {
+  var beltLabels = {
     white: "Branca",
     gray: "Cinza",
     gray_white: "Cinza-branca",
@@ -48,8 +49,8 @@
     red_white: "Vermelha e branca / coral",
     red: "Vermelha"
   };
-  const beltOptions = Object.entries(beltLabels);
-  const sexLabels = {
+  var beltOptions = Object.entries(beltLabels);
+  var sexLabels = {
     male: "Masculino",
     female: "Feminino"
   };
@@ -223,7 +224,6 @@
     })), /* @__PURE__ */ React.createElement("div", { className: `status top-status ${apiOk ? "ok" : ""}` }, apiOk ? "Online" : "Conectando")), /* @__PURE__ */ React.createElement("section", { className: "page-title-band" }, /* @__PURE__ */ React.createElement("h1", null, title)), /* @__PURE__ */ React.createElement("main", { className: `shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""} ${isOrdem ? "ordem-shell" : ""}`.trim() }, path === "/atletas" && /* @__PURE__ */ React.createElement(AtletasListPage, null), path === "/cadastros" && /* @__PURE__ */ React.createElement(AthletesPage, null), athleteEditId && /* @__PURE__ */ React.createElement(AtletaEditPage, { athleteId: athleteEditId }), path === "/academias" && /* @__PURE__ */ React.createElement(AcademiesListPage, null), academyEditId && /* @__PURE__ */ React.createElement(AcademyEditPage, { teamId: academyEditId }), path === "/categorias" && /* @__PURE__ */ React.createElement(CategoriasPage, null), path === "/config-categorias" && /* @__PURE__ */ React.createElement(ConfigCategoriasPage, null), path === "/ordem" && /* @__PURE__ */ React.createElement(OrdemPage, null), path === "/equipes" && /* @__PURE__ */ React.createElement(TeamsPage, null), path === "/competicoes" && /* @__PURE__ */ React.createElement(CompetitionsPage, null), path === "/inscricoes" && /* @__PURE__ */ React.createElement(RegistrationsPage, null), path === "/chaves" && /* @__PURE__ */ React.createElement(BracketsPage, null), path === "/chaves/salvas" && /* @__PURE__ */ React.createElement(SavedBracketsPage, null), path === "/cronograma" && /* @__PURE__ */ React.createElement(SchedulePage, null), bracketRouteId && /* @__PURE__ */ React.createElement(BracketByIdPage, { bracketId: bracketRouteId }), path === "/checagem" && /* @__PURE__ */ React.createElement(CheckOverviewPage, null), path === "/checkin/pesagem" && /* @__PURE__ */ React.createElement(WeighinPage, null), path === "/checkin" && /* @__PURE__ */ React.createElement(CheckinPage, null), path === "/checagem/painel" && /* @__PURE__ */ React.createElement(CheckPanelPage, null), path === "/checagem-final" && /* @__PURE__ */ React.createElement(FinalCheckPage, null), path === "/ranking" && /* @__PURE__ */ React.createElement(RankingPage, null), !bracketRouteId && !athleteEditId && !academyEditId && ![...knownPaths].includes(path) && /* @__PURE__ */ React.createElement(AthletesPage, null)));
   }
   function AtletasListPage() {
-    const h = React.createElement;
     const [athletes, setAthletes] = useState([]);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
@@ -265,50 +265,16 @@
       const [y, m, day] = d.split("-");
       return `${day}/${m}/${y}`;
     }
-    const rows = filtered.length === 0 ? [
-      h("tr", { key: "empty" }, h("td", { colSpan: "6", style: { textAlign: "center", color: "var(--muted)" } }, "Nenhum atleta encontrado."))
-    ] : filtered.map((a) => h("tr", { key: a.id },
-      h("td", { "data-label": "Nome" }, a.name),
-      h("td", { "data-label": "CPF" }, a.cpf),
-      h("td", { "data-label": "Nascimento" }, formatDate(a.birth_date)),
-      h("td", { "data-label": "Faixa" }, beltLabels[a.belt] || a.belt),
-      h("td", { "data-label": "Academia" }, a.team?.name || h("span", { style: { color: "var(--muted)" } }, "Sem academia")),
-      h("td", { "data-label": "Editar" }, h("a", { className: "atleta-edit-btn", href: `/atletas/${a.id}`, title: "Editar" }, "✎"))
-    ));
-    return h("section", { className: "workspace stack" },
-      h("section", { className: "panel atletas-list-panel" },
-        h("div", { className: "section-heading" },
-          h("h2", null, "Atletas Cadastrados"),
-          h("span", null, loading ? "Carregando atletas..." : `${filtered.length} exibido(s) de ${total} atleta(s)`)
-        ),
-        h("div", { className: "filters single", style: { marginBottom: "14px" } },
-          h("input", {
-            type: "search",
-            placeholder: "Buscar por nome, CPF ou academia...",
-            value: search,
-            onChange: (e) => setSearch(e.target.value),
-            style: { width: "100%" }
-          })
-        ),
-        loading && h("p", { className: "message" }, "Carregando todos os atletas..."),
-        h(Message, { text: message[0], type: message[1] }),
-        !loading && h("div", { className: "checkin-table-wrap" },
-          h("table", { className: "checkin-table atletas-table" },
-            h("thead", null,
-              h("tr", null,
-                h("th", null, "Nome"),
-                h("th", null, "CPF"),
-                h("th", null, "Nascimento"),
-                h("th", null, "Faixa"),
-                h("th", null, "Academia"),
-                h("th", null)
-              )
-            ),
-            h("tbody", null, rows)
-          )
-        )
-      )
-    );
+    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("section", { className: "panel atletas-list-panel" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Atletas Cadastrados"), /* @__PURE__ */ React.createElement("span", null, loading ? "Carregando atletas..." : `${filtered.length} exibido(s) de ${total} atleta(s)`)), /* @__PURE__ */ React.createElement("div", { className: "filters single", style: { marginBottom: "14px" } }, /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        type: "search",
+        placeholder: "Buscar por nome, CPF ou academia...",
+        value: search,
+        onChange: (e) => setSearch(e.target.value),
+        style: { width: "100%" }
+      }
+    )), loading && /* @__PURE__ */ React.createElement("p", { className: "message" }, "Carregando todos os atletas..."), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] }), !loading && /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table atletas-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Nome"), /* @__PURE__ */ React.createElement("th", null, "CPF"), /* @__PURE__ */ React.createElement("th", null, "Nascimento"), /* @__PURE__ */ React.createElement("th", null, "Faixa"), /* @__PURE__ */ React.createElement("th", null, "Academia"), /* @__PURE__ */ React.createElement("th", null))), /* @__PURE__ */ React.createElement("tbody", null, filtered.length === 0 && /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: "6", style: { textAlign: "center", color: "var(--muted)" } }, "Nenhum atleta encontrado.")), filtered.map((a) => /* @__PURE__ */ React.createElement("tr", { key: a.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Nome" }, a.name), /* @__PURE__ */ React.createElement("td", { "data-label": "CPF" }, a.cpf), /* @__PURE__ */ React.createElement("td", { "data-label": "Nascimento" }, formatDate(a.birth_date)), /* @__PURE__ */ React.createElement("td", { "data-label": "Faixa" }, beltLabels[a.belt] || a.belt), /* @__PURE__ */ React.createElement("td", { "data-label": "Academia" }, a.team?.name || /* @__PURE__ */ React.createElement("span", { style: { color: "var(--muted)" } }, "Sem academia")), /* @__PURE__ */ React.createElement("td", { "data-label": "Editar" }, /* @__PURE__ */ React.createElement("a", { className: "atleta-edit-btn", href: `/atletas/${a.id}`, title: "Editar" }, "\u270E")))))))));
   }
   function AtletaEditPage({ athleteId }) {
     const [form, setForm] = useState(null);
@@ -836,43 +802,19 @@
       brackets.filter((bracket) => !filters.belt || bracket.category.belt === filters.belt).filter((bracket) => !filters.age_group || bracket.category.age_group === filters.age_group).map((bracket) => bracket.category.weight_class)
     )].sort((left, right) => left.localeCompare(right));
     const selectedBrackets = brackets.filter((bracket) => bracket.category.belt === filters.belt && bracket.category.age_group === filters.age_group && bracket.category.weight_class === filters.weight_class);
-    return React.createElement("section", { className: "workspace stack" },
-      React.createElement("form", { className: "registration bracket-generator" },
-        React.createElement("div", { className: "section-heading" }, React.createElement("h2", null, "Chaves Salvas"), React.createElement("span", null, "Selecione faixa, idade e peso")),
-        React.createElement("div", { className: "grid bracket-generator-row" },
-          React.createElement(Select, { label: "Competicao", value: competitionId, onChange: loadSavedBrackets, required: true, options: [["", "Selecione a competicao"], ...competitions.map((competition) => [String(competition.id), competition.name])] }),
-          React.createElement(Select, { label: "Faixa", value: filters.belt, onChange: (belt) => setFilters({ belt, age_group: "", weight_class: "" }), disabled: !brackets.length, options: [["", brackets.length ? "Selecione a faixa" : "Selecione a competicao"], ...beltOptionsForBrackets.map((belt) => [belt, beltLabels[belt] || belt])] }),
-          React.createElement(Select, { label: "Categoria de idade", value: filters.age_group, onChange: (age_group) => setFilters({ ...filters, age_group, weight_class: "" }), disabled: !filters.belt, options: [["", filters.belt ? "Selecione a idade" : "Selecione a faixa"], ...ageGroupOptionsForBrackets.map((ageGroup) => [ageGroup, ageGroup])] }),
-          React.createElement(Select, { label: "Categoria de peso", value: filters.weight_class, onChange: (weight_class) => setFilters({ ...filters, weight_class }), disabled: !filters.age_group, options: [["", filters.age_group ? "Selecione o peso" : "Selecione a idade"], ...weightOptionsForBrackets.map((weightClass) => [weightClass, weightClass])] })
-        ),
-        React.createElement(Message, { text: message[0], type: message[1] })
-      ),
-      !!brackets.length && React.createElement("section", { className: "panel saved-brackets-panel" },
-        React.createElement("div", { className: "section-heading" }, React.createElement("h2", null, "Consulta de Chaves"), React.createElement("span", null, selectedBrackets.length ? `${selectedBrackets.length} chave(s) encontrada(s)` : `${brackets.length} chave(s) salva(s)`)),
-        selectedBrackets.length ? React.createElement("div", { className: "checkin-table-wrap" },
-          React.createElement("table", { className: "checkin-table saved-brackets-table" },
-            React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", null, "ID"), React.createElement("th", null, "Faixa"), React.createElement("th", null, "Idade"), React.createElement("th", null, "Peso"), React.createElement("th", null, "Atletas"), React.createElement("th", null, "Lutas"), React.createElement("th", null, "Link"))),
-            React.createElement("tbody", null, selectedBrackets.map((bracket) => React.createElement("tr", { key: bracket.id },
-              React.createElement("td", { "data-label": "ID" }, "#", bracket.id),
-              React.createElement("td", { "data-label": "Faixa" }, beltLabels[bracket.category.belt] || bracket.category.belt),
-              React.createElement("td", { "data-label": "Idade" }, bracket.category.age_group),
-              React.createElement("td", { "data-label": "Peso" }, bracket.category.weight_class),
-              React.createElement("td", { "data-label": "Atletas" }, bracket.entries.filter((entry) => entry.athlete).length),
-              React.createElement("td", { "data-label": "Lutas" }, bracket.matches.length),
-              React.createElement("td", { "data-label": "Link" }, React.createElement("a", { href: `/chaves/${bracket.id}` }, "Abrir URL"))
-            )))
-          )
-        ) : React.createElement("div", { className: "empty" }, "Selecione a faixa, a categoria de idade e a categoria de peso para exibir a chave.")
-      ),
-      !!selectedBrackets.length && React.createElement("section", { className: "registration bracket-result" },
-        React.createElement("div", { className: "section-heading" }, React.createElement("h2", null, "Exibicao da Chave"), React.createElement("span", null, selectedBrackets.length, " chave(s) | ", categoryLabel(selectedBrackets[0].category))),
-        React.createElement("div", { className: "landscape-scroll", "aria-label": "Chaves salvas em formato paisagem" },
-          React.createElement("div", { className: "ibjjf-sheets" }, selectedBrackets.map((bracket) => React.createElement(BracketSheet, { bracket, key: bracket.id, showDirectLink: true, onOpenFight: (match, matchNumber) => setFightPanel({ bracket, match, matchNumber }), onBlockedFight: setBlockedFightNotice })))
-        )
-      ),
-      blockedFightNotice && React.createElement("div", { className: "modal-backdrop fight-modal-backdrop", role: "alertdialog", "aria-modal": "true" }, React.createElement("section", { className: "fight-confirm" }, React.createElement("h2", null, "Luta ja finalizada"), React.createElement("p", null, blockedFightNotice), React.createElement("div", { className: "actions" }, React.createElement("button", { className: "primary", type: "button", onClick: () => setBlockedFightNotice("") }, "OK")))),
-      fightPanel && React.createElement(FightPanel, { data: fightPanel, onClose: () => setFightPanel(null), onBracketUpdated: updateBracket, onResultSaved: updateSavedResult })
-    );
+    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("form", { className: "registration bracket-generator" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Chaves Salvas"), /* @__PURE__ */ React.createElement("span", null, "Selecione faixa, idade e peso")), /* @__PURE__ */ React.createElement("div", { className: "grid bracket-generator-row" }, /* @__PURE__ */ React.createElement(Select, { label: "Competicao", value: competitionId, onChange: loadSavedBrackets, required: true, options: [
+      ["", "Selecione a competicao"],
+      ...competitions.map((competition) => [String(competition.id), competition.name])
+    ] }), /* @__PURE__ */ React.createElement(Select, { label: "Faixa", value: filters.belt, onChange: (belt) => setFilters({ belt, age_group: "", weight_class: "" }), disabled: !brackets.length, options: [
+      ["", brackets.length ? "Selecione a faixa" : "Selecione a competicao"],
+      ...beltOptionsForBrackets.map((belt) => [belt, beltLabels[belt] || belt])
+    ] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria de idade", value: filters.age_group, onChange: (age_group) => setFilters({ ...filters, age_group, weight_class: "" }), disabled: !filters.belt, options: [
+      ["", filters.belt ? "Selecione a idade" : "Selecione a faixa"],
+      ...ageGroupOptionsForBrackets.map((ageGroup) => [ageGroup, ageGroup])
+    ] }), /* @__PURE__ */ React.createElement(Select, { label: "Categoria de peso", value: filters.weight_class, onChange: (weight_class) => setFilters({ ...filters, weight_class }), disabled: !filters.age_group, options: [
+      ["", filters.age_group ? "Selecione o peso" : "Selecione a idade"],
+      ...weightOptionsForBrackets.map((weightClass) => [weightClass, weightClass])
+    ] })), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] })), !!brackets.length && /* @__PURE__ */ React.createElement("section", { className: "panel saved-brackets-panel" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Consulta de Chaves"), /* @__PURE__ */ React.createElement("span", null, selectedBrackets.length ? `${selectedBrackets.length} chave(s) encontrada(s)` : `${brackets.length} chave(s) salva(s)`)), selectedBrackets.length ? /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table saved-brackets-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "ID"), /* @__PURE__ */ React.createElement("th", null, "Faixa"), /* @__PURE__ */ React.createElement("th", null, "Idade"), /* @__PURE__ */ React.createElement("th", null, "Peso"), /* @__PURE__ */ React.createElement("th", null, "Atletas"), /* @__PURE__ */ React.createElement("th", null, "Lutas"), /* @__PURE__ */ React.createElement("th", null, "Link"))), /* @__PURE__ */ React.createElement("tbody", null, selectedBrackets.map((bracket) => /* @__PURE__ */ React.createElement("tr", { key: bracket.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "ID" }, "#", bracket.id), /* @__PURE__ */ React.createElement("td", { "data-label": "Faixa" }, beltLabels[bracket.category.belt] || bracket.category.belt), /* @__PURE__ */ React.createElement("td", { "data-label": "Idade" }, bracket.category.age_group), /* @__PURE__ */ React.createElement("td", { "data-label": "Peso" }, bracket.category.weight_class), /* @__PURE__ */ React.createElement("td", { "data-label": "Atletas" }, bracket.entries.filter((entry) => entry.athlete).length), /* @__PURE__ */ React.createElement("td", { "data-label": "Lutas" }, bracket.matches.length), /* @__PURE__ */ React.createElement("td", { "data-label": "Link" }, /* @__PURE__ */ React.createElement("a", { href: `/chaves/${bracket.id}` }, "Abrir URL"))))))) : /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Selecione a faixa, a categoria de idade e a categoria de peso para exibir a chave.")), !!selectedBrackets.length && /* @__PURE__ */ React.createElement("section", { className: "registration bracket-result" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Exibicao da Chave"), /* @__PURE__ */ React.createElement("span", null, selectedBrackets.length, " chave(s) | ", categoryLabel(selectedBrackets[0].category))), /* @__PURE__ */ React.createElement("div", { className: "landscape-scroll", "aria-label": "Chaves salvas em formato paisagem" }, /* @__PURE__ */ React.createElement("div", { className: "ibjjf-sheets" }, selectedBrackets.map((bracket) => /* @__PURE__ */ React.createElement(BracketSheet, { bracket, key: bracket.id, showDirectLink: true, onOpenFight: (match, matchNumber) => setFightPanel({ bracket, match, matchNumber }), onBlockedFight: setBlockedFightNotice }))))), blockedFightNotice && /* @__PURE__ */ React.createElement("div", { className: "modal-backdrop fight-modal-backdrop", role: "alertdialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-confirm" }, /* @__PURE__ */ React.createElement("h2", null, "Luta ja finalizada"), /* @__PURE__ */ React.createElement("p", null, blockedFightNotice), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: () => setBlockedFightNotice("") }, "OK")))), fightPanel && /* @__PURE__ */ React.createElement(FightPanel, { data: fightPanel, onClose: () => setFightPanel(null), onBracketUpdated: updateBracket, onResultSaved: updateSavedResult }));
   }
   function SchedulePage() {
     const [competitions, setCompetitions] = useState([]);
@@ -1792,8 +1734,8 @@
     const seconds = String(totalSeconds % 60).padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
   }
-  const ORDEM_REFRESH_MS = 2 * 60 * 1e3;
-  const IBJJF_AGE_GROUPS = [
+  var ORDEM_REFRESH_MS = 60 * 1e3;
+  var IBJJF_AGE_GROUPS = [
     "Infantil 1",
     "Infantil 2",
     "Infantil 3",
@@ -1810,7 +1752,7 @@
     "Master 6",
     "Master 7"
   ];
-  const IBJJF_BELTS = {
+  var IBJJF_BELTS = {
     "Infantil 1": ["white", "gray", "gray_white", "gray_black"],
     "Infantil 2": ["white", "gray", "gray_white", "gray_black"],
     "Infantil 3": ["white", "yellow", "yellow_white", "yellow_black"],
@@ -1827,14 +1769,14 @@
     "Master 6": ["blue", "purple", "brown", "black"],
     "Master 7": ["purple", "brown", "black"]
   };
-  const IBJJF_WEIGHTS_KIDS = {
+  var IBJJF_WEIGHTS_KIDS = {
     "Infantil 1": ["-18kg", "-20kg", "-22kg", "-24kg", "-26kg", "-28kg", "+28kg"],
     "Infantil 2": ["-22kg", "-24kg", "-26kg", "-28kg", "-30kg", "-32kg", "+32kg"],
     "Infantil 3": ["-25kg", "-28kg", "-31kg", "-34kg", "-37kg", "-40kg", "+40kg"],
     "Infantil 4": ["-30kg", "-34kg", "-38kg", "-42kg", "-46kg", "-50kg", "+50kg"],
     "Infantil 5": ["-36kg", "-40kg", "-44kg", "-48kg", "-52kg", "-56kg", "+56kg"]
   };
-  const IBJJF_WEIGHTS_STANDARD = [
+  var IBJJF_WEIGHTS_STANDARD = [
     "Galo",
     "Pluma",
     "Pena",
@@ -1953,6 +1895,7 @@
     const [message, setMessage] = useState(["", ""]);
     const [dayFilter, setDayFilter] = useState(1);
     const [lastRefresh, setLastRefresh] = useState(null);
+    const [now, setNow] = useState(() => /* @__PURE__ */ new Date());
     const competitionIdRef = useRef("");
     useEffect(() => {
       fetchJson("/competitions").then(setCompetitions).catch((err) => setMessage([err.message, "error"]));
@@ -1987,14 +1930,18 @@
       }, ORDEM_REFRESH_MS);
       return () => clearInterval(interval);
     }, []);
+    useEffect(() => {
+      const interval = setInterval(() => setNow(/* @__PURE__ */ new Date()), 60 * 1e3);
+      return () => clearInterval(interval);
+    }, []);
     const allMatches = useMemo(() => {
       const result = [];
       for (const bracket of brackets) {
         const maxRound = Math.max(...bracket.matches.map((m) => m.round_number), 0);
+        const matchNumbers = displayMatchNumbersForBracket(bracket);
         for (const match of bracket.matches) {
           if (!match.schedule) continue;
-          if (match.result?.finalized) continue;
-          result.push({ match, bracket, maxRound });
+          result.push({ match, bracket, maxRound, displayNumber: matchNumbers.get(match.id) || match.match_number });
         }
       }
       return result;
@@ -2011,13 +1958,10 @@
         if (!cols.has(mat)) cols.set(mat, []);
         cols.get(mat).push(item);
       }
-      for (const [, items] of cols) {
-        items.sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
-      }
-      return [...cols.entries()].sort(([a], [b]) => a - b);
-    }, [matchesForDay]);
+      return [...cols.entries()].map(([matNumber, items]) => [matNumber, buildOrdemMatItems(items, now)]).sort(([a], [b]) => a - b);
+    }, [matchesForDay, now]);
     const competition = competitions.find((c) => String(c.id) === competitionId);
-    return /* @__PURE__ */ React.createElement("div", { className: "ordem-page" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-top" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-comp-select" }, /* @__PURE__ */ React.createElement("label", { className: "field" }, /* @__PURE__ */ React.createElement("span", null, "Competicao"), /* @__PURE__ */ React.createElement("select", { value: competitionId, onChange: (e) => loadBrackets(e.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "Selecione a competicao"), competitions.map((c) => /* @__PURE__ */ React.createElement("option", { value: String(c.id), key: c.id }, c.name))))), competition && /* @__PURE__ */ React.createElement("div", { className: "ordem-comp-info" }, /* @__PURE__ */ React.createElement("strong", null, competition.name), /* @__PURE__ */ React.createElement("span", null, new Date(competition.event_date).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" }))), lastRefresh && /* @__PURE__ */ React.createElement("div", { className: "ordem-refresh-badge" }, /* @__PURE__ */ React.createElement("span", null, "Atualizado as ", lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })), /* @__PURE__ */ React.createElement("span", { className: "ordem-refresh-hint" }, "| proxima atualizacao em 2 min"))), message[0] && /* @__PURE__ */ React.createElement("p", { className: `message ${message[1]}` }, message[0]), loading && /* @__PURE__ */ React.createElement("p", { className: "message" }, "Carregando lutas..."), days.length > 1 && /* @__PURE__ */ React.createElement("div", { className: "cat-filter-bar" }, days.map((d) => /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("div", { className: "ordem-page" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-top" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-comp-select" }, /* @__PURE__ */ React.createElement("label", { className: "field" }, /* @__PURE__ */ React.createElement("span", null, "Competicao"), /* @__PURE__ */ React.createElement("select", { value: competitionId, onChange: (e) => loadBrackets(e.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "Selecione a competicao"), competitions.map((c) => /* @__PURE__ */ React.createElement("option", { value: String(c.id), key: c.id }, c.name))))), competition && /* @__PURE__ */ React.createElement("div", { className: "ordem-comp-info" }, /* @__PURE__ */ React.createElement("strong", null, competition.name), /* @__PURE__ */ React.createElement("span", null, new Date(competition.event_date).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" }))), lastRefresh && /* @__PURE__ */ React.createElement("div", { className: "ordem-refresh-badge" }, /* @__PURE__ */ React.createElement("span", null, "Atualizado as ", lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })), /* @__PURE__ */ React.createElement("span", { className: "ordem-refresh-hint" }, "| proxima atualizacao em 1 min"))), message[0] && /* @__PURE__ */ React.createElement("p", { className: `message ${message[1]}` }, message[0]), loading && /* @__PURE__ */ React.createElement("p", { className: "message" }, "Carregando lutas..."), days.length > 1 && /* @__PURE__ */ React.createElement("div", { className: "cat-filter-bar" }, days.map((d) => /* @__PURE__ */ React.createElement(
       "button",
       {
         key: d,
@@ -2026,26 +1970,79 @@
       },
       "Dia ",
       d
-    ))), matColumns.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-grid" }, matColumns.map(([matNumber, items]) => /* @__PURE__ */ React.createElement("div", { key: matNumber, className: "ordem-mat-col" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-mat-label" }, "MAT ", matNumber), /* @__PURE__ */ React.createElement("span", { className: "ordem-mat-count" }, items.length, " luta", items.length !== 1 ? "s" : "")), /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-fights" }, items.map(({ match, bracket, maxRound }) => {
-      const sched = match.schedule;
-      const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-      const round = roundLabel(match.round_number, maxRound);
-      const cat = bracket.category;
-      const finished = match.result?.finalized;
-      const athleteA = match.athlete_a;
-      const athleteB = match.athlete_b;
-      const winnerId = match.winner?.id;
-      return /* @__PURE__ */ React.createElement("div", { key: match.id, className: `ordem-fight ${finished ? "ordem-fight--done" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-time" }, time), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-round" }, round), finished && /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-done" }, "OK")), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-cat" }, cat.age_group, " | ", beltLabels[cat.belt] || cat.belt, " | ", cat.weight_class), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-athletes" }, /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: athleteA, winnerId, side: "a" }), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-vs" }, "* * *"), /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: athleteB, winnerId, side: "b" })));
-    }))))), !loading && competitionId && !matColumns.length && !message[0] && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhuma luta agendada. Gere as chaves e o cronograma primeiro."));
+    ))), matColumns.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-grid" }, matColumns.map(([matNumber, column]) => /* @__PURE__ */ React.createElement("div", { key: matNumber, className: "ordem-mat-col" }, /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-mat-label" }, "MAT ", matNumber), /* @__PURE__ */ React.createElement("span", { className: "ordem-mat-count" }, column.fightCount, " luta", column.fightCount !== 1 ? "s" : "")), /* @__PURE__ */ React.createElement("div", { className: "ordem-mat-fights" }, column.items.map((item) => item.type === "gap" ? /* @__PURE__ */ React.createElement(OrdemNoFightGap, { gap: item, key: item.key }) : /* @__PURE__ */ React.createElement(OrdemFightCard, { item, key: item.match.id })))))), !loading && competitionId && !matColumns.length && !message[0] && /* @__PURE__ */ React.createElement("div", { className: "empty" }, "Nenhuma luta agendada. Gere as chaves e o cronograma primeiro."));
+  }
+  function displayMatchNumbersForBracket(bracket) {
+    const halfSize = bracket.bracket_size / 2;
+    const sideA = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_end <= halfSize);
+    const sideB = bracket.matches.filter((match) => match.round_number < bracket.rounds && match.position_start > halfSize);
+    const finalMatch = bracket.matches.find((match) => match.round_number === bracket.rounds);
+    return bracketMatchNumbers(sideA, sideB, finalMatch);
+  }
+  function buildOrdemMatItems(items, now) {
+    const sorted = [...items].sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
+    const pending = sorted.filter((item) => !item.match.result?.finalized);
+    const done = sorted.filter((item) => item.match.result?.finalized).sort((a, b) => {
+      const left = new Date(a.match.result?.finished_at || a.match.schedule.scheduled_start);
+      const right = new Date(b.match.result?.finished_at || b.match.schedule.scheduled_start);
+      return left - right;
+    });
+    const columnItems = [];
+    for (const item of pending) {
+      const previousFight = [...columnItems].reverse().find((entry) => entry.type === "fight");
+      if (previousFight) {
+        const previousEnd = scheduleEnd(previousFight.match.schedule);
+        const currentStart = new Date(item.match.schedule.scheduled_start);
+        const gapMinutes = Math.round((currentStart - previousEnd) / 6e4);
+        if (gapMinutes > 0) {
+          columnItems.push({
+            type: "gap",
+            key: `gap-${previousFight.match.id}-${item.match.id}`,
+            minutes: gapMinutes
+          });
+        }
+      }
+      columnItems.push({
+        ...item,
+        type: "fight",
+        state: isScheduleActive(item.match.schedule, now) ? "active" : "waiting"
+      });
+    }
+    for (const item of done) {
+      columnItems.push({ ...item, type: "fight", state: "done" });
+    }
+    return { items: columnItems, fightCount: sorted.length };
+  }
+  function scheduleEnd(schedule) {
+    return new Date(new Date(schedule.scheduled_start).getTime() + schedule.estimated_minutes * 6e4);
+  }
+  function isScheduleActive(schedule, now) {
+    const start = new Date(schedule.scheduled_start);
+    const end = scheduleEnd(schedule);
+    return now >= start && now < end;
+  }
+  function OrdemNoFightGap({ gap }) {
+    const height = Math.max(28, Math.min(180, gap.minutes * 4));
+    return /* @__PURE__ */ React.createElement("div", { className: "ordem-no-fight", style: { minHeight: `${height}px` } }, /* @__PURE__ */ React.createElement("strong", null, "No fight"), /* @__PURE__ */ React.createElement("span", null, gap.minutes, " min sem luta"));
+  }
+  function OrdemFightCard({ item }) {
+    const { match, bracket, maxRound, displayNumber, state } = item;
+    const sched = match.schedule;
+    const time = new Date(sched.scheduled_start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const round = roundLabel(match.round_number, maxRound);
+    const cat = bracket.category;
+    const winnerId = match.winner?.id || match.result?.winner_id;
+    const winner = [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId);
+    return /* @__PURE__ */ React.createElement("div", { className: `ordem-fight ordem-fight--${state}` }, /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-time" }, time), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-number" }, "Luta ", displayNumber), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-round" }, round), state === "active" && /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-live" }, "Em luta"), state === "done" && /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-done" }, "Realizada")), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-cat" }, cat.age_group, " | ", beltLabels[cat.belt] || cat.belt, " | ", cat.weight_class), state === "done" && /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-winner" }, "Vencedor: ", winner?.name || "Sem vencedor"), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-athletes" }, /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: match.athlete_a, winnerId, side: "a" }), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-vs" }, "* * *"), /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: match.athlete_b, winnerId, side: "b" })));
   }
   function OrdemAthlete({ athlete, winnerId, side }) {
     const isWinner = athlete && winnerId === athlete.id;
     const isLoser = winnerId && athlete && winnerId !== athlete.id;
     return /* @__PURE__ */ React.createElement("div", { className: `ordem-athlete ${isWinner ? "ordem-athlete--winner" : ""} ${isLoser ? "ordem-athlete--loser" : ""}` }, athlete ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-name" }, athlete.name), /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-team" }, athlete.team?.name || "-")) : /* @__PURE__ */ React.createElement("span", { className: "ordem-athlete-tbd" }, "A definir"));
   }
-  const SEX_LABELS = { male: "Masculino", female: "Feminino" };
-  const BELT_ORDER = ["white", "gray", "gray_white", "gray_black", "yellow", "yellow_white", "yellow_black", "orange", "orange_white", "orange_black", "green", "green_white", "green_black", "blue", "purple", "brown", "black", "red_black", "red_white", "red"];
-  const BELT_COLORS = {
+  var SEX_LABELS = { male: "Masculino", female: "Feminino" };
+  var BELT_ORDER = ["white", "gray", "gray_white", "gray_black", "yellow", "yellow_white", "yellow_black", "orange", "orange_white", "orange_black", "green", "green_white", "green_black", "blue", "purple", "brown", "black", "red_black", "red_white", "red"];
+  var BELT_COLORS = {
     white: "#f0f0f0",
     gray: "#9e9e9e",
     gray_white: "#bdbdbd",
@@ -2197,4 +2194,3 @@
   }
   ReactDOM.createRoot(document.querySelector("#root")).render(/* @__PURE__ */ React.createElement(App, null));
 })();
-

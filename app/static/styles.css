@@ -2137,15 +2137,25 @@ button:disabled {
 .ordem-fight {
   padding: 10px 14px 12px;
   border-bottom: 1px solid var(--line);
+  background: #fff8cf;
 }
 
 .ordem-fight:last-child {
   border-bottom: 0;
 }
 
+.ordem-fight--waiting {
+  background: #fff6c7;
+}
+
+.ordem-fight--active {
+  background: #d9f7df;
+  border-left: 4px solid #1d8f45;
+}
+
 .ordem-fight--done {
-  opacity: 0.6;
-  background: #f8f8f8;
+  background: #eeeeee;
+  color: #555;
 }
 
 .ordem-fight-header {
@@ -2161,6 +2171,13 @@ button:disabled {
   color: var(--blue);
 }
 
+.ordem-fight-number {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
 .ordem-fight-round {
   font-size: 11px;
   font-weight: 800;
@@ -2174,11 +2191,20 @@ button:disabled {
   background: var(--ok);
 }
 
+.ordem-fight-live {
+  margin-left: auto;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .ordem-fight-done {
   margin-left: auto;
-  color: var(--ok);
-  font-size: 14px;
+  color: #666;
+  font-size: 11px;
   font-weight: 900;
+  text-transform: uppercase;
 }
 
 .ordem-fight-cat {
@@ -2190,9 +2216,42 @@ button:disabled {
   margin-bottom: 8px;
 }
 
+.ordem-fight-winner {
+  margin: 0 0 8px;
+  padding: 4px 6px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(0,0,0,0.08);
+  color: var(--ok);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .ordem-fight-athletes {
   display: grid;
   gap: 0;
+}
+
+.ordem-no-fight {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #efb2b2;
+  background: #ffdada;
+  color: #8a1f1f;
+  text-align: center;
+}
+
+.ordem-no-fight strong {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ordem-no-fight span {
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .ordem-athlete {
