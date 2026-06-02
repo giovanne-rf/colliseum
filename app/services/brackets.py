@@ -1253,6 +1253,22 @@ class BracketService:
         await self._mark_checkin_statuses(bracket)
         return bracket
 
+    async def delete(self, bracket_id: int) -> None:
+        bracket = await self.session.get(Bracket, bracket_id)
+        if bracket is None:
+            raise NotFoundError("Bracket not found.")
+        await self.session.delete(bracket)
+        await self.session.commit()
+
+    async def delete_all(self, competition_id: int) -> None:
+        result = await self.session.execute(
+            select(Bracket).where(Bracket.competition_id == competition_id)
+        )
+        brackets = list(result.scalars().all())
+        for bracket in brackets:
+            await self.session.delete(bracket)
+        await self.session.commit()
+
     async def update_match_result(
         self,
         *,

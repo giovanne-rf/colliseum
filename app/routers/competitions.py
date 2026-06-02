@@ -363,3 +363,27 @@ async def get_bracket(bracket_id: int, session: DbSession) -> BracketRead:
     except ServiceError as exc:
         raise translate_service_error(exc) from exc
 
+
+@router.delete(
+    "/brackets/{bracket_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a bracket and all its matches",
+)
+async def delete_bracket(bracket_id: int, session: DbSession) -> None:
+    try:
+        await BracketService(session).delete(bracket_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
+
+@router.delete(
+    "/{competition_id}/brackets",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete all brackets for a competition",
+)
+async def delete_all_brackets(competition_id: int, session: DbSession) -> None:
+    try:
+        await BracketService(session).delete_all(competition_id)
+    except ServiceError as exc:
+        raise translate_service_error(exc) from exc
+
