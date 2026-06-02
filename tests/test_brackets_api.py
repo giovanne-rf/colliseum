@@ -1385,6 +1385,90 @@ async def test_checked_athlete_advances_by_no_fighters_when_other_branch_has_no_
     assert final_match["result"]["finish_method"] == "No fighters"
 
 
+async def test_checked_athlete_advances_when_next_match_has_no_opponent_from_resolved_branch(
+    client: AsyncClient,
+):
+    teams = [await create_team(client, f"Equipe Sem Oponente {index}") for index in range(1, 6)]
+    category_id = await create_category(client)
+    competition_id = await create_competition(client)
+    registrations_by_athlete = {}
+
+    for index, team_id in enumerate(teams, start=1):
+        athlete_id = await create_athlete(client, index, team_id)
+        registration_response = await client.post(
+            f"/competitions/{competition_id}/registrations",
+            json=athlete_registration_payload(index, category_id),
+        )
+        assert registration_response.status_code == 201
+        registrations_by_athlete[athlete_id] = registration_response.json()["id"]
+
+    bracket_response = await client.post(
+        f"/competitions/{competition_id}/brackets",
+        json={"category_id": category_id, "replace_existing": True},
+    )
+    assert bracket_response.status_code == 201
+    bracket = generated_bracket(bracket_response.json())
+    await start_category_checkin(client, competition_id, category_id)
+
+    first_round = [item for item in bracket["matches"] if item["round_number"] == 1]
+    semifinal = next(
+        item for item in bracket["matches"]
+        if item["round_number"] == 2
+        and any(
+            origin["status"] == "bye"
+            for origin in first_round
+            if item["position_start"] <= origin["position_start"]
+            and item["position_end"] >= origin["position_end"]
+        )
+        and any(
+            origin["status"] != "bye"
+            for origin in first_round
+            if item["position_start"] <= origin["position_start"]
+            and item["position_end"] >= origin["position_end"]
+        )
+    )
+    semifinal_origins = [
+        origin for origin in first_round
+        if semifinal["position_start"] <= origin["position_start"]
+        and semifinal["position_end"] >= origin["position_end"]
+    ]
+    bye_origin = next(origin for origin in semifinal_origins if origin["status"] == "bye")
+    checked_athlete_id = bye_origin["winner"]["id"]
+    checked_registration_id = registrations_by_athlete[checked_athlete_id]
+
+    checkin_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": checked_registration_id,
+            "checked_weight": "75.00",
+            "overweight_confirmed": False,
+        },
+    )
+    assert checkin_response.status_code == 201
+    ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{checked_registration_id}/ready",
+    )
+    assert ready_response.status_code == 200
+
+    close_response = await client.post(
+        f"/competitions/{competition_id}/categories/{category_id}/checkin/close",
+    )
+    assert close_response.status_code == 200
+
+    saved_bracket_response = await client.get(f"/competitions/brackets/{bracket['id']}")
+    assert saved_bracket_response.status_code == 200
+    saved_bracket = saved_bracket_response.json()
+    saved_semifinal = next(item for item in saved_bracket["matches"] if item["id"] == semifinal["id"])
+    assert saved_semifinal["winner"]["id"] == checked_athlete_id
+    assert saved_semifinal["status"] == "completed"
+    assert saved_semifinal["result"]["finish_method"] == "No fighters"
+
+    final_match = next(item for item in saved_bracket["matches"] if item["round_number"] == 3)
+    assert checked_athlete_id in {
+        final_match["athlete_a"]["id"] if final_match["athlete_a"] else None,
+        final_match["athlete_b"]["id"] if final_match["athlete_b"] else None,
+    }
+
 
 
 

@@ -1588,11 +1588,7 @@ class BracketService:
 
         result = await self.session.execute(
             select(Match)
-            .where(
-                Match.bracket_id == bracket_id,
-                Match.winner_id.is_(None),
-                Match.status != MatchStatus.completed,
-            )
+            .where(Match.bracket_id == bracket_id)
             .order_by(Match.round_number, Match.match_number)
         )
         matches = list(result.scalars().all())
@@ -1614,33 +1610,41 @@ class BracketService:
             category_id=bracket.category_id,
         )
 
-        for match in matches:
-            winner_id = self._walkover_winner_id(
-                match,
-                statuses,
-                no_show_is_unavailable=checkin_closed,
-            )
-            if winner_id is None:
-                if self._match_has_no_fighters(
+        changed = True
+        while changed:
+            changed = False
+            for match in matches:
+                if match.winner_id is not None or match.status == MatchStatus.completed:
+                    continue
+                winner_id = self._walkover_winner_id(
                     match,
                     statuses,
+                    matches=matches,
                     no_show_is_unavailable=checkin_closed,
-                ):
-                    match.status = MatchStatus.completed
-                    await self._upsert_automatic_match_result(
-                        match=match,
-                        winner_id=None,
-                        finish_method=NO_FIGHTERS_FINISH_METHOD,
-                    )
-                continue
-            match.winner_id = winner_id
-            match.status = MatchStatus.completed
-            await self._upsert_automatic_match_result(
-                match=match,
-                winner_id=winner_id,
-                finish_method=NO_FIGHTERS_FINISH_METHOD,
-            )
-            await self._advance_winner(match=match, winner_id=winner_id)
+                )
+                if winner_id is None:
+                    if self._match_has_no_fighters(
+                        match,
+                        statuses,
+                        no_show_is_unavailable=checkin_closed,
+                    ):
+                        match.status = MatchStatus.completed
+                        await self._upsert_automatic_match_result(
+                            match=match,
+                            winner_id=None,
+                            finish_method=NO_FIGHTERS_FINISH_METHOD,
+                        )
+                        changed = True
+                    continue
+                match.winner_id = winner_id
+                match.status = MatchStatus.completed
+                await self._upsert_automatic_match_result(
+                    match=match,
+                    winner_id=winner_id,
+                    finish_method=NO_FIGHTERS_FINISH_METHOD,
+                )
+                await self._advance_winner(match=match, winner_id=winner_id)
+                changed = True
 
     async def _advance_available_winners(self, bracket_id: int) -> None:
         bracket = await self.session.get(Bracket, bracket_id)
@@ -1838,6 +1842,7 @@ class BracketService:
         match: Match,
         statuses: dict[int, str],
         *,
+        matches: list[Match] | None = None,
         no_show_is_unavailable: bool = False,
     ) -> int | None:
         athlete_a_status = statuses.get(match.athlete_a_id, CHECKIN_STATUS_NO_SHOW)
@@ -1845,11 +1850,50 @@ class BracketService:
         unavailable_statuses = {CHECKIN_STATUS_OUT_OF_WEIGHT, CHECKIN_STATUS_NO_CHECKED}
         if no_show_is_unavailable:
             unavailable_statuses.add(CHECKIN_STATUS_NO_SHOW)
-        if athlete_a_status == CHECKIN_STATUS_CHECKED and athlete_b_status in unavailable_statuses:
+        if (
+            athlete_a_status == CHECKIN_STATUS_CHECKED
+            and athlete_b_status in unavailable_statuses
+            and (match.athlete_b_id is not None or BracketService._missing_slot_is_resolved(match, matches, "b"))
+        ):
             return match.athlete_a_id
-        if athlete_b_status == CHECKIN_STATUS_CHECKED and athlete_a_status in unavailable_statuses:
+        if (
+            athlete_b_status == CHECKIN_STATUS_CHECKED
+            and athlete_a_status in unavailable_statuses
+            and (match.athlete_a_id is not None or BracketService._missing_slot_is_resolved(match, matches, "a"))
+        ):
             return match.athlete_b_id
         return None
+
+    @staticmethod
+    def _missing_slot_is_resolved(
+        match: Match,
+        matches: list[Match] | None,
+        side: str,
+    ) -> bool:
+        if match.round_number <= 1:
+            return True
+        if not matches:
+            return False
+        origin = BracketService._origin_match_for_slot(match, matches, side)
+        return origin is not None and origin.status == MatchStatus.completed and origin.winner_id is None
+
+    @staticmethod
+    def _origin_match_for_slot(
+        match: Match,
+        matches: list[Match],
+        side: str,
+    ) -> Match | None:
+        middle = (match.position_start + match.position_end) // 2
+        start = match.position_start if side == "a" else middle + 1
+        end = middle if side == "a" else match.position_end
+        candidates = [
+            candidate
+            for candidate in matches
+            if candidate.round_number == match.round_number - 1
+            and candidate.position_start == start
+            and candidate.position_end == end
+        ]
+        return candidates[0] if candidates else None
 
     @staticmethod
     def _match_has_no_fighters(
