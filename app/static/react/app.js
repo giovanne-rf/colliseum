@@ -1981,14 +1981,8 @@ var ColliseumApp = (() => {
   }
   function buildOrdemMatItems(items, now) {
     const sorted = [...items].sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
-    const pending = sorted.filter((item) => !item.match.result?.finalized);
-    const done = sorted.filter((item) => item.match.result?.finalized).sort((a, b) => {
-      const left = new Date(a.match.result?.finished_at || a.match.schedule.scheduled_start);
-      const right = new Date(b.match.result?.finished_at || b.match.schedule.scheduled_start);
-      return left - right;
-    });
     const columnItems = [];
-    for (const item of pending) {
+    for (const item of sorted) {
       const previousFight = [...columnItems].reverse().find((entry) => entry.type === "fight");
       if (previousFight) {
         const previousEnd = scheduleEnd(previousFight.match.schedule);
@@ -2002,14 +1996,13 @@ var ColliseumApp = (() => {
           });
         }
       }
+      const state = ordemFightState(item.match, now);
       columnItems.push({
         ...item,
         type: "fight",
-        state: isScheduleActive(item.match.schedule, now) ? "active" : "waiting"
+        state,
+        statusText: ordemFightStatusText(state)
       });
-    }
-    for (const item of done) {
-      columnItems.push({ ...item, type: "fight", state: "done" });
     }
     return { items: columnItems, fightCount: sorted.length };
   }
@@ -2021,9 +2014,49 @@ var ColliseumApp = (() => {
     const end = scheduleEnd(schedule);
     return now >= start && now < end;
   }
+  function ordemFightState(match, now) {
+    if (isVacantMatSlot(match)) return "vacant";
+    if (isVictoryMatch(match)) return "victory";
+    if (isReadyToFight(match)) {
+      return isScheduleActive(match.schedule, now) ? "active" : "ready";
+    }
+    return "waiting";
+  }
+  function ordemFightStatusText(state) {
+    return {
+      active: "Ocorrendo agora",
+      ready: "Aguardando inicio",
+      waiting: "Aguardando competidores",
+      vacant: "Espaco vago no MAT",
+      victory: "Vitoria"
+    }[state] || "";
+  }
+  function isVictoryMatch(match) {
+    if (!match.result?.finalized) return false;
+    if (match.status === "bye") return false;
+    if ((match.result.finish_method || "").toLowerCase() === "no fighters") return false;
+    return Boolean(match.result.winner_id || match.winner?.id);
+  }
+  function isVacantMatSlot(match) {
+    if (match.status === "bye") return true;
+    if (!match.result?.finalized && match.status !== "completed") return false;
+    if ((match.result?.finish_method || "").toLowerCase() === "no fighters") return true;
+    if (!isVictoryMatch(match)) return true;
+    return [match.athlete_a, match.athlete_b].some((athlete) => athlete && !isAthleteFightReady(athlete));
+  }
+  function isReadyToFight(match) {
+    return Boolean(match.athlete_a?.id && match.athlete_b?.id) && isAthleteFightReady(match.athlete_a) && isAthleteFightReady(match.athlete_b) && !match.result?.finalized && match.status !== "completed" && match.status !== "bye";
+  }
+  function isAthleteFightReady(athlete) {
+    return athlete?.checkin_status === "Checked";
+  }
+  function ordemSlotHeight(schedule) {
+    const minutes = Math.max(1, schedule?.estimated_minutes || 8);
+    return Math.max(40, Math.ceil(minutes / 8) * 56);
+  }
   function OrdemNoFightGap({ gap }) {
-    const height = Math.max(28, Math.min(180, gap.minutes * 4));
-    return /* @__PURE__ */ React.createElement("div", { className: "ordem-no-fight", style: { minHeight: `${height}px` } }, /* @__PURE__ */ React.createElement("strong", null, "No fight"), /* @__PURE__ */ React.createElement("span", null, gap.minutes, " min sem luta"));
+    const height = Math.max(32, Math.ceil(gap.minutes / 8) * 56);
+    return /* @__PURE__ */ React.createElement("div", { className: "ordem-no-fight", style: { minHeight: `${height}px` } }, /* @__PURE__ */ React.createElement("strong", null, "Espaco vago no MAT"), /* @__PURE__ */ React.createElement("span", null, gap.minutes, " min sem luta"));
   }
   function OrdemFightCard({ item }) {
     const { match, bracket, maxRound, displayNumber, state } = item;
@@ -2033,7 +2066,9 @@ var ColliseumApp = (() => {
     const cat = bracket.category;
     const winnerId = match.winner?.id || match.result?.winner_id;
     const winner = [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId);
-    return /* @__PURE__ */ React.createElement("div", { className: `ordem-fight ordem-fight--${state}` }, /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-time" }, time), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-number" }, "Luta ", displayNumber), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-round" }, round), state === "active" && /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-live" }, "Em luta"), state === "done" && /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-done" }, "Realizada")), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-cat" }, cat.age_group, " | ", beltLabels[cat.belt] || cat.belt, " | ", cat.weight_class), state === "done" && /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-winner" }, "Vencedor: ", winner?.name || "Sem vencedor"), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-athletes" }, /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: match.athlete_a, winnerId, side: "a" }), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-vs" }, "* * *"), /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: match.athlete_b, winnerId, side: "b" })));
+    const height = ordemSlotHeight(sched);
+    const showAthletes = state !== "vacant";
+    return /* @__PURE__ */ React.createElement("div", { className: `ordem-fight ordem-fight--${state}`, style: { minHeight: `${height}px` } }, /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-header" }, /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-time" }, time), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-number" }, "Luta ", displayNumber), /* @__PURE__ */ React.createElement("span", { className: "ordem-fight-round" }, round), /* @__PURE__ */ React.createElement("span", { className: `ordem-fight-status ordem-fight-status--${state}` }, item.statusText)), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-cat" }, cat.age_group, " | ", beltLabels[cat.belt] || cat.belt, " | ", cat.weight_class), state === "vacant" && /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-vacant" }, "Espaco vago no MAT", match.status === "bye" && /* @__PURE__ */ React.createElement("span", null, "BYE")), state === "victory" && /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-winner" }, "Vencedor: ", winner?.name || "Sem vencedor"), showAthletes && /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-athletes" }, /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: match.athlete_a, winnerId, side: "a" }), /* @__PURE__ */ React.createElement("div", { className: "ordem-fight-vs" }, "* * *"), /* @__PURE__ */ React.createElement(OrdemAthlete, { athlete: match.athlete_b, winnerId, side: "b" })));
   }
   function OrdemAthlete({ athlete, winnerId, side }) {
     const isWinner = athlete && winnerId === athlete.id;

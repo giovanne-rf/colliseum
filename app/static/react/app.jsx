@@ -3444,16 +3444,8 @@ function displayMatchNumbersForBracket(bracket) {
 
 function buildOrdemMatItems(items, now) {
   const sorted = [...items].sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
-  const pending = sorted.filter((item) => !item.match.result?.finalized);
-  const done = sorted
-    .filter((item) => item.match.result?.finalized)
-    .sort((a, b) => {
-      const left = new Date(a.match.result?.finished_at || a.match.schedule.scheduled_start);
-      const right = new Date(b.match.result?.finished_at || b.match.schedule.scheduled_start);
-      return left - right;
-    });
   const columnItems = [];
-  for (const item of pending) {
+  for (const item of sorted) {
     const previousFight = [...columnItems].reverse().find((entry) => entry.type === "fight");
     if (previousFight) {
       const previousEnd = scheduleEnd(previousFight.match.schedule);
@@ -3467,14 +3459,13 @@ function buildOrdemMatItems(items, now) {
         });
       }
     }
+    const state = ordemFightState(item.match, now);
     columnItems.push({
       ...item,
       type: "fight",
-      state: isScheduleActive(item.match.schedule, now) ? "active" : "waiting",
+      state,
+      statusText: ordemFightStatusText(state),
     });
-  }
-  for (const item of done) {
-    columnItems.push({ ...item, type: "fight", state: "done" });
   }
   return { items: columnItems, fightCount: sorted.length };
 }
@@ -3489,11 +3480,63 @@ function isScheduleActive(schedule, now) {
   return now >= start && now < end;
 }
 
+function ordemFightState(match, now) {
+  if (isVacantMatSlot(match)) return "vacant";
+  if (isVictoryMatch(match)) return "victory";
+  if (isReadyToFight(match)) {
+    return isScheduleActive(match.schedule, now) ? "active" : "ready";
+  }
+  return "waiting";
+}
+
+function ordemFightStatusText(state) {
+  return {
+    active: "Ocorrendo agora",
+    ready: "Aguardando inicio",
+    waiting: "Aguardando competidores",
+    vacant: "Espaco vago no MAT",
+    victory: "Vitoria",
+  }[state] || "";
+}
+
+function isVictoryMatch(match) {
+  if (!match.result?.finalized) return false;
+  if (match.status === "bye") return false;
+  if ((match.result.finish_method || "").toLowerCase() === "no fighters") return false;
+  return Boolean(match.result.winner_id || match.winner?.id);
+}
+
+function isVacantMatSlot(match) {
+  if (match.status === "bye") return true;
+  if (!match.result?.finalized && match.status !== "completed") return false;
+  if ((match.result?.finish_method || "").toLowerCase() === "no fighters") return true;
+  if (!isVictoryMatch(match)) return true;
+  return [match.athlete_a, match.athlete_b].some((athlete) => athlete && !isAthleteFightReady(athlete));
+}
+
+function isReadyToFight(match) {
+  return Boolean(match.athlete_a?.id && match.athlete_b?.id)
+    && isAthleteFightReady(match.athlete_a)
+    && isAthleteFightReady(match.athlete_b)
+    && !match.result?.finalized
+    && match.status !== "completed"
+    && match.status !== "bye";
+}
+
+function isAthleteFightReady(athlete) {
+  return athlete?.checkin_status === "Checked";
+}
+
+function ordemSlotHeight(schedule) {
+  const minutes = Math.max(1, schedule?.estimated_minutes || 8);
+  return Math.max(40, Math.ceil(minutes / 8) * 56);
+}
+
 function OrdemNoFightGap({ gap }) {
-  const height = Math.max(28, Math.min(180, gap.minutes * 4));
+  const height = Math.max(32, Math.ceil(gap.minutes / 8) * 56);
   return (
     <div className="ordem-no-fight" style={{ minHeight: `${height}px` }}>
-      <strong>No fight</strong>
+      <strong>Espaco vago no MAT</strong>
       <span>{gap.minutes} min sem luta</span>
     </div>
   );
@@ -3507,26 +3550,35 @@ function OrdemFightCard({ item }) {
   const cat = bracket.category;
   const winnerId = match.winner?.id || match.result?.winner_id;
   const winner = [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId);
+  const height = ordemSlotHeight(sched);
+  const showAthletes = state !== "vacant";
   return (
-    <div className={`ordem-fight ordem-fight--${state}`}>
+    <div className={`ordem-fight ordem-fight--${state}`} style={{ minHeight: `${height}px` }}>
       <div className="ordem-fight-header">
         <span className="ordem-fight-time">{time}</span>
         <span className="ordem-fight-number">Luta {displayNumber}</span>
         <span className="ordem-fight-round">{round}</span>
-        {state === "active" && <span className="ordem-fight-live">Em luta</span>}
-        {state === "done" && <span className="ordem-fight-done">Realizada</span>}
+        <span className={`ordem-fight-status ordem-fight-status--${state}`}>{item.statusText}</span>
       </div>
       <div className="ordem-fight-cat">
         {cat.age_group} | {beltLabels[cat.belt] || cat.belt} | {cat.weight_class}
       </div>
-      {state === "done" && (
+      {state === "vacant" && (
+        <div className="ordem-fight-vacant">
+          Espaco vago no MAT
+          {match.status === "bye" && <span>BYE</span>}
+        </div>
+      )}
+      {state === "victory" && (
         <div className="ordem-fight-winner">Vencedor: {winner?.name || "Sem vencedor"}</div>
       )}
-      <div className="ordem-fight-athletes">
-        <OrdemAthlete athlete={match.athlete_a} winnerId={winnerId} side="a" />
-        <div className="ordem-fight-vs">* * *</div>
-        <OrdemAthlete athlete={match.athlete_b} winnerId={winnerId} side="b" />
-      </div>
+      {showAthletes && (
+        <div className="ordem-fight-athletes">
+          <OrdemAthlete athlete={match.athlete_a} winnerId={winnerId} side="a" />
+          <div className="ordem-fight-vs">* * *</div>
+          <OrdemAthlete athlete={match.athlete_b} winnerId={winnerId} side="b" />
+        </div>
+      )}
     </div>
   );
 }
