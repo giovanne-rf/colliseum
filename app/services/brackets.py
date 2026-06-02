@@ -1257,16 +1257,16 @@ class BracketService:
         bracket = await self.session.get(Bracket, bracket_id)
         if bracket is None:
             raise NotFoundError("Bracket not found.")
-        await self.session.delete(bracket)
+        await self._delete_bracket(bracket_id)
         await self.session.commit()
 
     async def delete_all(self, competition_id: int) -> None:
+        await CompetitionService(self.session).get(competition_id)
         result = await self.session.execute(
-            select(Bracket).where(Bracket.competition_id == competition_id)
+            select(Bracket.id).where(Bracket.competition_id == competition_id)
         )
-        brackets = list(result.scalars().all())
-        for bracket in brackets:
-            await self.session.delete(bracket)
+        for bracket_id in result.scalars().all():
+            await self._delete_bracket(int(bracket_id))
         await self.session.commit()
 
     async def update_match_result(
@@ -1727,6 +1727,15 @@ class BracketService:
         return [(int(category_id), int(athlete_count)) for category_id, athlete_count in result.all()]
 
     async def _delete_bracket(self, bracket_id: int) -> None:
+        match_ids_result = await self.session.execute(
+            select(Match.id).where(Match.bracket_id == bracket_id)
+        )
+        match_ids = [int(match_id) for match_id in match_ids_result.scalars().all()]
+        await self.session.execute(
+            delete(CompetitionSchedule).where(CompetitionSchedule.bracket_id == bracket_id)
+        )
+        if match_ids:
+            await self.session.execute(delete(MatchResult).where(MatchResult.match_id.in_(match_ids)))
         await self.session.execute(delete(Match).where(Match.bracket_id == bracket_id))
         await self.session.execute(delete(BracketEntry).where(BracketEntry.bracket_id == bracket_id))
         await self.session.execute(delete(Bracket).where(Bracket.id == bracket_id))
@@ -1986,5 +1995,4 @@ class BracketService:
         if not candidates:
             return None
         return min(candidates, key=lambda item: item.position_end - item.position_start)
-
 
