@@ -190,6 +190,7 @@ class MatchResultUpdate(BaseModel):
     athlete_b_penalties: int = Field(default=0, ge=0)
     finish_method: str | None = Field(default=None, max_length=30)
     winner_id: int | None = Field(default=None, gt=0)
+    start_match: bool = Field(default=False)
     finalized: bool = Field(default=False)
 
 
@@ -205,6 +206,7 @@ class MatchResultRead(BaseModel):
     winner_id: int | None = None
     finish_method: str | None = None
     finalized: bool
+    started_at: datetime | None = None
     finished_at: datetime | None = None
     created_at: datetime
     updated_at: datetime

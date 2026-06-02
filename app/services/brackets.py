@@ -1309,9 +1309,13 @@ class BracketService:
         result.athlete_b_points = payload.athlete_b_points
         result.athlete_b_advantages = payload.athlete_b_advantages
         result.athlete_b_penalties = payload.athlete_b_penalties
+        if payload.start_match and result.started_at is None:
+            result.started_at = datetime.now(UTC)
         result.finalized = payload.finalized
         result.finish_method = finish_method if payload.finalized else None
         result.winner_id = winner_id if payload.finalized else None
+        if payload.finalized and result.started_at is None:
+            result.started_at = datetime.now(UTC)
         result.finished_at = datetime.now(UTC) if payload.finalized else None
 
         if payload.finalized:

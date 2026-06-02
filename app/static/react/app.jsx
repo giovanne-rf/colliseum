@@ -1986,6 +1986,7 @@ function FightPanel({ data, onClose, onResultSaved, onBracketUpdated }) {
       finalized: finish.finalized ?? savedResult?.finalized ?? false,
       finish_method: finish.finish_method ?? savedResult?.finish_method ?? null,
       winner_id: finish.winner_id ?? savedResult?.winner_id ?? null,
+      start_match: finish.start_match ?? false,
     };
     if (!payload.finalized) {
       payload.finish_method = null;
@@ -2008,6 +2009,22 @@ function FightPanel({ data, onClose, onResultSaved, onBracketUpdated }) {
       onClose?.();
     }
     return result;
+  }
+
+  async function startFight() {
+    setRunning(true);
+    try {
+      const result = await persistScores(scores, { start_match: true });
+      setSaveMessage(result.started_at ? `Luta iniciada as ${formatScheduleTime(result.started_at)}` : "Luta iniciada");
+    } catch (error) {
+      setRunning(false);
+      setSaveMessage(error.message);
+    }
+  }
+
+  function pauseFight() {
+    setRunning(false);
+    setSaveMessage("Relogio pausado");
   }
 
   async function adjustScore(side, field, delta) {
@@ -2092,9 +2109,19 @@ function FightPanel({ data, onClose, onResultSaved, onBracketUpdated }) {
               }}>Reset tempo</button>
             </div>
           </div>
-          <button className={`fight-clock ${running ? "running" : ""}`} type="button" onClick={() => setRunning((current) => !current)}>
-            {formatFightTime(timeLeft)}
-          </button>
+          <div className="fight-clock-area">
+            <div className={`fight-clock ${running ? "running" : ""}`}>
+              {formatFightTime(timeLeft)}
+            </div>
+            <div className="fight-clock-actions">
+              <button className="primary" type="button" onClick={startFight} disabled={Boolean(savedResult?.started_at) && running}>
+                {savedResult?.started_at ? "Retomar luta" : "Iniciar luta"}
+              </button>
+              <button className="secondary" type="button" onClick={pauseFight} disabled={!running}>
+                Parar luta
+              </button>
+            </div>
+          </div>
         </footer>
         {pendingFinish && (
           <div className="fight-confirm-backdrop" role="alertdialog" aria-modal="true">

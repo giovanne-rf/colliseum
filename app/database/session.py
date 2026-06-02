@@ -185,6 +185,7 @@ async def create_db_and_tables() -> None:
                         winner_id INTEGER,
                         finish_method VARCHAR(30),
                         finalized BOOLEAN NOT NULL DEFAULT 0,
+                        started_at DATETIME,
                         finished_at DATETIME,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
                         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -205,6 +206,8 @@ async def create_db_and_tables() -> None:
                     for column in inspect(sync_conn).get_columns("match_results")
                 }
             )
+            if "started_at" not in match_result_columns:
+                await conn.execute(text("ALTER TABLE match_results ADD COLUMN started_at DATETIME"))
             if "finished_at" not in match_result_columns:
                 await conn.execute(text("ALTER TABLE match_results ADD COLUMN finished_at DATETIME"))
         # Make athletes.team_id nullable (required for belts above black)

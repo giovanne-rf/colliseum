@@ -980,6 +980,7 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
             "athlete_b_points": 0,
             "athlete_b_advantages": 1,
             "athlete_b_penalties": 0,
+            "start_match": True,
             "finalized": False,
         },
     )
@@ -987,6 +988,7 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     score = score_response.json()
     assert score["athlete_a_points"] == 2
     assert score["finalized"] is False
+    assert score["started_at"] is not None
 
     finish_response = await client.put(
         f"/competitions/{competition_id}/matches/{match['id']}/result",
@@ -1006,6 +1008,7 @@ async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     assert result["winner_id"] == match["athlete_a"]["id"]
     assert result["finish_method"] == "Pontos"
     assert result["finalized"] is True
+    assert result["started_at"] == score["started_at"]
     assert result["finished_at"] is not None
 
     blocked_update_response = await client.put(

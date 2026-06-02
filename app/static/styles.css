@@ -1622,19 +1622,28 @@ button:disabled {
   font-weight: 800;
 }
 
+.fight-clock-area {
+  display: grid;
+  grid-template-columns: auto minmax(150px, 190px);
+  align-items: center;
+  gap: 18px;
+}
+
 .fight-clock {
-  border: 0;
-  background: transparent;
   color: #fff;
   font-size: clamp(74px, 10vw, 144px);
   font-weight: 300;
   line-height: 1;
-  padding: 0;
   white-space: nowrap;
 }
 
 .fight-clock.running {
   color: #f7f7f7;
+}
+
+.fight-clock-actions {
+  display: grid;
+  gap: 10px;
 }
 
 .fight-confirm-backdrop {
@@ -2811,6 +2820,11 @@ button:disabled {
   .fight-clock {
     width: 100%;
     text-align: center;
+  }
+
+  .fight-clock-area {
+    grid-template-columns: 1fr;
+    width: 100%;
   }
 }
 

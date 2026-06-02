@@ -1191,7 +1191,8 @@ var ColliseumApp = (() => {
         athlete_b_penalties: nextScores.b.penalties,
         finalized: finish.finalized ?? savedResult?.finalized ?? false,
         finish_method: finish.finish_method ?? savedResult?.finish_method ?? null,
-        winner_id: finish.winner_id ?? savedResult?.winner_id ?? null
+        winner_id: finish.winner_id ?? savedResult?.winner_id ?? null,
+        start_match: finish.start_match ?? false
       };
       if (!payload.finalized) {
         payload.finish_method = null;
@@ -1214,6 +1215,20 @@ var ColliseumApp = (() => {
         onClose?.();
       }
       return result;
+    }
+    async function startFight() {
+      setRunning(true);
+      try {
+        const result = await persistScores(scores, { start_match: true });
+        setSaveMessage(result.started_at ? `Luta iniciada as ${formatScheduleTime(result.started_at)}` : "Luta iniciada");
+      } catch (error) {
+        setRunning(false);
+        setSaveMessage(error.message);
+      }
+    }
+    function pauseFight() {
+      setRunning(false);
+      setSaveMessage("Relogio pausado");
     }
     async function adjustScore(side, field, delta) {
       const nextScores = {
@@ -1274,7 +1289,7 @@ var ColliseumApp = (() => {
     return /* @__PURE__ */ React.createElement("div", { className: "modal-backdrop fight-modal-backdrop", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-panel" }, /* @__PURE__ */ React.createElement("button", { className: "fight-close", type: "button", onClick: onClose, "aria-label": "Fechar painel de luta" }, "x"), /* @__PURE__ */ React.createElement("div", { className: "fight-rows" }, /* @__PURE__ */ React.createElement(FightAthleteRow, { athlete: athleteA, score: scores.a, active: true, onScore: (field) => addScore("a", field), onAdjust: (field, delta) => adjustScore("a", field, delta), onSubmission: () => finishBySubmission("a"), onDisqualification: () => disqualify("a") }), /* @__PURE__ */ React.createElement(FightAthleteRow, { athlete: athleteB, score: scores.b, onScore: (field) => addScore("b", field), onAdjust: (field, delta) => adjustScore("b", field, delta), onSubmission: () => finishBySubmission("b"), onDisqualification: () => disqualify("b") })), /* @__PURE__ */ React.createElement("footer", { className: "fight-footer" }, /* @__PURE__ */ React.createElement("div", { className: "fight-info" }, /* @__PURE__ */ React.createElement("strong", null, categoryText), /* @__PURE__ */ React.createElement("span", null, "Luta ", matchNumber, " ", match.status === "bye" ? "| BYE" : ""), saveMessage && /* @__PURE__ */ React.createElement("small", null, saveMessage), /* @__PURE__ */ React.createElement("div", { className: "fight-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: finishByTime }, "Finalizar por tempo"), /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => {
       setRunning(false);
       setTimeLeft(duration);
-    } }, "Reset tempo"))), /* @__PURE__ */ React.createElement("button", { className: `fight-clock ${running ? "running" : ""}`, type: "button", onClick: () => setRunning((current) => !current) }, formatFightTime(timeLeft))), pendingFinish && /* @__PURE__ */ React.createElement("div", { className: "fight-confirm-backdrop", role: "alertdialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-confirm" }, /* @__PURE__ */ React.createElement("h2", null, pendingFinish.title), /* @__PURE__ */ React.createElement("p", null, pendingFinish.body), /* @__PURE__ */ React.createElement("strong", null, "Vencedor: ", pendingFinish.winnerName), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => setPendingFinish(null) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: confirmFinish }, "Confirmar"))))));
+    } }, "Reset tempo"))), /* @__PURE__ */ React.createElement("div", { className: "fight-clock-area" }, /* @__PURE__ */ React.createElement("div", { className: `fight-clock ${running ? "running" : ""}` }, formatFightTime(timeLeft)), /* @__PURE__ */ React.createElement("div", { className: "fight-clock-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: startFight, disabled: Boolean(savedResult?.started_at) && running }, savedResult?.started_at ? "Retomar luta" : "Iniciar luta"), /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: pauseFight, disabled: !running }, "Parar luta")))), pendingFinish && /* @__PURE__ */ React.createElement("div", { className: "fight-confirm-backdrop", role: "alertdialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("section", { className: "fight-confirm" }, /* @__PURE__ */ React.createElement("h2", null, pendingFinish.title), /* @__PURE__ */ React.createElement("p", null, pendingFinish.body), /* @__PURE__ */ React.createElement("strong", null, "Vencedor: ", pendingFinish.winnerName), /* @__PURE__ */ React.createElement("div", { className: "actions" }, /* @__PURE__ */ React.createElement("button", { className: "secondary", type: "button", onClick: () => setPendingFinish(null) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: confirmFinish }, "Confirmar"))))));
   }
   function FightAthleteRow({ athlete, score, active = false, onScore, onAdjust, onSubmission, onDisqualification }) {
     return /* @__PURE__ */ React.createElement("section", { className: `fight-athlete-row ${active ? "active" : ""}`.trim() }, /* @__PURE__ */ React.createElement("div", { className: "fight-athlete-info" }, /* @__PURE__ */ React.createElement("div", { className: "fight-athlete-name" }, /* @__PURE__ */ React.createElement("strong", null, athlete.name)), /* @__PURE__ */ React.createElement("span", null, athlete.team?.name || ""), /* @__PURE__ */ React.createElement("div", { className: "fight-finish-actions" }, /* @__PURE__ */ React.createElement("button", { className: "primary", type: "button", onClick: onSubmission }, "Finalizacao"), /* @__PURE__ */ React.createElement("button", { className: "danger-button", type: "button", onClick: onDisqualification }, "Desclassificacao"))), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "points", label: "pontos", value: score.points, onScore: () => onScore("points"), onAdjust: (delta) => onAdjust("points", delta), athleteName: athlete.name }), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "advantages", label: "vantagens", value: score.advantages, onScore: () => onScore("advantages"), onAdjust: (delta) => onAdjust("advantages", delta), athleteName: athlete.name }), /* @__PURE__ */ React.createElement(FightScoreBox, { className: "penalties", label: "punicoes", value: score.penalties, onScore: () => onScore("penalties"), onAdjust: (delta) => onAdjust("penalties", delta), athleteName: athlete.name }));
