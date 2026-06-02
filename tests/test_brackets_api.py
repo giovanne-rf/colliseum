@@ -868,6 +868,66 @@ async def test_close_category_checkin_blocks_new_checkin_and_advances_checked_at
     assert match["status"] == "completed"
 
 
+async def test_delete_all_brackets_resets_checkin_and_weigh_in_state(client: AsyncClient):
+    team_id = await create_team(client, "Equipe Reset")
+    category_id = await create_category(client)
+    competition_id = await create_competition(client)
+    athlete_ids = [
+        await create_athlete(client, 1, team_id),
+        await create_athlete(client, 2, team_id),
+    ]
+    registrations = []
+    for index in range(1, 3):
+        registration_response = await client.post(
+            f"/competitions/{competition_id}/registrations",
+            json=athlete_registration_payload(index, category_id),
+        )
+        assert registration_response.status_code == 201
+        registrations.append(registration_response.json()["id"])
+
+    bracket_response = await client.post(
+        f"/competitions/{competition_id}/brackets",
+        json={"category_id": category_id, "replace_existing": True},
+    )
+    assert bracket_response.status_code == 201
+    await start_category_checkin(client, competition_id, category_id)
+
+    checkin_response = await client.post(
+        f"/competitions/{competition_id}/checkins",
+        json={
+            "registration_id": registrations[0],
+            "checked_weight": "75.00",
+            "overweight_confirmed": False,
+        },
+    )
+    assert checkin_response.status_code == 201
+    ready_response = await client.post(
+        f"/competitions/{competition_id}/checkins/{registrations[0]}/ready",
+    )
+    assert ready_response.status_code == 200
+
+    close_response = await client.post(
+        f"/competitions/{competition_id}/categories/{category_id}/checkin/close",
+    )
+    assert close_response.status_code == 200
+
+    delete_response = await client.delete(f"/competitions/{competition_id}/brackets")
+    assert delete_response.status_code == 204
+
+    brackets_response = await client.get(f"/competitions/{competition_id}/brackets")
+    assert brackets_response.status_code == 200
+    assert brackets_response.json() == []
+
+    final_checks_response = await client.get(f"/competitions/{competition_id}/final-checks")
+    assert final_checks_response.status_code == 200
+    final_checks = {item["athlete"]["id"]: item for item in final_checks_response.json()}
+    assert set(final_checks) == set(athlete_ids)
+    assert all(item["status"] == "No Show" for item in final_checks.values())
+    assert all(item["checked_weight"] is None for item in final_checks.values())
+    assert all(item["checkin_started"] is False for item in final_checks.values())
+    assert all(item["checkin_closed"] is False for item in final_checks.values())
+
+
 async def test_persist_match_score_and_finalize_by_time(client: AsyncClient):
     team_id = await create_team(client, "Equipe Resultado")
     category_id = await create_category(client)

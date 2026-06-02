@@ -1267,6 +1267,7 @@ class BracketService:
         )
         for bracket_id in result.scalars().all():
             await self._delete_bracket(int(bracket_id))
+        await self._clear_competition_checkin_state(competition_id)
         await self.session.commit()
 
     async def update_match_result(
@@ -1725,6 +1726,25 @@ class BracketService:
             .order_by(CompetitionRegistration.category_id)
         )
         return [(int(category_id), int(athlete_count)) for category_id, athlete_count in result.all()]
+
+    async def _clear_competition_checkin_state(self, competition_id: int) -> None:
+        await self.session.execute(
+            delete(CompetitionSchedule).where(CompetitionSchedule.competition_id == competition_id)
+        )
+        await self.session.execute(
+            delete(CompetitionCheckin).where(CompetitionCheckin.competition_id == competition_id)
+        )
+        await self.session.execute(
+            delete(CompetitionCheckinClosure).where(
+                CompetitionCheckinClosure.competition_id == competition_id
+            )
+        )
+        await self.session.execute(
+            delete(CompetitionCheckinControl).where(
+                CompetitionCheckinControl.competition_id == competition_id
+            )
+        )
+        await self.session.flush()
 
     async def _delete_bracket(self, bracket_id: int) -> None:
         match_ids_result = await self.session.execute(
