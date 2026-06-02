@@ -3553,8 +3553,9 @@ function isScheduleActive(schedule, now) {
 function ordemFightState(match, now) {
   if (isVacantMatSlot(match)) return "vacant";
   if (isVictoryMatch(match)) return "victory";
+  if (match.result?.started_at) return "active";
   if (isReadyToFight(match)) {
-    return isScheduleActive(match.schedule, now) ? "active" : "ready";
+    return isScheduleLate(match.schedule, now) ? "late" : "ready";
   }
   return "waiting";
 }
@@ -3562,11 +3563,16 @@ function ordemFightState(match, now) {
 function ordemFightStatusText(state) {
   return {
     active: "Ocorrendo agora",
+    late: "ATRASADA",
     ready: "Aguardando inicio",
     waiting: "Aguardando competidores",
     vacant: "Espaco vago no MAT",
     victory: "Vitoria",
   }[state] || "";
+}
+
+function isScheduleLate(schedule, now) {
+  return now > new Date(schedule.scheduled_start);
 }
 
 function isVictoryMatch(match) {

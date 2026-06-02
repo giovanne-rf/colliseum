@@ -2058,30 +2058,27 @@ var ColliseumApp = (() => {
     if (!first) return /* @__PURE__ */ new Date();
     return new Date(first.match.result?.started_at || first.match.schedule.scheduled_start);
   }
-  function scheduleEnd(schedule) {
-    return new Date(new Date(schedule.scheduled_start).getTime() + schedule.estimated_minutes * 6e4);
-  }
-  function isScheduleActive(schedule, now) {
-    const start = new Date(schedule.scheduled_start);
-    const end = scheduleEnd(schedule);
-    return now >= start && now < end;
-  }
   function ordemFightState(match, now) {
     if (isVacantMatSlot(match)) return "vacant";
     if (isVictoryMatch(match)) return "victory";
+    if (match.result?.started_at) return "active";
     if (isReadyToFight(match)) {
-      return isScheduleActive(match.schedule, now) ? "active" : "ready";
+      return isScheduleLate(match.schedule, now) ? "late" : "ready";
     }
     return "waiting";
   }
   function ordemFightStatusText(state) {
     return {
       active: "Ocorrendo agora",
+      late: "ATRASADA",
       ready: "Aguardando inicio",
       waiting: "Aguardando competidores",
       vacant: "Espaco vago no MAT",
       victory: "Vitoria"
     }[state] || "";
+  }
+  function isScheduleLate(schedule, now) {
+    return now > new Date(schedule.scheduled_start);
   }
   function isVictoryMatch(match) {
     if (!match.result?.finalized) return false;

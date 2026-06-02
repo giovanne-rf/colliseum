@@ -2212,6 +2212,12 @@ button:disabled {
   border-left: 4px solid #d39b00;
 }
 
+.ordem-fight--late {
+  background: #d93025;
+  border-left: 4px solid #8b1b13;
+  color: #fff;
+}
+
 .ordem-fight--victory {
   background: #eeeeee;
   color: #555;
@@ -2242,7 +2248,12 @@ button:disabled {
 .ordem-fight--active .ordem-fight-number,
 .ordem-fight--active .ordem-fight-cat,
 .ordem-fight--active .ordem-athlete-name,
-.ordem-fight--active .ordem-athlete-team {
+.ordem-fight--active .ordem-athlete-team,
+.ordem-fight--late .ordem-fight-time,
+.ordem-fight--late .ordem-fight-number,
+.ordem-fight--late .ordem-fight-cat,
+.ordem-fight--late .ordem-athlete-name,
+.ordem-fight--late .ordem-athlete-team {
   color: #fff;
 }
 
@@ -2279,6 +2290,10 @@ button:disabled {
 
 .ordem-fight-status--ready {
   color: #166534;
+}
+
+.ordem-fight-status--late {
+  color: #fff;
 }
 
 .ordem-fight-status--waiting {
