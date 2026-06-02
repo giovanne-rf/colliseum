@@ -3417,9 +3417,7 @@ function OrdemPage() {
               </div>
               <div className="ordem-mat-fights">
                 {column.items.map((item) => (
-                  item.type === "gap"
-                    ? <OrdemNoFightGap gap={item} key={item.key} />
-                    : <OrdemFightCard item={item} key={item.match.id} />
+                  <OrdemFightCard item={item} key={item.match.id} />
                 ))}
               </div>
             </div>
@@ -3444,27 +3442,35 @@ function displayMatchNumbersForBracket(bracket) {
 
 function buildOrdemMatItems(items, now) {
   const sorted = [...items].sort((a, b) => new Date(a.match.schedule.scheduled_start) - new Date(b.match.schedule.scheduled_start));
+  const done = sorted
+    .filter((item) => isVictoryMatch(item.match))
+    .sort((a, b) => {
+      const left = new Date(a.match.result?.finished_at || a.match.schedule.scheduled_start);
+      const right = new Date(b.match.result?.finished_at || b.match.schedule.scheduled_start);
+      return left - right;
+    });
+  const timeline = sorted.filter((item) => !isVictoryMatch(item.match));
   const columnItems = [];
-  for (const item of sorted) {
-    const previousFight = [...columnItems].reverse().find((entry) => entry.type === "fight");
-    if (previousFight) {
-      const previousEnd = scheduleEnd(previousFight.match.schedule);
-      const currentStart = new Date(item.match.schedule.scheduled_start);
-      const gapMinutes = Math.round((currentStart - previousEnd) / 60000);
-      if (gapMinutes > 0) {
-        columnItems.push({
-          type: "gap",
-          key: `gap-${previousFight.match.id}-${item.match.id}`,
-          minutes: gapMinutes,
-        });
-      }
-    }
+  for (const [index, item] of timeline.entries()) {
     const state = ordemFightState(item.match, now);
+    const nextValidFight = timeline
+      .slice(index + 1)
+      .find((nextItem) => !isVacantMatSlot(nextItem.match));
     columnItems.push({
       ...item,
       type: "fight",
       state,
       statusText: ordemFightStatusText(state),
+      vacantMinutes: state === "vacant" ? vacantSlotMinutes(item, nextValidFight) : 8,
+    });
+  }
+  for (const item of done) {
+    columnItems.push({
+      ...item,
+      type: "fight",
+      state: "victory",
+      statusText: ordemFightStatusText("victory"),
+      vacantMinutes: 8,
     });
   }
   return { items: columnItems, fightCount: sorted.length };
@@ -3527,19 +3533,16 @@ function isAthleteFightReady(athlete) {
   return athlete?.checkin_status === "Checked";
 }
 
-function ordemSlotHeight(schedule) {
-  const minutes = Math.max(1, schedule?.estimated_minutes || 8);
-  return Math.max(40, Math.ceil(minutes / 8) * 56);
+function vacantSlotMinutes(item, nextValidFight) {
+  if (!nextValidFight) return 8;
+  const currentStart = new Date(item.match.schedule.scheduled_start);
+  const nextStart = new Date(nextValidFight.match.schedule.scheduled_start);
+  return Math.max(8, Math.round((nextStart - currentStart) / 60000));
 }
 
-function OrdemNoFightGap({ gap }) {
-  const height = Math.max(32, Math.ceil(gap.minutes / 8) * 56);
-  return (
-    <div className="ordem-no-fight" style={{ minHeight: `${height}px` }}>
-      <strong>Espaco vago no MAT</strong>
-      <span>{gap.minutes} min sem luta</span>
-    </div>
-  );
+function ordemSlotHeight(item) {
+  const minutes = item.state === "vacant" ? item.vacantMinutes : 8;
+  return Math.max(56, Math.ceil(minutes / 8) * 56);
 }
 
 function OrdemFightCard({ item }) {
@@ -3550,7 +3553,7 @@ function OrdemFightCard({ item }) {
   const cat = bracket.category;
   const winnerId = match.winner?.id || match.result?.winner_id;
   const winner = [match.athlete_a, match.athlete_b, match.winner].find((athlete) => athlete?.id === winnerId);
-  const height = ordemSlotHeight(sched);
+  const height = ordemSlotHeight(item);
   const showAthletes = state !== "vacant";
   return (
     <div className={`ordem-fight ordem-fight--${state}`} style={{ minHeight: `${height}px` }}>
@@ -3567,6 +3570,7 @@ function OrdemFightCard({ item }) {
         <div className="ordem-fight-vacant">
           Espaco vago no MAT
           {match.status === "bye" && <span>BYE</span>}
+          {item.vacantMinutes > 8 && <span>{item.vacantMinutes} min ate a proxima luta valida</span>}
         </div>
       )}
       {state === "victory" && (
