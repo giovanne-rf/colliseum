@@ -223,21 +223,29 @@
     })), /* @__PURE__ */ React.createElement("div", { className: `status top-status ${apiOk ? "ok" : ""}` }, apiOk ? "Online" : "Conectando")), /* @__PURE__ */ React.createElement("section", { className: "page-title-band" }, /* @__PURE__ */ React.createElement("h1", null, title)), /* @__PURE__ */ React.createElement("main", { className: `shell ${isBracket ? "bracket-shell" : ""} ${isCategorias ? "categorias-shell" : ""} ${isOrdem ? "ordem-shell" : ""}`.trim() }, path === "/atletas" && /* @__PURE__ */ React.createElement(AtletasListPage, null), path === "/cadastros" && /* @__PURE__ */ React.createElement(AthletesPage, null), athleteEditId && /* @__PURE__ */ React.createElement(AtletaEditPage, { athleteId: athleteEditId }), path === "/academias" && /* @__PURE__ */ React.createElement(AcademiesListPage, null), academyEditId && /* @__PURE__ */ React.createElement(AcademyEditPage, { teamId: academyEditId }), path === "/categorias" && /* @__PURE__ */ React.createElement(CategoriasPage, null), path === "/config-categorias" && /* @__PURE__ */ React.createElement(ConfigCategoriasPage, null), path === "/ordem" && /* @__PURE__ */ React.createElement(OrdemPage, null), path === "/equipes" && /* @__PURE__ */ React.createElement(TeamsPage, null), path === "/competicoes" && /* @__PURE__ */ React.createElement(CompetitionsPage, null), path === "/inscricoes" && /* @__PURE__ */ React.createElement(RegistrationsPage, null), path === "/chaves" && /* @__PURE__ */ React.createElement(BracketsPage, null), path === "/chaves/salvas" && /* @__PURE__ */ React.createElement(SavedBracketsPage, null), path === "/cronograma" && /* @__PURE__ */ React.createElement(SchedulePage, null), bracketRouteId && /* @__PURE__ */ React.createElement(BracketByIdPage, { bracketId: bracketRouteId }), path === "/checagem" && /* @__PURE__ */ React.createElement(CheckOverviewPage, null), path === "/checkin/pesagem" && /* @__PURE__ */ React.createElement(WeighinPage, null), path === "/checkin" && /* @__PURE__ */ React.createElement(CheckinPage, null), path === "/checagem/painel" && /* @__PURE__ */ React.createElement(CheckPanelPage, null), path === "/checagem-final" && /* @__PURE__ */ React.createElement(FinalCheckPage, null), path === "/ranking" && /* @__PURE__ */ React.createElement(RankingPage, null), !bracketRouteId && !athleteEditId && !academyEditId && ![...knownPaths].includes(path) && /* @__PURE__ */ React.createElement(AthletesPage, null)));
   }
   function AtletasListPage() {
+    const h = React.createElement;
     const [athletes, setAthletes] = useState([]);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState(["", ""]);
-    const PAGE_SIZE = 50;
-    const [offset, setOffset] = useState(0);
-    async function load(off = 0, q = search) {
+    const PAGE_SIZE = 100;
+    async function loadAll() {
       setLoading(true);
       try {
-        const params = new URLSearchParams({ limit: PAGE_SIZE, offset: off });
-        const data = await fetchJson(`/athletes?${params}`);
-        setAthletes(data.items);
-        setTotal(data.total);
-        setOffset(off);
+        let allItems = [];
+        let nextOffset = 0;
+        let totalItems = 0;
+        do {
+          const params = new URLSearchParams({ limit: PAGE_SIZE, offset: nextOffset });
+          const data = await fetchJson(`/athletes?${params}`);
+          allItems = [...allItems, ...data.items];
+          totalItems = data.total;
+          nextOffset += PAGE_SIZE;
+        } while (allItems.length < totalItems);
+        setAthletes(allItems);
+        setTotal(totalItems);
+        setMessage(["", ""]);
       } catch (err) {
         setMessage([err.message, "error"]);
       } finally {
@@ -245,7 +253,7 @@
       }
     }
     useEffect(() => {
-      load(0);
+      loadAll();
     }, []);
     const filtered = athletes.filter((a) => {
       if (!search) return true;
@@ -257,18 +265,51 @@
       const [y, m, day] = d.split("-");
       return `${day}/${m}/${y}`;
     }
-    return /* @__PURE__ */ React.createElement("section", { className: "workspace stack" }, /* @__PURE__ */ React.createElement("section", { className: "panel atletas-list-panel" }, /* @__PURE__ */ React.createElement("div", { className: "section-heading" }, /* @__PURE__ */ React.createElement("h2", null, "Atletas Cadastrados"), /* @__PURE__ */ React.createElement("span", null, total, " atleta(s) no total")), /* @__PURE__ */ React.createElement("div", { className: "filters single", style: { marginBottom: "14px" } }, /* @__PURE__ */ React.createElement(
-      "input",
-      {
-        type: "search",
-        placeholder: "Buscar por nome, CPF ou academia...",
-        value: search,
-        onChange: (e) => setSearch(e.target.value),
-        style: { width: "100%" }
-      }
-    )), loading && /* @__PURE__ */ React.createElement("p", { className: "message" }, "Carregando..."), /* @__PURE__ */ React.createElement(Message, { text: message[0], type: message[1] }), !loading && /* @__PURE__ */ React.createElement("div", { className: "checkin-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "checkin-table atletas-table" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", null, "Nome"), /* @__PURE__ */ React.createElement("th", null, "CPF"), /* @__PURE__ */ React.createElement("th", null, "Nascimento"), /* @__PURE__ */ React.createElement("th", null, "Faixa"), /* @__PURE__ */ React.createElement("th", null, "Academia"), /* @__PURE__ */ React.createElement("th", null))), /* @__PURE__ */ React.createElement("tbody", null, filtered.length === 0 && /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: "6", style: { textAlign: "center", color: "var(--muted)" } }, "Nenhum atleta encontrado.")), filtered.map((a) => /* @__PURE__ */ React.createElement("tr", { key: a.id }, /* @__PURE__ */ React.createElement("td", { "data-label": "Nome" }, a.name), /* @__PURE__ */ React.createElement("td", { "data-label": "CPF" }, a.cpf), /* @__PURE__ */ React.createElement("td", { "data-label": "Nascimento" }, formatDate(a.birth_date)), /* @__PURE__ */ React.createElement("td", { "data-label": "Faixa" }, beltLabels[a.belt] || a.belt), /* @__PURE__ */ React.createElement("td", { "data-label": "Academia" }, a.team?.name || /* @__PURE__ */ React.createElement("span", { style: { color: "var(--muted)" } }, "Sem academia")), /* @__PURE__ */ React.createElement("td", { "data-label": "Editar" }, /* @__PURE__ */ React.createElement("a", { className: "atleta-edit-btn", href: `/atletas/${a.id}`, title: "Editar" }, "\u270E"))))))), total > PAGE_SIZE && /* @__PURE__ */ React.createElement("div", { className: "atletas-pagination" }, /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", disabled: offset === 0, onClick: () => load(offset - PAGE_SIZE) }, "\xAB Anterior"), /* @__PURE__ */ React.createElement("span", null, Math.floor(offset / PAGE_SIZE) + 1, " / ", Math.ceil(total / PAGE_SIZE)), /* @__PURE__ */ React.createElement("button", { className: "secondary compact-button", disabled: offset + PAGE_SIZE >= total, onClick: () => load(offset + PAGE_SIZE) }, "Proxima \xBB"))));
-  }
-  function AtletaEditPage({ athleteId }) {
+    const rows = filtered.length === 0 ? [
+      h("tr", { key: "empty" }, h("td", { colSpan: "6", style: { textAlign: "center", color: "var(--muted)" } }, "Nenhum atleta encontrado."))
+    ] : filtered.map((a) => h("tr", { key: a.id },
+      h("td", { "data-label": "Nome" }, a.name),
+      h("td", { "data-label": "CPF" }, a.cpf),
+      h("td", { "data-label": "Nascimento" }, formatDate(a.birth_date)),
+      h("td", { "data-label": "Faixa" }, beltLabels[a.belt] || a.belt),
+      h("td", { "data-label": "Academia" }, a.team?.name || h("span", { style: { color: "var(--muted)" } }, "Sem academia")),
+      h("td", { "data-label": "Editar" }, h("a", { className: "atleta-edit-btn", href: `/atletas/${a.id}`, title: "Editar" }, "✎"))
+    ));
+    return h("section", { className: "workspace stack" },
+      h("section", { className: "panel atletas-list-panel" },
+        h("div", { className: "section-heading" },
+          h("h2", null, "Atletas Cadastrados"),
+          h("span", null, loading ? "Carregando atletas..." : `${filtered.length} exibido(s) de ${total} atleta(s)`)
+        ),
+        h("div", { className: "filters single", style: { marginBottom: "14px" } },
+          h("input", {
+            type: "search",
+            placeholder: "Buscar por nome, CPF ou academia...",
+            value: search,
+            onChange: (e) => setSearch(e.target.value),
+            style: { width: "100%" }
+          })
+        ),
+        loading && h("p", { className: "message" }, "Carregando todos os atletas..."),
+        h(Message, { text: message[0], type: message[1] }),
+        !loading && h("div", { className: "checkin-table-wrap" },
+          h("table", { className: "checkin-table atletas-table" },
+            h("thead", null,
+              h("tr", null,
+                h("th", null, "Nome"),
+                h("th", null, "CPF"),
+                h("th", null, "Nascimento"),
+                h("th", null, "Faixa"),
+                h("th", null, "Academia"),
+                h("th", null)
+              )
+            ),
+            h("tbody", null, rows)
+          )
+        )
+      )
+    );
+  }  function AtletaEditPage({ athleteId }) {
     const [form, setForm] = useState(null);
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);

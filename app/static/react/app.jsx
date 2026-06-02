@@ -318,17 +318,24 @@ function AtletasListPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(["", ""]);
-  const PAGE_SIZE = 50;
-  const [offset, setOffset] = useState(0);
+  const PAGE_SIZE = 100;
 
-  async function load(off = 0, q = search) {
+  async function loadAll() {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ limit: PAGE_SIZE, offset: off });
-      const data = await fetchJson(`/athletes?${params}`);
-      setAthletes(data.items);
-      setTotal(data.total);
-      setOffset(off);
+      let allItems = [];
+      let nextOffset = 0;
+      let totalItems = 0;
+      do {
+        const params = new URLSearchParams({ limit: PAGE_SIZE, offset: nextOffset });
+        const data = await fetchJson(`/athletes?${params}`);
+        allItems = [...allItems, ...data.items];
+        totalItems = data.total;
+        nextOffset += PAGE_SIZE;
+      } while (allItems.length < totalItems);
+      setAthletes(allItems);
+      setTotal(totalItems);
+      setMessage(["", ""]);
     } catch (err) {
       setMessage([err.message, "error"]);
     } finally {
@@ -336,7 +343,7 @@ function AtletasListPage() {
     }
   }
 
-  useEffect(() => { load(0); }, []);
+  useEffect(() => { loadAll(); }, []);
 
   const filtered = athletes.filter((a) => {
     if (!search) return true;
@@ -359,7 +366,7 @@ function AtletasListPage() {
       <section className="panel atletas-list-panel">
         <div className="section-heading">
           <h2>Atletas Cadastrados</h2>
-          <span>{total} atleta(s) no total</span>
+          <span>{loading ? "Carregando atletas..." : `${filtered.length} exibido(s) de ${total} atleta(s)`}</span>
         </div>
         <div className="filters single" style={{marginBottom: "14px"}}>
           <input
@@ -370,7 +377,7 @@ function AtletasListPage() {
             style={{width:"100%"}}
           />
         </div>
-        {loading && <p className="message">Carregando...</p>}
+        {loading && <p className="message">Carregando todos os atletas...</p>}
         <Message text={message[0]} type={message[1]} />
         {!loading && (
           <div className="checkin-table-wrap">
@@ -405,18 +412,10 @@ function AtletasListPage() {
             </table>
           </div>
         )}
-        {total > PAGE_SIZE && (
-          <div className="atletas-pagination">
-            <button className="secondary compact-button" disabled={offset === 0} onClick={() => load(offset - PAGE_SIZE)}>&#171; Anterior</button>
-            <span>{Math.floor(offset / PAGE_SIZE) + 1} / {Math.ceil(total / PAGE_SIZE)}</span>
-            <button className="secondary compact-button" disabled={offset + PAGE_SIZE >= total} onClick={() => load(offset + PAGE_SIZE)}>Proxima &#187;</button>
-          </div>
-        )}
       </section>
     </section>
   );
 }
-
 function AtletaEditPage({ athleteId }) {
   const [form, setForm] = useState(null);
   const [teams, setTeams] = useState([]);
