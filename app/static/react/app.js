@@ -309,7 +309,8 @@
         )
       )
     );
-  }  function AtletaEditPage({ athleteId }) {
+  }
+  function AtletaEditPage({ athleteId }) {
     const [form, setForm] = useState(null);
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
